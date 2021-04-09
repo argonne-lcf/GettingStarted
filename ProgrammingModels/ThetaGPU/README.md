@@ -3,14 +3,14 @@
 The examples in this directory demonstrate compiling and running examples for different programming models.
 
 Users can access ThetaGPU resources by first sshing into Theta and entering passcode.
-
+```
 ssh username@theta.alcf.anl.gov
-
+```
 An interactive job to access a ThetaGPU compute to build and test applications can be launched as follows from a Theta login node.
-
+```
 module load cobalt/cobalt-gpu
 qsub -I -n 1 -t 60 -q single-gpu -A <PROJECT>
-
+```
 Additional info on submitting jobs on Theta/ThetaGPU is available here:
 
 

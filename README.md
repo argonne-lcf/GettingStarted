@@ -4,22 +4,24 @@ Contained herein is a collection of material (source code, scripts, examples, et
 
 Material here is typically developed for and used during ALCF training workshops, such as the ALCF Computational Performance Workshops typically held in the Spring and the ALCF Simulation, Data, and Learning Workshops in the Fall.
 
-The ALCF Performance Engineering group has additional helpful material available here: https://github.com/alcf-perfengr.
+The ALCF Performance Engineering group has additional helpful material available [here][1].
 
 If not sure where to start, then a good place may be perusing ProgrammingModels for the resource of interest to gain experience compiling codes and submitting jobs.
 
 ## Contents
 
 <ol>
-<li> Applications: Example Makefiles, build scripts, etc... for some applications <\li>
-<li> DataScience: Data & Learning examples with pointers to additional Tutorials <\li>
-<li> Debug: Simple examples using available debugging tools <\li>
-<li> Examples: Collection of examples demonstrating common tasks (e.g. compilation & setting affinity) <\li>
-<li> Performance: Simple examples using availble performance tools <\li>
-<li> ProgrammingModels: Simple examples using supported programming models <\li>
-<\ol>
-
+<li> Applications: Example Makefiles, build scripts, etc... for some applications
+<li> DataScience: Data & Learning examples with pointers to additional Tutorials
+<li> Debug: Simple examples using available debugging tools
+<li> Examples: Collection of examples demonstrating common tasks (e.g. compilation & setting affinity)
+<li> Performance: Simple examples using availble performance tools
+<li> ProgrammingModels: Simple examples using supported programming models
 
 # ThetaGPU
 
-ThetaGPU is an extension of Theta and is comprised of 24 NVIDIA DGX A100 nodes, each with eight NVIDIA A100 Tensor Core GPUs and two AMD Rome CPUs. Additional hardware information is available here: https://www.alcf.anl.gov/support-center/theta/theta-thetagpu-overview#theta-gpu
+ThetaGPU is an extension of Theta and is comprised of 24 NVIDIA DGX A100 nodes, each with eight NVIDIA A100 Tensor Core GPUs and two AMD Rome CPUs. Additional hardware information is available [here][2]. 
+
+[1]: https://github.com/alcf-perfengr
+
+[2]: https://www.alcf.anl.gov/support-center/theta/theta-thetagpu-overview#theta-gpu

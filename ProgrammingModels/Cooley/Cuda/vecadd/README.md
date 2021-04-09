@@ -1,5 +1,5 @@
 # Compilation
-
+```
 soft add +intel-composer-xe
 soft add +mvapich2-intel
 soft add +cuda-10.2
@@ -8,7 +8,7 @@ make clean
 make
 
 qsub ./submit.sh
-
+```
 ## Example output:
 ```
 # of devices= 2

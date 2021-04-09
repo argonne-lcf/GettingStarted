@@ -1,5 +1,5 @@
 # Compilation w/ GCC
-
+```
 module load cobalt/cobalt-gpu
 qsub -I -n 1 -t 60 -q single-gpu -A Catalyst
 
@@ -7,7 +7,7 @@ make clean
 make
 
 ./submit.sh
-
+```
 ## Example output:
 ```
 Running on GPU!

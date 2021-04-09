@@ -1,5 +1,5 @@
 # Compilation w/ GCC
-
+```
 module load cobalt/cobalt-gpu
 qsub -I -n 1 -t 60 -q single-gpu -A Catalyst
 
@@ -7,7 +7,7 @@ make clean
 make
 
 ./submit.sh
-
+```
 ## Example output:
 ```
 # of devices= 1
@@ -28,7 +28,7 @@ Using single-precision
 Result is CORRECT!! :)
 ```
 # Compilation w/ NVHPC SDK
-
+```
 qsub -I -n 1 -t 60 -q single-gpu -A Catalyst
 
 module load nvhpc-21.2-gcc-10.2.0-qjwyhvd
@@ -37,7 +37,7 @@ make -f Makefile.nvhpc clean
 make -f Makefile.nvhpc
 
 ./submit.sh
-
+```
 ## Example output:
 ```
 # of devices= 1
