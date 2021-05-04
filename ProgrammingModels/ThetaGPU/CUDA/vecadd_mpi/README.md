@@ -1,7 +1,7 @@
 # Compilation w/ GCC
 ```
 module load cobalt/cobalt-gpu
-qsub -I -n 1 -t 60 -q single-gpu -A Catalyst
+qsub -I -n 1 -t 15 -q full-node -A Catalyst
 
 make clean
 make
@@ -51,7 +51,7 @@ Result is CORRECT!! :)
 ```
 # Compilation w/ NVHPC SDK & ALCF provided OpenMPI
 ```
-qsub -I -n 1 -t 60 -q single-gpu -A Catalyst
+qsub -I -n 1 -t 15 -q full-node -A Catalyst
 
 module load nvhpc-nompi/21.3
 
