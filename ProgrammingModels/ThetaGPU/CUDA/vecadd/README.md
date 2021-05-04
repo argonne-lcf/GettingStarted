@@ -27,11 +27,11 @@ Using single-precision
 
 Result is CORRECT!! :)
 ```
-# Compilation w/ NVHPC SDK
+# Compilation w/ NVHPC SDK w/ ALCF provided OpenMPI
 ```
 qsub -I -n 1 -t 60 -q single-gpu -A Catalyst
 
-module load nvhpc-21.2-gcc-10.2.0-qjwyhvd
+module load nvhpc-nompi/21.3
 
 make -f Makefile.nvhpc clean
 make -f Makefile.nvhpc
