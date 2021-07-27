@@ -15,5 +15,13 @@
 
 
 # single-node MPI+OpenMP example w/ 4 MPI ranks per node, 16 OpenMP threads per rank
-#mpirun -n 4 -N 4 -hostfile ${COBALT_NODEFILE} --map-by node:PE=16 -x OMP_NUM_THREADS=16 ./hello_affinity
-mpirun -n 4 -N 4 -hostfile ${COBALT_NODEFILE} --map-by node:PE=16 -x OMP_NUM_THREADS=16 -x OMP_PLACES=cores ./hello_affinity
+NNODES=`wc -l < $COBALT_NODEFILE`
+NRANKS=4
+NDEPTH=16
+NTHREADS=16
+
+NTOTRANKS=$(( NNODES * NRANKS ))
+echo "NUM_OF_NODES= ${NNODES} TOTAL_NUM_RANKS= ${NTOTRANKS} RANKS_PER_NODE= ${NRANKS} THREADS_PER_RANK= ${NTHREADS}"
+
+#mpirun -n ${NTOTRANKS} -N ${NRANKS} -hostfile ${COBALT_NODEFILE} --map-by node:PE=${NDEPTH} -x OMP_NUM_THREADS=${NTHREADS} ./hello_affinity
+mpirun -n ${NTOTRANKS} -N ${NRANKS} -hostfile ${COBALT_NODEFILE} --map-by node:PE=${NDEPTH} -x OMP_NUM_THREADS=${NTHREADS} -x OMP_PLACES=cores ./hello_affinity
