@@ -1,5 +1,5 @@
-# theta = Flags for Knights Landing Xeon Phi Processor, Intel Compiler, Cray MPI, MKL FFT
-# make theta -j 8
+# thetagpu = Flags for NVIDIA DGX A100, GNU Compiler, OpenMPI, CUDA
+# make thetagpu -j 8
 
 SHELL = /bin/sh
 
@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-KOKKOS_DEVICES = Cuda
+KOKKOS_DEVICES = Cuda,OpenMP
 KOKKOS_ARCH = Ampere80
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 export MPICH_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
@@ -121,6 +121,6 @@ depend : fastdep.exe $(SRC)
 	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
 
 fastdep.exe: ../DEPEND/fastdep.c
-	icc -O -o $@ $<
+	gcc -O -o $@ $<
 
 sinclude .depend
