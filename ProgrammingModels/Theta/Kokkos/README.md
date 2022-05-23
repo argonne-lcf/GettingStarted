@@ -23,7 +23,7 @@ Note:  the Kokkos Project strives to keep the master branch stable.
 ## Step 2:  Make sure that a relatively new version of CMake is available.
  
 ```sh
-module load cmake/3.14.5
+module load cmake/3.18.0
 ```
  
 ## Step 3:  Create a build directory.

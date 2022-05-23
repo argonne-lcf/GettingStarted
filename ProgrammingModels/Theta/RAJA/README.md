@@ -30,7 +30,7 @@ RAJA includes an example build script for Theta that you can use.
 A quick example is below.
 
 ```
-module load cmake/3.14.5
+module load cmake/3.18.0
 cd raja
 cp scripts/alcf-builds/theta_intel18.sh .
 ./theta_intel18.sh
