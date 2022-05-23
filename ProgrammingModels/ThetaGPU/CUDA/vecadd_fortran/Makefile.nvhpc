@@ -1,5 +1,5 @@
-#module module use /lus/theta-fs0/software/environment/thetagpu/lmod/tmp
-#module switch openmpi/openmpi-4.0.5 openmpi-4.1.0_nvhpc-21.3
+#module load nvhpc-nompi
+#module switch openmpi/openmpi-4.0.5 openmpi/openmpi-4.0.5_ucx-1.10.0_nvhpc-21.7
 #
 # Definition of MACROS
 

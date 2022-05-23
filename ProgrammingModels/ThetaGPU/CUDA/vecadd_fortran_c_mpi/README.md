@@ -48,17 +48,19 @@ Using single-precision
   Single precision performance ratio= 2
  Result is CORRECT!!! :)
 ```
-# Compilation w/ NVHPC SDK w/ ALCF provided OpenMPI
+# Compilation w/ NVHPC SDK & ALCF provided OpenMPI
 ```
 qsub -I -n 1 -t 15 -q full-node -A Catalyst
 
-module use /lus/theta-fs0/software/environment/thetagpu/lmod/tmp
-module switch openmpi/openmpi-4.0.5 openmpi-4.1.0_nvhpc-21.3 
+module load nvhpc-nompi
+module switch openmpi/openmpi-4.0.5 openmpi/openmpi-4.0.5_ucx-1.10.0_nvhpc-21.7
 
 make -f Makefile.nvhpc clean
 make -f Makefile.nvhpc
 
 ./submit.sh
+```
+# Example output
 ```
 Rank 1 running on GPU 1!
 Rank 2 running on GPU 2!

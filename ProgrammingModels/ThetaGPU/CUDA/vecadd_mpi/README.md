@@ -54,6 +54,7 @@ Result is CORRECT!! :)
 qsub -I -n 1 -t 15 -q full-node -A Catalyst
 
 module load nvhpc-nompi/21.3
+module switch openmpi openmpi/openmpi-4.0.5_ucx-1.10.0_nvhpc-21.7
 
 make -f Makefile.nvhpc clean
 make -f Makefile.nvhpc

@@ -1,5 +1,5 @@
-#module use /lus/theta-fs0/software/environment/thetagpu/lmod/tmp
-#module switch openmpi/openmpi-4.0.5 openmpi-4.1.0_nvhpc-21.3
+#module load nvhpc-nompi
+#module switch openmpi/openmpi-4.0.5 openmpi/openmpi-4.0.5_ucx-1.10.0_nvhpc-21.7
 #
 # Definition of MACROS
 
@@ -10,7 +10,7 @@ $(info PATH_TO_NVHPC= [${PATH_TO_NVHPC}])
 
 CUDA = ${PATH_TO_NVHPC}/cuda
 
-export OMPI_MPIF90=pgf90
+export OMPI_MPIFC=pgf90
 
 F90 = mpif90
 F90FLAGS = -g -Mfree -Mcuda=cc80,cuda11.0 -O3 -I$(CUDA)/include

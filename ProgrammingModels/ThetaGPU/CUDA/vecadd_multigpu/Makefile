@@ -1,18 +1,7 @@
-# Use NVIDIA compilers w/ ALCF provided OpenMPI
-#
-# module load nvhpc-nompi
 #
 # Definition of MACROS
 
-PATH_TO_NVCC = $(shell which nvcc)
-PATH_TO_NVHPC = $(shell echo ${PATH_TO_NVCC} | rev | cut -d '/' -f 4- | rev)
-
-$(info PATH_TO_NVHPC= [${PATH_TO_NVHPC}])
-
-CUDA = ${PATH_TO_NVHPC}/cuda
-
-export OMPI_MPICC=pgc
-export OMPI_MPICXX=pgc++
+CUDA = /usr/local/cuda
 
 CXX = mpicxx
 CXXFLAGS = -g -O3 -std=c++0x -I$(CUDA)/include
@@ -26,7 +15,7 @@ CPP = cpp -P -traditional
 CPPFLAGS =
 
 LD = $(CXX)
-LIB = -L$(CUDA)/lib64 -lcudart
+LIB = -L$(CUDA)/lib64 -lcuda -lcudart
 
 BINROOT=./
 EX=vecadd

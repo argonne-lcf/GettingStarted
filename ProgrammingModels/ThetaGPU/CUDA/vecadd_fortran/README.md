@@ -1,10 +1,9 @@
-```
-# Compilation w/ NVHPC SDK w/ ALCF provided OpenMPI
+# Compilation w/ NVHPC SDK & ALCF provided OpenMPI
 ```
 qsub -I -n 1 -t 60 -q single-gpu -A Catalyst
 
-module use /lus/theta-fs0/software/environment/thetagpu/lmod/tmp
-module switch openmpi/openmpi-4.0.5 openmpi-4.1.0_nvhpc-21.3 
+module load nvhpc-nompi
+module switch openmpi/openmpi-4.0.5 openmpi/openmpi-4.0.5_ucx-1.10.0_nvhpc-21.7
 
 make -f Makefile.nvhpc clean
 make -f Makefile.nvhpc
@@ -13,5 +12,17 @@ make -f Makefile.nvhpc
 ```
 ## Example output:
 ```
-{1, 2, 3, 4, 5} + {10, 20, 30, 40, 50} = { 11 22 33 44 55}
+ # of devices=             1
+ Running on GPU             0
+ Name= NVIDIA A100-SXM4-40GB
+ Locally unique identifier= 
+ Clock Frequency(KHz)=     1410000.    
+ Major compute capability=             8
+ Minor compute capability=             0
+ Number of multiprocessors on device=           108
+ Warp size in threads=            32
+ Single precision performance ratio=             2
+ 
+ Result is CORRECT!! :)
+
 ```
