@@ -1,6 +1,6 @@
 # ProgrammingModels
 
-The examples in this directory demonstrate compiling and running examples for different programming models.
+The simple examples in this directory demonstrate compiling and running codes for different programming models with some created during prior ALCF workshops.
 
 Additional information on each production resource is available [here][1].
 
