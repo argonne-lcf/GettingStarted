@@ -41,19 +41,26 @@ void get_cores(char *str)
 
 int main(int argc, char *argv[])
 {
-  int rnk;
+  int rnk,nrnk;
   char nname[16];
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rnk);
+  MPI_Comm_size(MPI_COMM_WORLD, &nrnk);
   gethostname(nname, 16);
 
-  #pragma omp parallel
-  {
-    char list_cores[7*CPU_SETSIZE];
-    get_cores(list_cores);
-    #pragma omp barrier
-    printf("To affinity and beyond!! nname= %s  rnk= %d  tid= %d: list_cores= (%s)\n",
-            nname, rnk, omp_get_thread_num(), list_cores);
+  for(int i=0; i<nrnk; ++i) {
+    if(i == rnk) { 
+      #pragma omp parallel for ordered
+      for(int it=0; it<omp_get_num_threads(); ++it) {
+        char list_cores[7*CPU_SETSIZE];
+        get_cores(list_cores);
+        #pragma omp ordered
+        printf("To affinity and beyond!! nname= %s  rnk= %d  tid= %d: list_cores= (%s)\n",
+                nname, rnk, omp_get_thread_num(), list_cores);
+      }
+      printf("\n");
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
   }
   MPI_Finalize();
 }

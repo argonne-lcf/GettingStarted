@@ -1,9 +1,5 @@
 #!/bin/bash
-#COBALT -n 1
-#COBALT -t 30
-#COBALT -A SDL_Workshop
-#COBALT -q training
-#COBALT --attrs mcdram=cache:numa=quad
+#COBALT -n 2 -t 30 -A Comp_Perf_Workshop -q comp_perf_workshop --attrs mcdram=cache:numa=quad --attrs filesystems=home,theta-fs0
 
 echo "COBALT_JOBID = " $COBALT_JOBID
 echo "COBALT_JOBSIZE (nodes) =" $COBALT_JOBSIZE

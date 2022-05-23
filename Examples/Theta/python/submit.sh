@@ -10,7 +10,7 @@
 # -- 
 # -- https://www.alcf.anl.gov/user-guides/conda
 
-module load miniconda-3.6/conda-4.5.12
+module load miniconda-3/latest
 aprun -n 64 -N 64 -d 1 -j 1 -cc depth -e OMP_NUM_THREADS=1 python ./hello_world.py
 
 

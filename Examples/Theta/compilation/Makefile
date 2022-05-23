@@ -3,11 +3,13 @@
 # c++ use "CC"
 # fortran use "ftn"
 
-
 CC=cc
 
+WHICHCC=$(shell which $(CC))
+CRAYVERB=$(shell $(CC) -craype-verbose))
+
 hellompi: hellompi.c
-	which $(CC)
+	$(info "which ${CC}"=  $(WHICHCC))
 	$(CC) -g -O0 -o hellompi hellompi.c
 
 
