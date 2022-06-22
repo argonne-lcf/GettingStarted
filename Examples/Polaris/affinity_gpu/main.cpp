@@ -70,14 +70,11 @@ int main(int argc, char *argv[])
 
   char nname[16];
   gethostname(nname, 16);
-  
+ 
   // Initialize gpu
 
   int num_devices;
   cudaGetDeviceCount(&num_devices); // should just be one per MPI rank
-
-  int gpu_id;
-  cudaGetDevice(&gpu_id);
 
   if(rnk == 0) printf("rnk= %i :  # of devices detected= %i\n",rnk, num_devices);
   MPI_Barrier(MPI_COMM_WORLD);
@@ -95,7 +92,6 @@ int main(int argc, char *argv[])
       for(int id=0; id<num_devices; ++id) {	
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, id);
-	//	printf("    [%i,%i] Platform[ Nvidia ] Type[ GPU ] Device[ %s ]  uuid= %lu\n",rnk, 0, prop.name, prop.uuid);
 	printf("    [%i,%i] Platform[ Nvidia ] Type[ GPU ] Device[ %s ]  uuid= ",rnk, id, prop.name);
 	uuid_print(prop.uuid);
 	printf("\n");
