@@ -13,18 +13,19 @@ CC -g -O3 -std=c++0x -acc=gpu -gpu=cc80,cuda11.0 -c main.cpp
 CC -o vecadd -g -O3 -std=c++0x -acc=gpu -gpu=cc80,cuda11.0 main.o
 ```
 ## Compilation flags
-Important compilation flags for OpenACC with the NVIDIA compilers are `-acc=gpu -gpu=cc80,cuda11.0`.
+Important compilation flags for OpenACC with the NVIDIA compilers are `-acc=gpu -gpu=cc80,cuda11.0`. In this example, each MPI rank sees all four GPUs on a Polaris node and GPUs are bound to MPI ranks round-robin within the application.
 
 ## Example output:
 ```
 $ mpiexec -n 4 ./vecadd
 # of devices= 4
-Rank 0 running on GPU 0!
 Using single-precision
 
+Rank 0 running on GPU 0!
+Rank 1 running on GPU 1!
+Rank 2 running on GPU 2!
+Rank 3 running on GPU 3!
 
 Result is CORRECT!! :)
-Rank 1 running on GPU 1!
-Rank 3 running on GPU 3!
-Rank 2 running on GPU 2!
 ```
+

@@ -1,5 +1,4 @@
 #!/bin/sh
-#COBALT -n 2 -t 15 -q training-gpu -A Catalyst
 
 # MPI example w/ 16 MPI ranks per node spread evenly across cores
 NNODES=`wc -l < $PBS_NODEFILE`

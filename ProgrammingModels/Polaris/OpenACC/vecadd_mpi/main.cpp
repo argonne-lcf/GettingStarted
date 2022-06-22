@@ -65,6 +65,9 @@ int main( int argc, char* argv[] )
   // Device ID
 
   int device_id = me % num_devices;
+
+  acc_set_device_num(device_id, acc_device_nvidia);
+  
   for(int i=0; i<nranks; ++i) {
     if(i == me) {
       printf("Rank %i running on GPU %i!\n",me,device_id);
