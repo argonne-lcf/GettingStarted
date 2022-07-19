@@ -1,9 +1,8 @@
 # Compilation w/ Cray compiler wrappers
-While not necessary to compile this non-GPU code on a compute node, doing so in an interactive job will allow one to quickly explore `mpiexec` settings within a single job.
+Users are able to build applications on the Polaris login nodes, but may find it convenient to build and test applications on the Polaris compute nodes in short interactive jobs. This also has the benefit of allowing one to quickly submission scripts and allow one to quickly explore `mpiexec` settings within a single job.
 ```
 $ qsub -I -l select=2,walltime=0:30:00
 
-$ module load craype-accel-nvidia80
 $ make clean
 $ make
 
@@ -13,6 +12,12 @@ $ ./submit.sh
 The following submission script will launch 16 MPI ranks on each node allocated. The MPI ranks are bound to CPUS with a depth (stride) of 4.
 ```
 #!/bin/sh
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=0:30:00
+#PBS -q workq 
+
+cd ${PBS_O_WORKDIR}
 
 # MPI example w/ 16 MPI ranks per node spread evenly across cores
 NNODES=`wc -l < $PBS_NODEFILE`

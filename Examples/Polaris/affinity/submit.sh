@@ -1,4 +1,10 @@
 #!/bin/sh
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=0:30:00
+#PBS -q workq 
+
+cd ${PBS_O_WORKDIR}
 
 # MPI example w/ 16 MPI ranks per node spread evenly across cores
 NNODES=`wc -l < $PBS_NODEFILE`
