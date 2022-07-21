@@ -14,6 +14,7 @@ CPPFLAGS =
 
 LD = $(CXX)
 LIB = 
+LIB += -L/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/cuda/lib64 -lcudart
 
 BINROOT=./
 EX=vecadd
