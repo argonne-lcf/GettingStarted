@@ -1,27 +1,37 @@
+# Use NVIDIA compilers w/ ALCF provided OpenMPI
+#
+# module load nvhpc-nompi/21.7
 #
 # Definition of MACROS
 
-CXX = CC
-CXXFLAGS = -g -O3 -std=c++0x
-CXXFLAGS += -D_SINGLE_PRECISION
+PATH_TO_NVCC = $(shell which nvcc)
+PATH_TO_NVHPC = $(shell echo ${PATH_TO_NVCC} | rev | cut -d '/' -f 4- | rev)
+
+$(info PATH_TO_NVHPC= [${PATH_TO_NVHPC}])
+
+CUDA = ${PATH_TO_NVHPC}/cuda
+
+export OMPI_MPICC=pgc
+export OMPI_MPICXX=pgc++
+
+CXX = mpicxx
+CXXFLAGS = -g -O3 -std=c++0x -I$(CUDA)/include
 
 CUDA_CXX = nvcc
-CUDA_CXXFLAGS =  -arch=sm_80
-CUDA_CXXFLAGS += -D_SINGLE_PRECISION
+CUDA_CXXFLAGS = 
 
 CPP = cpp -P -traditional
 CPPFLAGS =
 
 LD = $(CXX)
-LIB = 
-LIB += -L/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/cuda/lib64 -lcudart
+LIB = -L$(CUDA)/lib64 -lcudart
 
 BINROOT=./
-EX=vecadd
+EX=hello_affinity
 SHELL=/bin/sh
 
 # -- subset of src files with cuda kernels
-CUDA_SRC = main.cpp
+CUDA_SRC = offload.cpp
 CUDA_OBJ = $(CUDA_SRC:.cpp=.o)
 
 SRC = $(filter-out $(CUDA_SRC), $(wildcard *.cpp))

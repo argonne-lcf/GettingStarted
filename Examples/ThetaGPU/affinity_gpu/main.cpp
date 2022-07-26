@@ -12,17 +12,8 @@
 
 #include <mpi.h>
 
-//https://stackoverflow.com/questions/68823023/set-cuda-device-by-uuid
-void uuid_print(cudaUUID_t a){
-  std::cout << "GPU";
-  std::vector<std::tuple<int, int> > r = {{0,4}, {4,6}, {6,8}, {8,10}, {10,16}};
-  for (auto t : r){
-    std::cout << "-";
-    for (int i = std::get<0>(t); i < std::get<1>(t); i++)
-      std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned)(unsigned char)a.bytes[i];
-  }
-  std::cout << std::endl;
-}
+extern int gpu_num_devices();
+extern void gpu_print_summary(int, int);
 
 // xthi.c from http://docs.cray.com/books/S-2496-4101/html-S-2496-4101/cnlexamples.html
 // util-linux-2.13-pre7/schedutils/taskset.c
@@ -73,8 +64,7 @@ int main(int argc, char *argv[])
  
   // Initialize gpu
 
-  int num_devices;
-  cudaGetDeviceCount(&num_devices); // should just be one per MPI rank
+  int num_devices = gpu_num_devices();
 
   if(rnk == 0) printf("rnk= %i :  # of devices detected= %i\n",rnk, num_devices);
   MPI_Barrier(MPI_COMM_WORLD);
@@ -89,14 +79,7 @@ int main(int argc, char *argv[])
       printf("To affinity and beyond!! nname= %s  rnk= %d  list_cores= (%s)  num_devices= %i\n",
 	     nname, rnk, list_cores, num_devices);
 
-      for(int id=0; id<num_devices; ++id) {	
-	cudaDeviceProp prop;
-	cudaGetDeviceProperties(&prop, id);
-	printf("    [%i,%i] Platform[ Nvidia ] Type[ GPU ] Device[ %s ]  uuid= ",rnk, id, prop.name);
-	uuid_print(prop.uuid);
-	printf("\n");
-      }
-      printf("\n");
+      gpu_print_summary(rnk, num_devices);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);

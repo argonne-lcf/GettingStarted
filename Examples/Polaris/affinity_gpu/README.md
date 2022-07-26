@@ -1,11 +1,10 @@
 # Compilation w/ Cray compiler wrappers
-With the current login node configuration, users are encouraged to build applications on the Polaris compute nodes in an interactive job. This also has the benefit of allowing one to quickly test application and submit script.
+Users are able to build applications on the Polaris login nodes, but may find it convenient to build and test applications on the Polaris compute nodes in short interactive jobs. This also has the benefit of allowing one to quickly submission scripts.
 ```
-$ qsub -I -l select=1,walltime=0:30:00
+$ qsub -I -l select=1,walltime=0:30:00 -A <PROJECT>
 
-$ module load craype-accel-nvidia80
-$ make -f Makefile.nvidia clean
-$ make -f Makefile.nvidia
+$ make -f Makefile.nvhpc clean
+$ make -f Makefile.nvhpc
 
 ./submit.sh
 ```
@@ -13,6 +12,13 @@ $ make -f Makefile.nvidia
 The following submission script will launch 8 MPI ranks on each node allocated. The MPI ranks are bound to CPUS with a depth (stride) of 8.
 ```
 #!/bin/sh
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=0:30:00
+#PBS -q workq 
+#PBS -A <PROJECT>
+
+cd ${PBS_O_WORKDIR}
 
 # MPI example w/ 8 MPI ranks per node spread evenly across cores
 NNODES=`wc -l < $PBS_NODEFILE`
@@ -23,11 +29,11 @@ NTHREADS=1
 NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
 echo "NUM_OF_NODES= ${NNODES} TOTAL_NUM_RANKS= ${NTOTRANKS} RANKS_PER_NODE= ${NRANKS_PER_NODE} THREADS_PER_RANK= ${NTHREADS}"
 
-#mpiexec -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth ./hello_affinity
+mpiexec -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth ./hello_affinity
 ```
 
 ## Example output:
-In the default environment, each MPI rank detects all four GPU available on each Polaris node and targets the first visible device. All MPI ranks end up targeting the same GPU in this case, which may not be ideal.
+In the default environment, each MPI rank detects all four GPU available on each Polaris node and targets the first visible device. All MPI ranks end up targeting the same GPU in this case, which may not be ideal. The following output was generated during an interactive job on a compute node.
 ```
 ./submit.sh 
 NUM_OF_NODES= 1 TOTAL_NUM_RANKS= 8 RANKS_PER_NODE= 8 THREADS_PER_RANK= 1
@@ -91,6 +97,10 @@ gpu=$((${PMI_LOCAL_RANK} % ${num_gpus}))
 export CUDA_VISIBLE_DEVICES=$gpu
 echo “RANK= ${PMI_RANK} LOCAL_RANK= ${PMI_LOCAL_RANK} gpu= ${gpu}”
 exec "$@"
+```
+The script can then be inserted in the `mpiexec` command before the application appears as in the following example.
+```
+mpiexec -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth ./set_affinity_gpu_polaris.sh ./hello_affinity
 ```
 ## Example output
 After careful inspection of the reported uuids one can confirm that the GPUs were assigned to MPI ranks round-robin.

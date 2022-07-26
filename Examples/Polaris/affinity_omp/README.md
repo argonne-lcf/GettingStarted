@@ -1,7 +1,7 @@
 # Compilation w/ Cray compiler wrappers
-While not necessary to compile this non-GPU code on a compute node, doing so in an interactive job will allow one to quickly explore `mpiexec` settings within a single job.
+Users are able to build applications on the Polaris login nodes, but may find it convenient to build and test applications on the Polaris compute nodes in short interactive jobs. This also has the benefit of allowing one to quickly submission scripts and allow one to quickly explore `mpiexec` settings within a single job.
 ```
-qsub -I -l select=2,walltime=0:30:00
+qsub -I -l select=2,walltime=0:30:00 -A <PROJECT>
 
 make clean
 make
@@ -9,7 +9,7 @@ make
 ./submit.sh
 ```
 ## Example output:
-This examples launches 16 MPI ranks on each node with 4 OpenMP threads each bound to a single core.
+This examples launches 16 MPI ranks on each node with 4 OpenMP threads each bound to a single core. The example below is from running in an interactive job on a Polaris compute node.
 ```
 $ ./submit.sh 
 NUM_OF_NODES= 2 TOTAL_NUM_RANKS= 32 RANKS_PER_NODE= 16 THREADS_PER_RANK= 4

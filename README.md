@@ -31,8 +31,14 @@ Theta is a Cray XC40, 11.7 petaflops system based on the second-generation Intel
 
 ThetaGPU is an extension of Theta and is comprised of 24 NVIDIA DGX A100 nodes, each with eight NVIDIA A100 Tensor Core GPUs and two AMD Rome CPUs. Additional hardware information is available [here][3]. 
 
+## Polaris
+
+Polaris is the newest ALCF system with 560 nodes, each with one AMD Milan CPU (32 cores) and four NVIDIA A100 GPUs. Additional information on using the system is available [here][4].
+
 [1]: https://www.alcf.anl.gov/support-center/cooley/cooley-system-overview
 
 [2]: https://www.alcf.anl.gov/support-center/theta/theta-thetagpu-overview
 
 [3]: https://www.alcf.anl.gov/support-center/theta/theta-thetagpu-overview#theta-gpu
+
+[4]: https://argonne-lcf.github.io/polaris-userdocs/polaris/getting-started/
