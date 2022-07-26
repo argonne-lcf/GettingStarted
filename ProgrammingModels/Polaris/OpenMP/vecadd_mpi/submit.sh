@@ -15,6 +15,9 @@ NTHREADS=1
 NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
 echo "NUM_OF_NODES= ${NNODES} TOTAL_NUM_RANKS= ${NTOTRANKS} RANKS_PER_NODE= ${NRANKS_PER_NODE} THREADS_PER_RANK= ${NTHREADS}"
 
-nvidia-smi
+# Uncomment if using llvm compiler
+#module load llvm
+#module load cudatoolkit-standalone
+#module load mpiwrappers/cray-mpich-llvm
 
 mpiexec -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth ./vecadd
