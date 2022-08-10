@@ -15,7 +15,7 @@ The following submission script will launch 16 MPI ranks on each node allocated.
 #PBS -l select=1:system=polaris
 #PBS -l place=scatter
 #PBS -l walltime=0:30:00
-#PBS -q workq 
+#PBS -q debug 
 #PBS -A <PROJECT>
 
 cd ${PBS_O_WORKDIR}

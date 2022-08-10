@@ -2,7 +2,8 @@
 #PBS -l select=1:system=polaris
 #PBS -l place=scatter
 #PBS -l walltime=0:30:00
-#PBS -q workq 
+#PBS -q debug
+#PBS -A Catalyst
 
 cd ${PBS_O_WORKDIR}
 
@@ -14,10 +15,5 @@ NTHREADS=1
 
 NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
 echo "NUM_OF_NODES= ${NNODES} TOTAL_NUM_RANKS= ${NTOTRANKS} RANKS_PER_NODE= ${NRANKS_PER_NODE} THREADS_PER_RANK= ${NTHREADS}"
-
-# Uncomment if using llvm compiler
-#module load llvm
-#module load cudatoolkit-standalone
-#module load mpiwrappers/cray-mpich-llvm
 
 mpiexec -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth ./vecadd
