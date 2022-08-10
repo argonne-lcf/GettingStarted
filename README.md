@@ -41,4 +41,4 @@ Polaris is the newest ALCF system with 560 nodes, each with one AMD Milan CPU (3
 
 [3]: https://www.alcf.anl.gov/support-center/theta/theta-thetagpu-overview#theta-gpu
 
-[4]: https://argonne-lcf.github.io/polaris-userdocs/polaris/getting-started/
+[4]: https://www.alcf.anl.gov/support/user-guides/polaris/hardware-overview/machine-overview/index.html
