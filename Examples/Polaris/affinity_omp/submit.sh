@@ -1,8 +1,9 @@
 #!/bin/sh
-#PBS -l select=vnode=x3006c0s25b0n0:system=polaris
+#PBS -l select=1:system=polaris
 #PBS -l place=scatter
 #PBS -l walltime=0:30:00
 #PBS -q debug 
+#PBS -A Catalyst
 
 cd ${PBS_O_WORKDIR}
 

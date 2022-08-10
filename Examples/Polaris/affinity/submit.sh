@@ -3,6 +3,7 @@
 #PBS -l place=scatter
 #PBS -l walltime=0:30:00
 #PBS -q debug 
+#PBS -A Catalyst
 
 cd ${PBS_O_WORKDIR}
 
