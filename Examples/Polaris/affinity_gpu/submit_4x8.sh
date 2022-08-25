@@ -5,7 +5,7 @@
 #PBS -q debug 
 #PBS -A Catalyst
 
-#cd ${PBS_O_WORKDIR}
+cd ${PBS_O_WORKDIR}
 
 # MPI example w/ 8 MPI ranks per node spread evenly across cores
 NNODES=`wc -l < $PBS_NODEFILE`
