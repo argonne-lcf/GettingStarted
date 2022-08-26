@@ -7,9 +7,9 @@
 
 cd ${PBS_O_WORKDIR}
 
-# MPI example w/ 8 MPI ranks per node spread evenly across cores
+# MPI example w/ 4 MPI ranks per node spread evenly across cores
 NNODES=`wc -l < $PBS_NODEFILE`
-NRANKS_PER_NODE=8
+NRANKS_PER_NODE=4
 NDEPTH=8
 NTHREADS=1
 
