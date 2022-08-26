@@ -1,7 +1,9 @@
 #!/bin/sh
-#PBS -l select=64:system=polaris
+#PBS -l select=1:system=polaris
 #PBS -l place=scatter
 #PBS -l walltime=0:15:00
+#PBS -q debug
+#PBS -A Catalyst
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 

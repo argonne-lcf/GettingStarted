@@ -3,7 +3,7 @@ OpenCL applications can be built on Polaris using the NVIDIA or GNU programming 
 
 # Compilation with NVIDIA compilers
 ```
-$ qsub -I -l select=1,walltime=1:00:00
+$ qsub -I -l select=1,walltime=1:00:00 -q debug -A <PROJECT>
 
 $ module load craype-accel-nvidia80
 $ make Makefile.nvidia clean
