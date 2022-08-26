@@ -3,7 +3,7 @@ OpenACC applications can be built on Polaris using the NVIDIA programming enviro
 
 # Compilation with NVIDIA compilers
 ```
-$ qsub -I -l select=1,walltime=1:00:00
+$ qsub -I -l select=1,walltime=1:00:00 -q debug -A <PROJECT>
 
 $ module load craype-accel-nvidia80
 $ make -f Makefile.nvidia clean

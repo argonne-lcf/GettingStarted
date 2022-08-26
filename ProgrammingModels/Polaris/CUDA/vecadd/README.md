@@ -3,7 +3,7 @@ CUDA applications can be built on Polaris using the NVIDIA or GNU programming en
 
 # Compilation with NVIDIA compilers
 ```
-$ qsub -I -l select=1,walltime=1:00:00
+$ qsub -I -l select=1,walltime=1:00:00 -q debug -A <PROJECT>
 
 $ module load craype-accel-nvidia80
 $ make -f Makefile.nvidia clean
@@ -43,7 +43,7 @@ Result is CORRECT!! :)
 # Compilation w/ GNU compilers
 GNU compilers here are used only for compiling code targeting the CPUS. The NVIDIA compilers (e.g. `nvcc`) are still used to generate offloadable code for the GPUs.
 ```
-$ qsub -I -l select=1,walltime=1:00:00
+$ qsub -I -l select=1,walltime=1:00:00 -q debug -A <PROJECT>
 
 $ module switch PrgEnv-nvidia/8.3.3 PrgEnv-gnu
 $ module load craype-accel-nvidia80
@@ -76,7 +76,3 @@ Using single-precision
 
 Result is CORRECT!! :)
 ```
-
-
-
-
