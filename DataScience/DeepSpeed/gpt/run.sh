@@ -9,20 +9,16 @@
 echo Working directory is $PBS_O_WORKDIR
 cd $PBS_O_WORKDIR
 
+. /etc/profile
+
 module load conda/2022-07-19
 conda activate base
-# conda activate /lus/grand/projects/datascience/foremans/polaris/miniconda3/envs/gpt-neox-2022-07-19
 echo python3: $(which python3)
 
 
 TSTAMP=$(date "+%Y-%m-%d-%H%M%S")
 echo "Job ID: ${PBS_JOBID}"
 echo "Job started at: ${TSTAMP}"
-
-if [[ ! -d "${PBS_O_WORKDIR}" ]]; then
-  echo "Creating directory: ${PBS_O_WORKDIR}"
-  mkdir "${PBS_O_WORKDIR}"
-fi
 
 if [[ ! -d "${PBS_O_WORKDIR}/gpt-neox" ]]; then
   echo "Cloning `gpt-neox` from: https://github.com/EleutherAI/gpt-neox"
