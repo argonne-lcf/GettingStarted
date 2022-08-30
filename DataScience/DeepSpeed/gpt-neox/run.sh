@@ -13,8 +13,6 @@ cd $PBS_O_WORKDIR
 
 module load conda/2022-07-19
 conda activate base
-echo python3: $(which python3)
-
 
 TSTAMP=$(date "+%Y-%m-%d-%H%M%S")
 echo "Job ID: ${PBS_JOBID}"
@@ -58,29 +56,25 @@ python3 -m pip install "six"
 python3 -m pip install "tokenizers>=0.10.2"
 python3 -m pip install "transformers~=4.16.0"
 python3 -m pip install "wandb>=0.10.28"
-echo "done."
 
 cat "${PBS_NODEFILE}" > ./hostfile
 sed -e 's/$/ slots=4/' -i ./hostfile
 export DLTS_HOSTFILE=./hostfile
 
-DSENV_FILE="${PBS_O_WORKDIR}/gpt-neox/.deepspeed_env"
-echo "Writing environment variables to: ${DSENV_FILE}"
+DS_ENVFILE="${PBS_O_WORKDIR}/gpt-neox/.deepspeed_env"
+echo "Writing environment variables to: ${DS_ENVFILE}"
 
-echo "PATH=${PATH}" > "${DSENV_FILE}"
-echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> "${DSENV_FILE}"
-echo "OFFLOAD_INIT=on_start" >> "${DSENV_FILE}"
-echo "MPICH_DIR=${MPICH_DIR}" >> "${DSENV_FILE}"
-echo "CUDA_HOME=${CUDA_HOME}" >> "${DSENV_FILE}"
-echo "https_proxy=${https_proxy}" >> "${DSENV_FILE}"
-echo "http_proxy=${http_proxy}" >> "${DSENV_FILE}"
-echo "done."
+echo "PATH=${PATH}" > "${DS_ENVFILE}"
+echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> "${DS_ENVFILE}"
+echo "OFFLOAD_INIT=on_start" >> "${DS_ENVFILE}"
+echo "MPICH_DIR=${MPICH_DIR}" >> "${DS_ENVFILE}"
+echo "CUDA_HOME=${CUDA_HOME}" >> "${DS_ENVFILE}"
+echo "https_proxy=${https_proxy}" >> "${DS_ENVFILE}"
+echo "http_proxy=${http_proxy}" >> "${DS_ENVFILE}"
 
 echo "Preparing data"
 python3 prepare_data.py -d data
-echo "done."
 
 echo "Starting training"
 python3 ./deepy.py train.py -d configs small.yml local_setup.yml
-echo "done"
 wait
