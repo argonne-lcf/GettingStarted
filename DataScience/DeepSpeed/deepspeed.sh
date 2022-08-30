@@ -22,15 +22,9 @@ if [[ ! -d DeepSpeedExamples ]]; then
   git clone https://github.com/microsoft/DeepSpeedExamples.git
 fi
 
-echo python3: $(which python3)
-
 cd DeepSpeedExamples/cifar
 DS_HOSTFILE="./hostfile"
 DS_ENVFILE="./.deepspeed_env"
-
-# echo DS_HOSTFILE: "${DS_HOSTFILE}"
-# echo DS_ENVFILE: "${DS_ENVFILE}"
-# DS_HOSTFILE="${PBS_O_WORKDIR}/DeepSpeedExamples/cifar10/hostfile"
 
 NRANKS=$(wc -l < "${PBS_NODEFILE}")
 NGPU_PER_RANK=$(nvidia-smi -L | wc -l)
@@ -52,4 +46,3 @@ deepspeed \
   cifar10_deepspeed.py \
       --deepspeed \
       --deepspeed_config ds_config.json
-wait
