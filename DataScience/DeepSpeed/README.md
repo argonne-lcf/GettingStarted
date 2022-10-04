@@ -9,5 +9,5 @@ github repository on Polaris.
 To run,
 
 ```bash
-qsub -A <PROJECT> -V -q debug-scaling -l select=2 -l walltime=01:00:00 ./deepspeed.sh
+qsub -A <PROJECT> -V -q debug-scaling -l select=2 -l walltime=01:00:00 -l filesystems=home:grand:eagle ./deepspeed.sh
 ```

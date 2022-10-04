@@ -3,6 +3,7 @@
 #COBALT -t 30
 #COBALT -A SDL_Workshop
 #COBALT -q training
+#COBALT --attrs filesystems=home,grand,eagle
 
 # make sure to add +anaconda to .soft.cooley and then "resoft"
 # before running.

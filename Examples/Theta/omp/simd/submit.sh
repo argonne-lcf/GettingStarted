@@ -4,6 +4,7 @@
 #COBALT -A SDL_Workshop
 #COBALT -q training
 #COBALT --attrs mcdram=cache:numa=quad
+#COBALT --attrs filesystems=home,grand,eagle
 
 echo "*** Running Three Versions (might take awhile):"
 echo "*** No vectorization, vectorization, and vectorization with memory alignment" 

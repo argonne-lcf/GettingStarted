@@ -9,7 +9,7 @@ ssh username@theta.alcf.anl.gov
 An interactive job to access a ThetaGPU compute to build and test applications can be launched as follows from a Theta login node.
 ```
 module load cobalt/cobalt-gpu
-qsub -I -n 1 -t 60 -q single-gpu -A <PROJECT>
+qsub -I -n 1 -t 60 -q single-gpu --attrs filesystems=home,grand,eagle -A <PROJECT>
 ```
 Additional info on submitting jobs on Theta/ThetaGPU is available here:
 

@@ -1,6 +1,6 @@
 # Compilation w/ NVHPC SDK & ALCF provided OpenMPI
 ```
-qsub -I -n 1 -t 60 -q single-gpu -A Catalyst
+qsub -I -n 1 -t 60 -q single-gpu --attrs filesystems=home,grand,eagle -A Catalyst
 
 module load nvhpc-nompi
 module switch openmpi/openmpi-4.0.5 openmpi/openmpi-4.0.5_ucx-1.10.0_nvhpc-21.7

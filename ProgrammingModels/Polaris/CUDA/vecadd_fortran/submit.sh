@@ -4,6 +4,7 @@
 #PBS -l walltime=0:30:00
 #PBS -q debug 
 #PBS -A Catalyst
+#PBS -l filesystems=home:grand:eagle
 
 cd ${PBS_O_WORKDIR}
 
