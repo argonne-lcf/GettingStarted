@@ -4,6 +4,7 @@
 #COBALT -A SDL_Workshop
 #COBALT -q training
 #COBALT --attrs mcdram=cache:numa=quad
+#COBALT --attrs filesystems=home,grand,eagle
 
 # This shows how "pi.cpp" differs in terms of scaling 
 # when different OpenMP affinity settings are used.

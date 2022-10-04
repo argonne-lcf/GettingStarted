@@ -5,6 +5,7 @@
 #COBALT --jobname nonblock_coll
 #COBALT -O nonblocking_test
 #COBALT -q debug-flat-quad
+#COBALT --attrs filesystems=home,grand,eagle
 
 export MPICH_NEMESIS_ASYNC_PROGRESS=SC 
 export MPICH_MAX_THREAD_SAFETY=multiple

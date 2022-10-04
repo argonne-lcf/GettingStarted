@@ -1,7 +1,7 @@
 # Compilation w/ Cray Compiler Wrappers
 Users are able to build applications on the Polaris login nodes, but may find it convenient to build and test applications on the Polaris compute nodes in short interactive jobs. This also has the benefit of allowing one to quickly submission scripts.
 ```
-$ qsub -I -l select=1,walltime=0:30:00 -A <PROJECT>
+$ qsub -I -l select=1,walltime=0:30:00 -l filesystems=home:grand:eagle -A <PROJECT>
 
 $ make -f Makefile.nvhpc clean
 $ make -f Makefile.nvhpc
@@ -17,6 +17,7 @@ The following submission script will launch 4 MPI ranks on each node allocated. 
 #PBS -l walltime=0:30:00
 #PBS -q debug 
 #PBS -A <PROJECT>
+#PBS -l filesystems=home:grand:eagle
 
 cd ${PBS_O_WORKDIR}
 
@@ -110,6 +111,7 @@ NVIDIA's [Multi-Process Service (MPS)](https://docs.nvidia.com/deploy/mps/index.
 #PBS -l walltime=0:30:00
 #PBS -q debug 
 #PBS -A <PROJECT>
+#PBS -l filesystems=home:grand:eagle
 
 cd ${PBS_O_WORKDIR}
 
@@ -165,6 +167,7 @@ Providing `mpiexec` with a list of CPUs and setting `CUDA_VISIBLE_DEVICES` appro
 #PBS -l walltime=0:30:00
 #PBS -q debug 
 #PBS -A Catalyst
+#PBS -l filesystems=home:grand:eagle
 
 cd ${PBS_O_WORKDIR}
 

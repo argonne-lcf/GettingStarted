@@ -6,5 +6,5 @@ We provide a script for training
 To run, from a `polaris-login` node:
 
 ```shell
-$ qsub -A <project> -V -q debug-scaling -l select=2 -l walltime=01:00:00 run.sh
+$ qsub -A <project> -V -q debug-scaling -l select=2 -l walltime=01:00:00 -l filesystems=home:grand:eagle run.sh
 ```

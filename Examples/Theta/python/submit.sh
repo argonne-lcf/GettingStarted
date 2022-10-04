@@ -4,6 +4,7 @@
 #COBALT -A SDL_Workshop
 #COBALT -q training
 #COBALT --attrs mcdram=cache:numa=quad
+#COBALT --attrs filesystems=home,grand,eagle
 
 # -- For additional information on using Conda to manage phthon package on 
 # --  Theta, please look at the following ALCF website(s):

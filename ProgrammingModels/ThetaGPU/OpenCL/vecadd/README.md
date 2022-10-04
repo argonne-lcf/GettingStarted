@@ -1,7 +1,7 @@
 # Compilation w/ GCC
 ```
 module load cobalt/cobalt-gpu
-qsub -I -n 1 -t 60 -q single-gpu -A Catalyst
+qsub -I -n 1 -t 60 -q single-gpu -A Catalyst --attrs filesystems=home,grand,eagle
 
 make clean
 make

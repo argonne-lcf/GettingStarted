@@ -1,6 +1,6 @@
 # Compilation w/ NVHPC SDK & ALCF provided OpenMPI
 ```
-qsub -I -n 1 -t 15 -q single-gpu -A Catalyst
+qsub -I -n 1 -t 15 -q single-gpu -A Catalyst --attrs filesystems=home,grand,eagle
 
 module load nvhpc-nompi
 
@@ -32,7 +32,7 @@ Result is CORRECT!! :)
 ```
 # Compilation w/ LLVM & ALCF provided OpenMPI
 ```
-qsub -I -n 1 -t 15 -q single-gpu -A Catalyst
+qsub -I -n 1 -t 15 -q single-gpu -A Catalyst --attrs filesystems=home,grand,eagle
 
 module load llvm
 

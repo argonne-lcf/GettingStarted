@@ -1,5 +1,5 @@
 #!/bin/sh
-#COBALT -n 2 -t 15 -q training-gpu -A Catalyst
+#COBALT -n 2 -t 15 -q training-gpu -A Catalyst --attrs filesystems=home,grand,eagle
 
 # single-node MPI-only example w/ 16 MPI ranks per node
 #mpirun -n 16 -N 16 -hostfile ${COBALT_NODEFILE} ./hello_affinity

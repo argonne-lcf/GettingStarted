@@ -1,10 +1,10 @@
 #!/bin/bash -l
 # The first 15 characters of the job name are displayed in the qstat output:
 #PBS -N deepspeed
-# -------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------
 # To submit this script on Polaris:
-# qsub -A <PROJECT> -V -q debug-scaling -l select=2 -l walltime=01:00:00 deepspeed.sh
-# -------------------------------------------------------------------------------------
+# qsub -A <PROJECT> -V -q debug-scaling -l select=2 -l walltime=01:00:00 -l filesystems=home:grand:eagle deepspeed.sh
+# -------------------------------------------------------------------------------------------------------------------
 echo Working directory is $PBS_O_WORKDIR
 cd $PBS_O_WORKDIR
 
