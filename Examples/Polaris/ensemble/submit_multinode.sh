@@ -11,8 +11,8 @@ cd ${PBS_O_WORKDIR}
 # MPI example w/ multiple runs per batch job
 NNODES=`wc -l < $PBS_NODEFILE`
 
-# Settings for each run: 2 nodes, 4 MPI ranks per node spread evenly across cores
-# User must ensure there are enough nodes in job to support all runs
+# Settings for each run: 1 nodes, 4 MPI ranks per node spread evenly across cores
+# User must ensure there are enough nodes in job to support all concurrent runs
 NUM_NODES_PER_MPI=1
 NRANKS_PER_NODE=4
 NDEPTH=8
