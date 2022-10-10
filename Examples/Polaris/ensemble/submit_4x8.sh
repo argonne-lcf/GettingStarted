@@ -6,7 +6,7 @@
 #PBS -A Catalyst
 #PBS -l filesystems=home:grand:eagle
 
-cd ${PBS_O_WORKDIR}
+#cd ${PBS_O_WORKDIR}
 
 # MPI example w/ 8 MPI ranks per node spread evenly across cores
 NNODES=`wc -l < $PBS_NODEFILE`
