@@ -2,39 +2,40 @@
 
 ## Makefiles to build LAMMPS executables
 
-The following Makefiles can be used to build LAMMPS executables. These were generated using the `30Jul21` version of LAMMPS and modifications may be needed depending on the specific version of LAMMPS used. These Makefiles should be copied to the `lammps-<version>/src/MAKE/MACHINES` directory.
+The following Makefiles can be used to build LAMMPS executables. These were generated using a version of LAMMPS from Sep. 15, 2022 and modifications may be needed depending on the specific version of LAMMPS used. These Makefiles should be copied to the `lammps-<version>/src/MAKE/MACHINES` directory. The non-kokkos variants can be used when compiling with the GPU package.
 ```
-Makefile.polaris_kokkos_nvidia
+Makefile.polaris_nvhpc
+Makefile.polaris_nvhpc_kokkos
+Makefile.polaris_gnu
+Makefile.polaris_gnu_kokkos
 ```
 
 ## Makefiles to build lib/gpu library
 
-The following Makefiles can be used to build the LAMMPS GPU library for use with the GPU package.  These can be copied to the `lammps-<version>/lib/gpu` directory.
+The following Makefile can be used to build the LAMMPS GPU library for use with the GPU package with either the PrgEnv-nvhpc or PrgEnv-gnu modules.  This can be copied to the `lammps-<version>/lib/gpu` directory.
 ```
-Makefile.gpu_polaris_nvidia  
+gpu/Makefile.gpu_polaris
 ```
 
 ## Building LAMMPS with the KOKKOS package
 
-The following can be used to build LAMMPS with the KOKKOS package using the NVIDIA compilers.
+The following can be used to build LAMMPS with the KOKKOS package using the NVHPC compilers.
 ```
-module load craype-accel-nvidia80
 cd lammps-<version>/src
 make yes-KOKKOS
-make polaris_kokkos_nvidia -j 16
+make polaris_nvhpc_kokkos -j 16
 ```
 
 ## Building LAMMPS with the GPU package
 
-The following can be used to build LAMMPS with the GPU package using the NVIDIA compilers.
+The following can be used to build LAMMPS with the GPU package using the NVHPC compilers.
 ```
-module load craype-accel-nvidia80
 cd lammps-<version>/lib/gpu
-make -f Makefile.gpu_polaris_nvidia -j 16
+make -f Makefile.gpu_polaris -j 16
 
 cd ../../src
 make yes-GPU
-make polaris_nvidia -j 16
+make polaris_nvhpc -j 16
 ```
 
 ## Example submission scripts for multi-node jobs

@@ -18,10 +18,10 @@ NGPUS=4
 
 NTOTRANKS=$(( NNODES * NRANKS ))
 
-EXE=/home/knight/bin/lammps_polaris_nvhpc_kokkos
-EXE_ARG="-in in.reaxc.hns -k on g ${NGPUS} -sf kk -pk kokkos neigh half neigh/qeq full newton on "
+EXE=/home/knight/bin/lammps_polaris_nvhpc
+EXE_ARG="-in in.rhodo -pk gpu ${NGPUS} -pk omp 0 -sf hybrid gpu omp"
 
-# OMP settings mostly to quiet Kokkos messages
+# more MPI ranks per GPU likely needed for performance
 
 MPI_ARG="-n ${NTOTRANKS} --ppn ${NRANKS} --depth=${NDEPTH} --cpu-bind depth --env OMP_NUM_THREADS=${NTHREADS} --env OMP_PROC_BIND=spread --env OMP_PLACES=cores"
 
