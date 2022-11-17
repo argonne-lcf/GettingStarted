@@ -13,16 +13,12 @@ PATH_TO_NVCC = $(shell which nvcc)
 CUDA_HOME = $(shell echo ${PATH_TO_NVCC} | rev | cut -d '/' -f 3- | rev)
 
 CC =        CC
-CCFLAGS =  -g -O3 -fopenmp -DLAMMPS_MEMALIGN=64
+CCFLAGS =  -g -O3 -fopenmp -DLAMMPS_MEMALIGN=64 -DLAMMPS_SMALLBIG
 SHFLAGS =   -fPIC
 DEPFLAGS =  -M
 
 LINK =      $(CC)
-#LINK = CC
-#LINKFLAGS = -g -O -mp
 LINKFLAGS = $(CCFLAGS)
-#LINKFLAGS += -cuda
-#LINKFLAGS += -target-accel=nvidia80
 LIB =       -ldl
 SIZE =      size
 

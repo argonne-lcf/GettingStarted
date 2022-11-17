@@ -11,16 +11,11 @@ CUDA_HOME = $(NVIDIA_PATH)/cuda
 
 CC =        CC
 CCFLAGS =  -g -O3 -mp -DLAMMPS_MEMALIGN=64
-#CCFLAGS += -std=c++14 -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored -expt-extended-lambda -arch=sm_80 #-Xcompiler -fopenmp 
 SHFLAGS =   -fPIC
 DEPFLAGS =  -M
 
 LINK =      $(CC)
-#LINK = CC
-#LINKFLAGS = -g -O -mp
-LINKFLAGS = $(CCFLAGS)
-#LINKFLAGS += -cuda
-#LINKFLAGS += -target-accel=nvidia80
+LINKFLAGS = $(CCFLAGS) -cuda
 LIB =
 SIZE =      size
 
