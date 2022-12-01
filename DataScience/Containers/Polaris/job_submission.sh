@@ -6,7 +6,7 @@
 #PBS -A Datascience
 
 cd ${PBS_O_WORKDIR}
-CONTAINER=mpi.sif
+echo $CONTAINER
 
 # SET proxy for internet access
 module load singularity
