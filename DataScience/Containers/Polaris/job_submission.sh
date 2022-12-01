@@ -6,7 +6,7 @@
 #PBS -A Datascience
 
 cd ${PBS_O_WORKDIR}
-CONTAINER=my_image.sif
+CONTAINER=mpi.sif
 
 # SET proxy for internet access
 module load singularity
@@ -21,13 +21,12 @@ PPN=1
 PROCS=$((NODES * PPN))
 echo "NUM_OF_NODES= ${NODES} TOTAL_NUM_RANKS= ${PROCS} RANKS_PER_NODE= ${PPN}"
 
-MPI_BASE=/soft/datascience/openmpi/openmpi-4.0.5/
+MPI_BASE=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/comm_libs/hpcx/hpcx-2.9.0/ompi/
 export PATH=$MPI_BASE/bin:$PATH
 export LD_LIBRARY_PATH=$MPI_BASE/lib:$LD_LIBRARY_PATH
 export SINGULARITYENV_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 echo mpirun=$(which mpirun)
 
-# Openmpi Does not work on Polaris
 echo library path
 mpirun -hostfile $PBS_NODEFILE -n $PROCS -npernode $PPN singularity exec --nv -B $MPI_BASE $CONTAINER ldd /usr/source/mpi_hello_world
 
