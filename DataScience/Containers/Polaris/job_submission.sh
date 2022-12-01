@@ -1,8 +1,9 @@
 #!/bin/sh
-#PBS -l select=10:system=polaris
-#PBS -q prod
+#PBS -l select=2:system=polaris
+#PBS -q debug-scaling
 #PBS -l place=scatter
 #PBS -l walltime=0:30:00
+#PBS -l filesystems=home:grand
 #PBS -A Datascience
 
 cd ${PBS_O_WORKDIR}
@@ -34,4 +35,4 @@ echo C++ MPI
 mpirun -hostfile $PBS_NODEFILE -n $PROCS -npernode $PPN singularity exec --nv -B $MPI_BASE $CONTAINER /usr/source/mpi_hello_world
 
 echo Python MPI
-mpiexec -np 1 singularity exec --nv -B $MPI_BASE $CONTAINER python3 /usr/source/mpi_hello_world.py
+mpirun -hostfile $PBS_NODEFILE -n $PROCS -npernode $PPN singularity exec --nv -B $MPI_BASE $CONTAINER python3 /usr/source/mpi_hello_world.py
