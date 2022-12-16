@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 num_gpus=4
 gpu=$((${PMI_LOCAL_RANK} % ${num_gpus}))
 export CUDA_VISIBLE_DEVICES=$gpu

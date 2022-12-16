@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -l
 #COBALT -n 1 -t 15 -q full-node -A Catalyst --attrs filesystems=home,grand,eagle
 
 # submit job to run on 8 GPUs w/ 8 MPI ranks per GPU and 2 OpenMP threads per rank
