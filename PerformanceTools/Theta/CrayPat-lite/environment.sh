@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 
 # This file can be sourced to load the environment variables:
 # $ source environment.sh

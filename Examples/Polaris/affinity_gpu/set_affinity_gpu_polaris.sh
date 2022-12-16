@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 num_gpus=4
 # need to assign GPUs in reverse order due to topology
 # See Polaris Device Affinity Information https://www.alcf.anl.gov/support/user-guides/polaris/hardware-overview/machine-overview/index.html

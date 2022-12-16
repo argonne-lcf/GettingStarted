@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -l
 #COBALT -n 1
 #COBALT -t 30
 #COBALT -A SDL_Workshop

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -l
 #COBALT -n 1 -t 30 -A Comp_Perf_Workshop -q comp_perf_workshop --attrs mcdram=cache:numa=quad --attrs filesystems=home,theta-fs0
 
 

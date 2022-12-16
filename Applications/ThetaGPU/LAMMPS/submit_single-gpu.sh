@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -l
 #COBALT -n 1 -t 15 -q single-gpu -A Catalyst --attrs filesystems=home,grand,eagle
 
 # GPU package: submit job to run on 1 GPU w/ 8 MPI ranks per GPU and 2 OpenMP threads per rank

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -l
 #COBALT -n 2 -t 15 -q training-gpu -A Catalyst --attrs filesystems=home,grand,eagle
 
 # single-node MPI-only example w/ 16 MPI ranks per node
