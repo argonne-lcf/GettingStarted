@@ -1,9 +1,0 @@
-Bootstrap: docker
-From: ubuntu:18.04
-
-%files
-      hello_affinity /opt/mpitest
-
-%environment
-      export PATH="$CRAY_MPICH_DIR/bin:$PATH"
-      export LD_LIBRARY_PATH="$CRAY_MPICH_DIR/lib:$LD_LIBRARY_PATH"
