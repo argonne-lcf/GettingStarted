@@ -1,30 +1,60 @@
 # Databases
-
+We provide singularity containers and steps to interact with database containers on Polaris
 
 ## Mongo DB
 MongoDB is a cross-platform document-oriented database program. Classified as a NoSQL database program, MongoDB uses JSON-like documents with optional schemas. MongoDB is developed by MongoDB Inc.
 
 ### How to use MongoDB on Polaris
-1. 
-
-
-### Mongoku
-MongoDB client for the web. Query your data directly from your browser. You can host it locally, or anywhere else, for you and your team.
-
-It scales with your data (at Hugging Face we use it on a 1TB+ cluster) and is blazing fast for all operations, including sort/skip/limit. Built on TypeScript/Node.js/Angular.
-
-#### How to use Mongoku on Polaris
-
-1. To run mongoku directly, use the following command. Please edit the mongodb default host settings:
-
+1. Copy the container to your home or project directory 
 ```bash
-singularity run --overlay overlay.img -B $PWD/data:/data --env MONGOKU_DEFAULT_HOST="mongodb://user:password@myhost.com:8888" --env MONGOKU_SERVER_PORT=8000 mongoku.sif 
+cp /soft/containers/mongo.sif /grand/<project_name>
 ```
 
-2. To view mongoku database on your browser and interact with the database you can ssh tunnel to the login node where the service is running. It can be polaris-login-XX as shown belowRun the container directly
+2. Create a data and logs directory to bind to the running container
+```bash
+mkdir -p /grand/<project_name>/data
+```
+
+3. Running mongo
+```bash
+singularity exec --bind $PWD/data:/data/db mongo.sif mongod
+```
+
+To run it as an instance in the background. You can
+```bash
+singularity instance start --bind $PWD/data:/data/db mongo.sif mongoinstance
+```
+
+To stop the instance
+```bash
+singularity instance stop mongoinstance
+```
+
+To list all running instances
+```bash
+singularity instance list
+```
+
+
+### PyMongo
+Pymongo is the Python client/library to connect to a running mongodb. Query and interact with your data directly from Python. Here's an example
 
 ```bash
-export PORT=8000; ssh -L "localhost:${PORT}:localhost:${PORT}" atanikanti@polaris-login-02.alcf.anl.gov
+> module load conda
+> python3 -m venv ~/envs/mongoenv
+> source ~/envs/mongoenv/bin/activate
+> python3
+>>> import pymongo 
+>>> import pprint
+>>> mongo_uri = "mongodb://localhost:27017/" 
+>>> dbclient = pymongo.MongoClient(mongo_uri)
+>>> appdb = dbclient["blog"]
+>>> appcoll = appdb["blogcollection"]
+>>> document = {"user_id": 1, "user": "test"}
+>>> appcoll.insert_one(document)
+<pymongo.results.InsertOneResult object at 0x7f3b63469790>
+>>> dbclient.list_database_names()
+['admin', 'blog', 'config', 'local']
 ```
 
 
