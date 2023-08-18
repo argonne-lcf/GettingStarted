@@ -79,23 +79,21 @@ In this environment, the Cray compiler wrappers `cc, CC, ftn` point to the GNU C
 
 ## LLVM Compilers
 
-LLVM compilers for SYCL and OpenMPTarget applications are also available on Polaris and provided by ALCF. To compile and link MPI-enabled applications, a separate `mpiwrappers/cray-mpich-llvm` can be loaded to provide access to `mpicc, mpicxx, mpif90` compiler wrappers that should be used for compiling and linking MPI applications. Examples for compiling the simple CPU-only MPI example using the different `llvm` modules follow.
+LLVM compilers for SYCL and OpenMPTarget applications are also available on Polaris and provided by ALCF. To compile and link MPI-enabled applications, a separate `mpiwrappers/cray-mpich-[compiler]` module can be loaded to provide access to `mpicc, mpicxx, mpif90` compiler wrappers that should be used for compiling and linking MPI applications. Examples for compiling the simple CPU-only MPI example follow.
 
-* `llvm-sycl` for SYCL applications
+* `oneapi` for SYCL applications
 ```
-$ module unload PrgEnv-nvhpc
-$ module load llvm-sycl
-$ module load cudatoolkit-standalone
-$ module load mpiwrappers/cray-mpich-llvm
+$ module load oneapi
+$ module load mpiwrappers/cray-mpich-oneapi
 $ make -f Makefile.llvm
 ```
 
 * `llvm` for OpenMPTarget applications
 ```
-$ module unload PrgEnv-nvhpc
 $ module load llvm
-$ module load cudatoolkit-standalone
 $ module load mpiwrappers/cray-mpich-llvm
 $ make -f Makefile.llvm
 ```
 In these environments, the Cray compiler wrappers `cc, CC, ftn` are still available in the path, but they are not functional as no `PrgEnv` module is loaded.
+
+For GPU-enabled applications, which are the likely focus here, the oneapi module does load an appropriate cudatoolkit-standalone module. For llvm, one will need to explicitly load a cudatoolkit-standalone module themselves.
