@@ -7,15 +7,17 @@
 # Definition of MACROS
 
 CXX = mpicxx
-CXXFLAGS = -g -fopenmp -O3 -std=c++0x
-CXXFLAGS += -D_SINGLE_PRECISION
-CXXFLAGS += -fopenmp-targets=nvptx64 -D__STRICT_ANSI__ -Wno-openmp-mapping
+CXXFLAGS = -g -fsycl -fsycl-targets=nvptx64-nvidia-cuda -Xsycl-target-backend --cuda-gpu-arch=sm_80
+CXXFLAGS += -std=c++20
+#CXXFLAGS += -D_SINGLE_PRECISION
 
 CPP = cpp -P -traditional
 CPPFLAGS =
 
 LD = $(CXX)
 LIB = 
+#LIB += -L/opt/cray/pe/mpich/8.1.16/gtl/lib -lmpi_gtl_cuda
+LIB += $(PE_MPICH_GTL_DIR_nvidia80) $(PE_MPICH_GTL_LIBS_nvidia80)
 
 BINROOT=./
 EX=vecadd
