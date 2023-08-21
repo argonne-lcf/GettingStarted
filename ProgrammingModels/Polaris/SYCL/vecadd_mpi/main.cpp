@@ -18,9 +18,6 @@
 #define MY_MPI_TYPE MPI_DOUBLE
 #endif
 
-// is this really needed?
-#define ConvertToActualTypeSycl(Scalar, buf_acc) static_cast<Scalar*>(static_cast<void*>(((buf_acc.get_pointer().get()))))
-
 // ----------------------------------------------------------------
 						 
 int main( int argc, char* argv[] )

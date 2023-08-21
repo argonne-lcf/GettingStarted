@@ -94,6 +94,6 @@ $ module load llvm
 $ module load mpiwrappers/cray-mpich-llvm
 $ make -f Makefile.llvm
 ```
-In these environments, the Cray compiler wrappers `cc, CC, ftn` are still available in the path, but they are not functional as no `PrgEnv` module is loaded.
+In these environments, the Cray compiler wrappers `cc, CC, ftn` may still be available in the path, but those will not use the oneapi or llvm compilers loaded by these modules.
 
 For GPU-enabled applications, which are the likely focus here, the oneapi module does load an appropriate cudatoolkit-standalone module. For llvm, one will need to explicitly load a cudatoolkit-standalone module themselves.
