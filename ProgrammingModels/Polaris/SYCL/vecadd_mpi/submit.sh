@@ -4,21 +4,20 @@
 #PBS -l walltime=0:30:00
 #PBS -q debug
 #PBS -A Catalyst
+#PBS -l filesystems=home:grand:eagle
 
 cd ${PBS_O_WORKDIR}
 
+export MPICH_GPU_SUPPORT_ENABLED=1
+
 # MPI example w/ 8 MPI ranks per node spread evenly across cores
 NNODES=`wc -l < $PBS_NODEFILE`
-NRANKS_PER_NODE=4
-NDEPTH=1
+NRANKS_PER_NODE=8
+NDEPTH=4
 NTHREADS=1
 
 NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
 echo "NUM_OF_NODES= ${NNODES} TOTAL_NUM_RANKS= ${NTOTRANKS} RANKS_PER_NODE= ${NRANKS_PER_NODE} THREADS_PER_RANK= ${NTHREADS}"
 
-# Update environment for llvm compiler
-module load llvm
-module load cudatoolkit-standalone
-module load mpiwrappers/cray-mpich-llvm
-
+# an affinity wrapper script (e.g. set_affinity_gpu_polaris.sh) is not needed here as application handles rank-gpu binding  
 mpiexec -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth ./vecadd
