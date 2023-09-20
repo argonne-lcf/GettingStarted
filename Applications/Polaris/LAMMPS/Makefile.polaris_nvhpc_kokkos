@@ -10,6 +10,7 @@ SHELL = /bin/sh
 KOKKOS_DEVICES = Cuda,OpenMP
 KOKKOS_ARCH = Ampere80
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
+KOKKOS_CXX_STANDARD=17
 export NVCC_WRAPPER_DEFAULT_COMPILER = nvc++
 
 CRAY_INC = $(shell CC --cray-print-opts=cflags) 
@@ -20,6 +21,7 @@ CRAY_LIB = $(shell CC --cray-print-opts=libs)
 
 CC =        $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 CCFLAGS =  -g -O3 -mp -DLAMMPS_MEMALIGN=64 -DLAMMPS_BIGBIG
+CCFLAGS += -std=c++17
 CCFLAGS += $(CRAY_INC)
 #CCFLAGS += -std=c++14 -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored -expt-extended-lambda -arch=sm_80 #-Xcompiler -fopenmp 
 SHFLAGS =   -fPIC
