@@ -16,7 +16,7 @@ DEPFLAGS =  -M
 
 LINK =      $(CC)
 LINKFLAGS = $(CCFLAGS) -cuda
-LIB =
+LIB =       -L$(NVIDIA_PATH)/math_libs/lib64
 SIZE =      size
 
 ARCHIVE =   ar
