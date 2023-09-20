@@ -2,7 +2,7 @@
 
 ## Makefiles to build LAMMPS executables
 
-The following Makefiles can be used to build LAMMPS executables. These were generated using a version of LAMMPS from Nov. 3, 2022 and modifications may be needed depending on the specific version of LAMMPS used. These Makefiles should be copied to the `lammps-<version>/src/MAKE/MACHINES` directory. The non-kokkos variants can be used when compiling with the GPU package.
+The following Makefiles can be used to build LAMMPS executables. These were generated using a version of LAMMPS from Sep. 20, 2023 and modifications may be needed depending on the specific version of LAMMPS used. These Makefiles should be copied to the `lammps-<version>/src/MAKE/MACHINES` directory. The non-kokkos variants can be used when compiling with the GPU package.
 ```
 Makefile.polaris_nvhpc
 Makefile.polaris_nvhpc_kokkos
@@ -22,6 +22,7 @@ gpu/Makefile.gpu_polaris_nvhpc
 
 The following can be used to build LAMMPS with the KOKKOS package using the NVHPC compilers.
 ```
+module swap nvhpc/21.3 nvhpc/23.3
 cd lammps-<version>/src
 make yes-KOKKOS
 make polaris_nvhpc_kokkos -j 16
