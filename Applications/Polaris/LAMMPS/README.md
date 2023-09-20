@@ -32,6 +32,7 @@ make polaris_nvhpc_kokkos -j 16
 
 The following can be used to build LAMMPS with the GPU package using the NVHPC compilers.
 ```
+module swap nvhpc/21.3 nvhpc/23.3
 cd lammps-<version>/lib/gpu
 make -f Makefile.gpu_polaris_nvhpc -j 16
 
@@ -42,7 +43,7 @@ make polaris_nvhpc -j 16
 
 ## Building LAMMPS with the GNU Programming Environment
 
-The same command above can be executed using the gnu variant of the Makefiles and updating the module environment. An example of building with the KOKKOS package is shown below.
+The same commands above can be executed using the GNU variant of the Makefiles and updating the module environment. An example of building with the KOKKOS package is shown below.
 ```
 module swap PrgEnv-nvhpc PrgEnv-gnu
 module load cudatoolkit-standalone
