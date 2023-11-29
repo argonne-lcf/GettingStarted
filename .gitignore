@@ -1,2 +1,7 @@
 .DS_Store
 ToDo.txt
+*.o
+a.out
+hello_affinity
+vecadd
+local_hostfile.*
