@@ -6,7 +6,7 @@
 #PBS -A Catalyst
 #PBS -l filesystems=home:grand:eagle
 
-#cd ${PBS_O_WORKDIR}
+cd ${PBS_O_WORKDIR}
 
 # MPI example w/ multiple runs per batch job
 NNODES=`wc -l < $PBS_NODEFILE`
