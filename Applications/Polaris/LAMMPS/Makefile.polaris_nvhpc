@@ -1,5 +1,5 @@
-# polaris_nvidia = Flags for NVIDIA A100, NVIDIA Compiler, MPICH, CUDA
-# make polaris_nvidia -j 16
+# polaris_nvhpc = Flags for NVIDIA A100, NVIDIA Compiler, MPICH, CUDA
+# make polaris_nvhpc -j 16
 
 SHELL = /bin/sh
 
@@ -16,7 +16,7 @@ DEPFLAGS =  -M
 
 LINK =      $(CC)
 LINKFLAGS = $(CCFLAGS) -cuda
-LIB =       -L$(NVIDIA_PATH)/math_libs/lib64
+LIB =
 SIZE =      size
 
 ARCHIVE =   ar
