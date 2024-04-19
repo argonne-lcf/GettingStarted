@@ -1,14 +1,12 @@
 module restore
-#module swap PrgEnv-nvhpc PrgEnv-gnu
 module load cray-hdf5-parallel
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/cuda/11.8/extras/CUPTI/lib64/
 
-export TMPDIR=/grand/catalyst/proj-shared/knight/polaris/julia/tmp
+export TMPDIR=/local/scratch
 
 export PATH=/home/knight/.juliaup/bin:${PATH}
 export JULIA_DEPOT_PATH=/grand/catalyst/proj-shared/knight/polaris/julia/depot
-#export JULIA_HDF5_PATH=$HDF5_DIR
 
 export JULIA_CUDA_MEMORY_POOL=none
 export MPICH_GPU_SUPPORT_ENABLED=1
