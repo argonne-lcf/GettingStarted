@@ -2,7 +2,7 @@
 # Definition of MACROS
 
 CXX = CC
-CXXFLAGS = -g -cuda -O3
+CXXFLAGS = -g -mp -cuda -O3
 
 CPP = cpp -P -traditional
 CPPFLAGS =

@@ -11,6 +11,7 @@
 #include <tuple>
 
 #include <mpi.h>
+#include <omp.h>
 
 //https://stackoverflow.com/questions/68823023/set-cuda-device-by-uuid
 void uuid_print(cudaUUID_t a){
@@ -88,6 +89,16 @@ int main(int argc, char *argv[])
       
       printf("To affinity and beyond!! nname= %s  rnk= %d  list_cores= (%s)  num_devices= %i\n",
 	     nname, rnk, list_cores, num_devices);
+
+      #pragma omp parallel for ordered
+      for(int it=0; it<omp_get_num_threads(); ++it) {
+        char list_cores[7*CPU_SETSIZE];
+        get_cores(list_cores);
+        #pragma omp ordered
+        printf("To affinity and beyond!! nname= %s  rnk= %d  tid= %d: list_cores= (%s)\n",
+                nname, rnk, omp_get_thread_num(), list_cores);
+      }
+      printf("\n");
 
       for(int id=0; id<num_devices; ++id) {	
 	cudaDeviceProp prop;
