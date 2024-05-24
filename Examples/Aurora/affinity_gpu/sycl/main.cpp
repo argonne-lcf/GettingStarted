@@ -44,10 +44,11 @@ void get_cores(char *str)
 }
 
 void uuid_print(std::array<unsigned char, 16> a){
-  std::cout << "GPU";
   std::vector<std::tuple<int, int> > r = {{0,4}, {4,6}, {6,8}, {8,10}, {10,16}};
+  int first_time = 0;
   for (auto t : r){
-    std::cout << "-";
+    if(first_time > 1) std::cout << "-";
+    first_time++;
     for (int i = std::get<0>(t); i < std::get<1>(t); i++)
       std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned)(unsigned char)a[i];
   }
