@@ -8,7 +8,7 @@ CPP = cpp -P -traditional
 CPPFLAGS =
 
 LD = $(CXX)
-LIB = -lze_loader
+LIB =
 
 BINROOT=./
 EX=hello_affinity

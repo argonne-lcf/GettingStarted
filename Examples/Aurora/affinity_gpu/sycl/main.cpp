@@ -6,9 +6,8 @@
 #include <math.h>
 #include <time.h>
 #include <mpi.h>
-
+#include <iomanip>
 #include <sycl/sycl.hpp>
-#include <level_zero/ze_api.h>
 
 // xthi.c from http://docs.cray.com/books/S-2496-4101/html-S-2496-4101/cnlexamples.html
 
@@ -44,68 +43,16 @@ void get_cores(char *str)
   *ptr = 0;
 }
 
-// from Servesh
-#define MAX_UUID_STRING_SIZE    49
-static char hexdigit(int i)
-{
-  return (i>9) ? 'a' - 10 + i : '0' + i;
-}
-
-static void generic_uuid_to_string(const uint8_t * id, int bytes, char * s)
-{
-  for(int i=bytes-1; i>=0; --i) {
-    *s++ = hexdigit(id[i] / 0x10);
-    *s++ = hexdigit(id[i] % 0x10);
-    if(i >= 6 && i <= 12 && (i & 1) == 0) *s++ = '-';
+void uuid_print(std::array<unsigned char, 16> a){
+  std::vector<std::tuple<int, int> > r = {{0,4}, {4,6}, {6,8}, {8,10}, {10,16}};
+  int first_time = 0;
+  for (auto t : r){
+    if(first_time > 1) std::cout << "-";
+    first_time++;
+    for (int i = std::get<0>(t); i < std::get<1>(t); i++)
+      std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned)(unsigned char)a[i];
   }
-  *s = '\0';
-}
-
-void dev_uuid()
-{
-  // get vector of all available devices
-
-  std::vector<sycl::device> devices = sycl::device::get_devices();
-  int num_devices = devices.size();
-
-  uint32_t num_drivers = 0;
-  ze_driver_handle_t driverHandle;
-  zeDriverGet(&num_drivers, &driverHandle);
-
-  zeInit(ZE_INIT_FLAG_GPU_ONLY);
-
-  // print useful information for each device
-
-  int global_index = 0;
-  for(int i=0; i<num_devices; ++i) {
-
-    sycl::platform p = devices[i].get_platform();
-
-    std::string platform_name = p.get_info<sycl::info::platform::name>();
-    std::string device_name = devices[i].get_info<sycl::info::device::name>();
-    int device_id = devices[i].get_info<sycl::info::device::vendor_id>();
-
-    auto lz_dev = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(devices[i]);
-
-    ze_device_properties_t dev_prop = {};
-    zeDeviceGetProperties(lz_dev, &dev_prop);
-
-    char type[256];
-    if(devices[i].is_gpu()) strcpy(type,"GPU");
-    else if(devices[i].is_accelerator()) strcpy(type,"ACCELERATOR");
-    else if(devices[i].is_cpu()) strcpy(type,"CPU");
-
-    char id[MAX_UUID_STRING_SIZE];
-    generic_uuid_to_string((const uint8_t *) &(dev_prop.uuid), ZE_MAX_DEVICE_UUID_SIZE, id);
-/*
-    printf(" [%i] Platform[%s] Type[%s] Device[%s, %i, %s]  lz uuid= %u",i,
-           platform_name.c_str(), type, 
-	   device_name.c_str(), device_id, id, 
-	   dev_prop.subdeviceId);
-*/
-    printf(" %s",id);
-  }
-
+  //  std::cout << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -121,9 +68,8 @@ int main(int argc, char *argv[])
 
   char nname[16];
   gethostname(nname, 16);
-  
-  // Initialize gpu
 
+  // make an array of all the devices available
   std::vector<sycl::device> devices = sycl::device::get_devices();
   int num_devices = devices.size();
 
@@ -134,11 +80,29 @@ int main(int argc, char *argv[])
         char list_cores[7*CPU_SETSIZE];
         get_cores(list_cores);
 
-        printf("To affinity and beyond!! nname= %s  rnk= %d  list_cores= (%s)  num_devices= %i  gpu_uuid= ",
+        printf("To affinity and beyond!! nname= %s  rnk= %d  list_cores= (%s)  num_devices= %i  gpu_uuids= ",
                nname, rnk, list_cores, num_devices);
-	dev_uuid();
 
-      printf("\n");
+
+      int device_index =0;
+      for(auto &device : devices) {
+
+	// Make a queue that can sends commands to each device.
+	// Note that if you make a queue like: "sycl::queue queue(sycl::gpu_selector_v)", you
+	// get one queue that feeds into one device as well.
+
+	sycl::queue q(device);
+        if (q.get_device().has(sycl::aspect::ext_intel_device_info_uuid)) {
+          uuid_print(q.get_device().get_info<sycl::ext::intel::info::device::uuid>());
+        }
+	else {
+	  std::cout << "No ability to get UUID from this device" ;
+	  }
+        device_index++;
+	if( device_index != num_devices ) std::cout << ", " ;
+
+      }
+	printf("\n");
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
