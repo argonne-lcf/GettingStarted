@@ -47,12 +47,12 @@ void uuid_print(std::array<unsigned char, 16> a){
   std::vector<std::tuple<int, int> > r = {{0,4}, {4,6}, {6,8}, {8,10}, {10,16}};
   int first_time = 0;
   for (auto t : r){
-    if(first_time > 1) std::cout << "-";
+    if(first_time > 1) printf("-");
     first_time++;
     for (int i = std::get<0>(t); i < std::get<1>(t); i++)
-      std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned)(unsigned char)a[i];
+      printf( "%02x", (unsigned)(unsigned char)a[i]);
+
   }
-  //  std::cout << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -96,10 +96,10 @@ int main(int argc, char *argv[])
           uuid_print(q.get_device().get_info<sycl::ext::intel::info::device::uuid>());
         }
 	else {
-	  std::cout << "No ability to get UUID from this device" ;
+	  printf("No ability to get UUID from this device");
 	  }
         device_index++;
-	if( device_index != num_devices ) std::cout << ", " ;
+	if( device_index != num_devices ) printf(", ") ;
 
       }
 	printf("\n");
