@@ -1,4 +1,5 @@
-# polaris_nvhpc = Flags for NVIDIA A100, NVIDIA Compiler, MPICH, CUDA
+# polaris_nvidia = Flags for NVIDIA A100, NVIDIA Compiler, MPICH, CUDA
+# module load craype-accel-nvidia80
 # make polaris_nvhpc -j 16
 
 SHELL = /bin/sh
@@ -15,7 +16,7 @@ SHFLAGS =   -fPIC
 DEPFLAGS =  -M
 
 LINK =      $(CC)
-LINKFLAGS = $(CCFLAGS) -cuda
+LINKFLAGS = $(CCFLAGS) -cuda -L$(NVIDIA_PATH)/math_libs/lib64
 LIB =
 SIZE =      size
 

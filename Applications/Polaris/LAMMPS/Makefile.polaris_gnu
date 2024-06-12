@@ -1,5 +1,7 @@
-# polaris_gnu = Flags for NVIDIA A100, GNU Compiler, MPICH, CUDA
+# polaris_nvidia = Flags for NVIDIA A100, NVIDIA Compiler, MPICH, CUDA
+# module load craype-accel-nvidia80
 # module swap PrgEnv-nvhpc PrgEnv-gnu
+# module use /soft/modulefiles
 # module load cudatoolkit-standalone
 # make polaris_gnu -j 16
 

@@ -2,7 +2,7 @@
 
 ## Makefiles to build LAMMPS executables
 
-The following Makefiles can be used to build LAMMPS executables. These were generated using a version of LAMMPS from Sep. 20, 2023 and modifications may be needed depending on the specific version of LAMMPS used. These Makefiles should be copied to the `lammps-<version>/src/MAKE/MACHINES` directory. The non-kokkos variants can be used when compiling with the GPU package.
+The following Makefiles can be used to build LAMMPS executables. These were generated using a version of LAMMPS from April 2024 and modifications may be needed depending on the specific version of LAMMPS used. These Makefiles should be copied to the `lammps-<version>/src/MAKE/MACHINES` directory. The non-kokkos variants can be used when compiling with the GPU package.
 ```
 Makefile.polaris_nvhpc
 Makefile.polaris_nvhpc_kokkos
@@ -18,10 +18,15 @@ gpu/Makefile.gpu_polaris_gnu
 gpu/Makefile.gpu_polaris_nvhpc
 ```
 
+## Helper scripts to setup modules for GNU and NVHPC environments
+
+The following helper scripts can be used to help with compiling and running LAMMPS. These are assumed to have been copied in the home directory in the examples below.
+
 ## Building LAMMPS with the KOKKOS package
 
 The following can be used to build LAMMPS with the KOKKOS package using the NVHPC compilers.
 ```
+. ~/setup_lammps_nvhpc.sh
 cd lammps-<version>/src
 make yes-KOKKOS
 make polaris_nvhpc_kokkos -j 16
@@ -31,6 +36,7 @@ make polaris_nvhpc_kokkos -j 16
 
 The following can be used to build LAMMPS with the GPU package using the NVHPC compilers.
 ```
+. ~/setup_lammps_nvhpc.sh
 cd lammps-<version>/lib/gpu
 make -f Makefile.gpu_polaris_nvhpc -j 16
 
@@ -43,9 +49,7 @@ make polaris_nvhpc -j 16
 
 The same commands above can be executed using the GNU variant of the Makefiles and updating the module environment. An example of building with the KOKKOS package is shown below.
 ```
-module swap PrgEnv-nvhpc PrgEnv-gnu
-module load cudatoolkit-standalone
-
+. ~/setup_lammps_gnu.sh
 cd lammps-<version>/src
 make yes-KOKKOS
 make polaris_gnu_kokkos -j 16
@@ -58,6 +62,3 @@ Example job submission scripts are provided for running LAMMPS with the KOKKOS a
 submit_kokkos.sh
 submit_gpu.sh
 ```
-
-
-

@@ -6,6 +6,8 @@
 #PBS -A Catalyst
 #PBS -l filesystems=home:grand:eagle
 
+. ./setup_lammps_gnu.sh
+
 export MPICH_GPU_SUPPORT_ENABLED=1
 
 NNODES=`wc -l < $PBS_NODEFILE`
@@ -19,7 +21,7 @@ NGPUS=4
 
 NTOTRANKS=$(( NNODES * NRANKS ))
 
-EXE=/home/knight/bin/lammps_polaris_nvhpc_kokkos
+EXE=/home/knight/bin/lmp_polaris_gnu_kokkos
 EXE_ARG="-in in.reaxc.hns -k on g ${NGPUS} -sf kk -pk kokkos neigh half neigh/qeq full newton on "
 
 # OMP settings mostly to quiet Kokkos messages

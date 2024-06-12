@@ -6,6 +6,8 @@
 #PBS -A Catalyst
 #PBS -l filesystems=home:grand:eagle
 
+. ./setup_lammps_gnu.sh
+
 export MPICH_GPU_SUPPORT_ENABLED=1
 
 NNODES=`wc -l < $PBS_NODEFILE`
@@ -19,7 +21,7 @@ NGPUS=4
 
 NTOTRANKS=$(( NNODES * NRANKS ))
 
-EXE=/home/knight/bin/lammps_polaris_nvhpc
+EXE=/home/knight/bin/lmp_polaris_gnu
 EXE_ARG="-in in.rhodo -pk gpu ${NGPUS} -pk omp 0 -sf hybrid gpu omp"
 
 # more MPI ranks per GPU likely needed for performance

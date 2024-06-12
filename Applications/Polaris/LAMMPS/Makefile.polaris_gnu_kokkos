@@ -1,7 +1,9 @@
-# polaris_gnu_kokkos = Flags for NVIDIA A100, GNU Compiler, MPICH, CUDA
+# polaris_nvidia = Flags for NVIDIA A100, GNU Compiler, MPICH, CUDA
+# module load craype-accel-nvidia80
 # module swap PrgEnv-nvhpc PrgEnv-gnu
+# module use /soft/modulefiles
 # module load cudatoolkit-standalone
-# make polaris_gnu_kokkos -j 16
+# make polaris_gnu_kokkos -j 32
 
 SHELL = /bin/sh
 
@@ -15,14 +17,9 @@ KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 KOKKOS_CUDA_OPTIONS = "enable_lambda,disable_malloc_async"
 export NVCC_WRAPPER_DEFAULT_COMPILER = CC
 
-CRAY_INC = $(shell CC --cray-print-opts=cflags) 
-CRAY_LIB = $(shell CC --cray-print-opts=libs)
-
-#$(info CRAY_INC = ${CRAY_INC})
-#$(info CRAY_LIB = ${CRAY_LIB})
-
 CC =        $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 CCFLAGS =  -g -O3 -fopenmp -DLAMMPS_MEMALIGN=64
+#CCFLAGS += -DLAMMPS_BIGBIG
 SHFLAGS =   -fPIC
 DEPFLAGS =  -M
 

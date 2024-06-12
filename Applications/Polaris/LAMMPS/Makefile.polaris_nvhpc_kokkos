@@ -1,5 +1,6 @@
-# polaris_nvhpc_kokkos = Flags for NVIDIA A100, NVIDIA Compiler, MPICH, CUDA
-# make polaris_nvhpc_kokkos -j 16
+# polaris_nvidia = Flags for NVIDIA A100, NVIDIA Compiler, MPICH, CUDA
+# module load craype-accel-nvidia80
+# make polaris_nvhpc -j 16
 
 SHELL = /bin/sh
 
@@ -21,11 +22,13 @@ CRAY_LIB = $(shell CC --cray-print-opts=libs)
 
 CC =        $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 CCFLAGS =  -g -O3 -mp -DLAMMPS_MEMALIGN=64
+#CCFLAGS += -DLAMMPS_BIGBIG
 CCFLAGS += $(CRAY_INC)
 SHFLAGS =   -fPIC
 DEPFLAGS =  -M
 
 LINK =      $(CC)
+LINKFLAGS = $(CCFLAGS) -g
 LIB =
 LIB += $(CRAY_LIB)
 SIZE =      size
