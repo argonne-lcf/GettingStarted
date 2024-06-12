@@ -22,6 +22,11 @@ gpu/Makefile.gpu_polaris_nvhpc
 
 The following helper scripts can be used to help with compiling and running LAMMPS. These are assumed to have been copied in the home directory in the examples below.
 
+```
+setup_lammps_gnu.sh 
+setup_lammps_nvhpc.sh
+```
+ 
 ## Building LAMMPS with the KOKKOS package
 
 The following can be used to build LAMMPS with the KOKKOS package using the NVHPC compilers.
