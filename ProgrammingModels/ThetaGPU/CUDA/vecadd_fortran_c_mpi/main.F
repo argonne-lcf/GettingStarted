@@ -26,7 +26,7 @@ program main
 
   res_ = c_offload(me, num_procs)
 
-  call MPI_Reduce(res_, res, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+  call MPI_Reduce(res_, res, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
 
   if(me == 0) then
   if(res < 1e-6) then

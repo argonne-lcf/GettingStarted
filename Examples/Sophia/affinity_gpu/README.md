@@ -6,10 +6,7 @@ qsub -I -l select=8,walltime=1:00:00,filesystems=home:eagle -A Catalyst -q workq
 
 ## Compilation
 
-Changing the value of `TMPDIR` is a temporary workaround as the pbs directory originally referenced does not exist yet (nvcc compilation will generate an error). 
 ```
-[knight@sophia-gpu-02 affinity_gpu]$ export TMPDIR=${PWD}
-
 [knight@sophia-gpu-02 affinity_gpu]$ make -f Makefile.mpi_stub 
 g++ -g -O3 -fopenmp -std=c++0x -I/usr/local/cuda//include -I../mpi_stub -c main.cpp
 nvcc -x cu  -c offload.cpp -o offload.o

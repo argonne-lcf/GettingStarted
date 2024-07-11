@@ -109,8 +109,8 @@ int main( int argc, char* argv[] )
   free(b);
   free(c);
 
-  int sum;
-  MPI_Reduce(&diffsq, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  double sum;
+  MPI_Reduce(&diffsq, &sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
   if(me == 0) {
     if(sum < 1e-6) printf("\nResult is CORRECT!! :)\n");
