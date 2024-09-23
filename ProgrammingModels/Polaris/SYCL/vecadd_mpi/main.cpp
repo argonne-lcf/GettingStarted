@@ -68,14 +68,15 @@ int main( int argc, char* argv[] )
   }
 
   // the following assumes each platform is a single GPU
-  
-  int num_devices = platforms.size();
+  int platform_id = 0;
+  std::vector<sycl::device> devices = platforms[platform_id].get_devices();
+  int num_devices = devices.size();
 
   // Device ID
 
   int device_id = me % num_devices;
 
-  sycl::queue Q( platforms[device_id].get_devices()[0] );
+  sycl::queue Q( devices[device_id] );
   
   for(int i=0; i<nranks; ++i) {
     if(i == 0 && me == 0) {

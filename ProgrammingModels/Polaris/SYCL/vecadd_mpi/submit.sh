@@ -6,7 +6,7 @@
 #PBS -A Catalyst
 #PBS -l filesystems=home:grand:eagle
 
-cd ${PBS_O_WORKDIR}
+#cd ${PBS_O_WORKDIR}
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 
