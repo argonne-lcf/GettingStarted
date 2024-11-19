@@ -14,7 +14,7 @@ $ ./submit.sh
 
 ## Example submission script
 
-The following submission script will launch 64 MPI ranks on each node allocated. The MPI ranks are bound to CPUS with a depth (stride) of 1.
+The following submission script will launch 128 MPI ranks on each node allocated. Each node contains dual 64-core CPUs and each MPI rank is bound to single core.
 ```
 #!/bin/sh -l
 #PBS -l select=2:system=crux
@@ -26,9 +26,9 @@ The following submission script will launch 64 MPI ranks on each node allocated.
 
 cd ${PBS_O_WORKDIR}
 
-# MPI example w/ 64 MPI ranks per node (1 rank per core)
+# MPI example w/ 128 MPI ranks per node (1 rank per core)
 NNODES=`wc -l < $PBS_NODEFILE`
-NRANKS_PER_NODE=64
+NRANKS_PER_NODE=128
 NDEPTH=1
 NTHREADS=1
 
@@ -39,18 +39,18 @@ echo "Affinitying using cpu-bind depth"
 mpiexec -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth ./hello_affinity
 ```
 
-### Example output:
-This example launches 64 MPI ranks on each node with each rank bound to a single core and output is written to the stdout file generated.
+Example output follows and is written to the stdout file generated.
+
 ```
 $ qsub -l select=2,walltime=0:10:00 -l filesystems=home:grand:eagle -A <PROJECT> ./submit.sh 
 
-NUM_OF_NODES= 2 TOTAL_NUM_RANKS= 128 RANKS_PER_NODE= 64 THREADS_PER_RANK= 1
+NUM_OF_NODES= 2 TOTAL_NUM_RANKS= 256 RANKS_PER_NODE= 128 THREADS_PER_RANK= 1
 Affinitying using cpu-bind depth
 To affinity and beyond!! nname= x1000c0s3b0n0  rnk= 0  list_cores= (0)
 ...
-To affinity and beyond!! nname= x1000c0s3b0n0  rnk= 63  list_cores= (63)
+To affinity and beyond!! nname= x1000c0s3b0n0  rnk= 127  list_cores= (127)
 
-To affinity and beyond!! nname= x1000c0s3b0n1  rnk= 64  list_cores= (0)
+To affinity and beyond!! nname= x1000c0s3b0n1  rnk= 128  list_cores= (0)
 ...
-To affinity and beyond!! nname= x1000c0s3b0n1  rnk= 127  list_cores= (63)
+To affinity and beyond!! nname= x1000c0s3b0n1  rnk= 255  list_cores= (127)
 ```
