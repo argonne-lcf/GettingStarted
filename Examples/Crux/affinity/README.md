@@ -1,6 +1,6 @@
 # Compilation w/ Cray compiler wrappers
 
-In this environment, the Cray compiler wrappers `cc, CC, ftn` point to the base CPU compilers for the Programming Environment loaded (e.g. gnu and cray). It is recommended to use the Cray compiler wrappers for compiling and linking applications.
+On Crux, the Cray compiler wrappers `cc, CC, ftn` point to the base CPU compilers for the Programming Environment loaded (e.g. gnu and cray). It is recommended to use the Cray compiler wrappers for compiling and linking applications.
 
 Users are able to build applications on the Crux login nodes, but may find it convenient to build and test applications on the Crux compute nodes in short interactive jobs. This also has the benefit of allowing one to quickly test submission scripts and explore `mpiexec` settings within a single job.
 ```
@@ -39,7 +39,7 @@ echo "Affinitying using cpu-bind depth"
 mpiexec -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth ./hello_affinity
 ```
 
-## Example output:
+### Example output:
 This example launches 64 MPI ranks on each node with each rank bound to a single core and output is written to the stdout file generated.
 ```
 $ qsub -l select=2,walltime=0:10:00 -l filesystems=home:grand:eagle -A <PROJECT> ./submit.sh 
