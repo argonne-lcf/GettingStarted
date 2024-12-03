@@ -6,14 +6,14 @@
 #PBS -A Catalyst
 #PBS -l filesystems=home:grand:eagle
 
-#cd ${PBS_O_WORKDIR}
+cd ${PBS_O_WORKDIR}
 
-# MPI example w/ 32 MPI ranks per node and 8 OpenMP threads per rank. Each MPI rank spans 2 physical cores and utilizes all 4 hyperthreads on each core.
+# MPI example w/ 64 MPI ranks per node and 4 OpenMP threads per rank. This will spawn 32 MPI ranks on each CPU with each rank spanning 2 physical cores and utilizing both hyperthreads.
 NNODES=`wc -l < $PBS_NODEFILE`
-NRANKS_PER_NODE=32
+NRANKS_PER_NODE=64
 NCORES_PER_RANK=2
-NTHREADS=8
-STRIDE=64
+NTHREADS=4
+STRIDE=128
 
 #Generate cpu bind list during job (or create it beforehand and paste here)
 CPU_LIST="`python3 ../../../HelperScripts/Crux/cpu_binding.py 0 ${NRANKS_PER_NODE} ${NCORES_PER_RANK} ${NTHREADS} ${STRIDE}`"
