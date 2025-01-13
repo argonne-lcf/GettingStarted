@@ -24,9 +24,8 @@ with parsl.load(aurora_single_tile_config):
     hello_world_futures = [hello_world(f"Aurora {i}") for i in range(100)]
 
     # Create 100 hello_affinity tasks
-    hello_affinity_futures = [hello_affinity_futures.append(
-                                stdout=f"{working_directory}/output/hello_{i}.stdout",
-                                stderr=f"{working_directory}/output/hello_{i}.stderr")
+    hello_affinity_futures = [hello_affinity(stdout=f"{working_directory}/output/hello_{i}.stdout",
+                                             stderr=f"{working_directory}/output/hello_{i}.stderr")
                               for i in range(100)]
     
     # This line will block until all hello_world results are returned
