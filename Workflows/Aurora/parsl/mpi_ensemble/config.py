@@ -8,10 +8,10 @@ from parsl.executors import MPIExecutor
 # Use the Simple launcher
 from parsl.launchers import SimpleLauncher
 
-# These options will run work in 1 node batch jobs run one at a time
+# These options will run work in 10 node batch jobs run one at a time
+nodes_per_task = 2
 nodes_per_job = 10
 max_num_jobs = 1
-tile_names = [f'{gid}.{tid}' for gid in range(6) for tid in range(2)]
 
 # We will save outputs in the current working directory
 working_directory = os.getcwd()
@@ -19,14 +19,14 @@ working_directory = os.getcwd()
 mpi_ensemble_config = Config(
     executors=[
         MPIExecutor(
-            # This allows for a minimum run size of 1 node for task runs
-            max_workers_per_block=nodes_per_job, 
+            # This creates 1 worker for each multinode task slot
+            max_workers_per_block=nodes_per_job//nodes_per_task, 
             provider=PBSProProvider(
                 account="Aurora_deployment",
                 worker_init=f"""source $HOME/_env/bin/activate; \
                                 cd {working_directory}""",
                 walltime="0:30:00",
-                queue="workq",
+                queue="lustre_scaling",
                 scheduler_options="#PBS -l filesystems=home:flare",
                 launcher=SimpleLauncher(),
                 select_options="",
