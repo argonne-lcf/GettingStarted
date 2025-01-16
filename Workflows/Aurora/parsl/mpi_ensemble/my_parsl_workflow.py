@@ -4,8 +4,6 @@ from parsl import bash_app
 
 from config import mpi_ensemble_config
 
-working_directory = os.getcwd()
-
 # This app will run the hello_affinity application with mpiexec
 # Using the set_affinity_gpu_aurora.sh script will bind each mpi rank to a gpu tile
 @bash_app
@@ -14,6 +12,9 @@ def mpi_hello_affinity(parsl_resource_specification, depth=8, stdout='mpi_hello.
     # PARSL_MPI_PREFIX will resolve to `mpiexec -n num_ranks -ppn ranks_per_node -hosts NODE001,NODE002`
     return f"$PARSL_MPI_PREFIX --cpu-bind depth --depth={depth} {APP_DIR}/HelperScripts/Aurora/set_affinity_gpu_aurora.sh {APP_DIR}/Examples/Aurora/affinity_gpu/sycl/hello_affinity"
 
+print("Starting my_parsl_workflow")
+
+working_directory = os.getcwd()
 
 with parsl.load(mpi_ensemble_config):
 

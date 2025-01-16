@@ -31,11 +31,10 @@ aurora_single_tile_config = Config(
                 # Project name
                 account="Aurora_deployment",
                 # Submission queue
-                queue="lustre_scaling",
+                queue="debug",
                 # Commands run before workers launched
                 # Make sure to activate your environment where Parsl is installed
-                worker_init=f'''source $HOME/_env/bin/activate;
-                            cd {execute_dir}''',
+                worker_init=f'''source $HOME/_env/bin/activate; cd {execute_dir}''',
                 # Wall time for batch jobs
                 walltime="0:30:00",
                 # Change if data/modules located on other filesystem
