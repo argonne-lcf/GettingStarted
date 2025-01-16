@@ -29,8 +29,9 @@ with parsl.load(aurora_single_tile_config):
     # Create 12 hello_affinity tasks
     hello_affinity_futures = [hello_affinity(stdout=f"{working_directory}/output/hello_{i}.stdout",
                                              stderr=f"{working_directory}/output/hello_{i}.stderr")
-                              for i in range(24)]
+                              for i in range(12)]
     print(f"Created {len(hello_world_futures)} hello_affinity tasks")
+
     # This line will block until all hello_world results are returned
     hello_world_results = [tf.result() for tf in hello_world_futures]
     print("hello_world tasks complete")
@@ -38,12 +39,13 @@ with parsl.load(aurora_single_tile_config):
 
     # This line will block until all hello_affinity results are returned
     hello_affinity_results = [tf.result() for tf in hello_affinity_futures]
-    for i,tf in enumerate(hello_affinity_futures):
-        print(f"{tf.result}")
-        with open(f"{working_directory}/output/hello_{i}.stdout", "r") as f:
-            outputs = f.readlines()
-            print(outputs)
     print("hello_affinity tasks complete")
     print(f"bash apps like hello_affinity return the return code of the executable, e.g. {hello_affinity_results[0]=}")
 
+    print(f"Read results of hello_affinity from stdout file:")
+    for i,tf in enumerate(hello_affinity_futures):
+        with open(f"{working_directory}/output/hello_{i}.stdout", "r") as f:
+            outputs = f.readlines()
+            print(outputs)
+    
     print("Tasks done!")
