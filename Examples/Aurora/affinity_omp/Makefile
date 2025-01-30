@@ -2,7 +2,7 @@
 # Definition of MACROS
 
 CXX = mpicxx
-CXXFLAGS = -g -fopenmp -O3
+CXXFLAGS = -g -qopenmp -O3
 
 CPP = cpp -P -traditional
 CPPFLAGS =

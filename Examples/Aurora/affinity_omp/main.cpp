@@ -5,6 +5,9 @@
 #include <mpi.h>
 #include <omp.h>
 
+#include <chrono>
+#include <thread>
+
 // xthi.c from http://docs.cray.com/books/S-2496-4101/html-S-2496-4101/cnlexamples.html
 
 // util-linux-2.13-pre7/schedutils/taskset.c
@@ -43,15 +46,22 @@ int main(int argc, char *argv[])
 {
   int rnk,nrnk;
   char nname[16];
+  std::this_thread::sleep_for(std::chrono::milliseconds(2));
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rnk);
   MPI_Comm_size(MPI_COMM_WORLD, &nrnk);
   gethostname(nname, 16);
 
+  int num_threads = -1;
+#pragma omp parallel
+  {
+    num_threads = omp_get_num_threads();
+  }
+
   for(int i=0; i<nrnk; ++i) {
     if(i == rnk) { 
       #pragma omp parallel for ordered
-      for(int it=0; it<omp_get_num_threads(); ++it) {
+      for(int it=0; it<num_threads; ++it) {
         char list_cores[7*CPU_SETSIZE];
         get_cores(list_cores);
         #pragma omp ordered

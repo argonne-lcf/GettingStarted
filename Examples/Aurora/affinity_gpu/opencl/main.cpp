@@ -195,12 +195,17 @@ int main( int argc, char* argv[] )
 	_OCL_CHECK_ERRORS(err);
 
 	cl_uchar * uuid = new cl_uchar[CL_UUID_SIZE_KHR];
-	err = clGetDeviceInfo(device_id[k], CL_DEVICE_UUID_KHR, 0, uuid, 0);
+	err = clGetDeviceInfo(device_id[k], CL_DEVICE_UUID_KHR, CL_UUID_SIZE_KHR, uuid, 0);
+	printf("  [%i] Platform[ %s ] Type[ %s ] Device[ %s ]  uuid= ", global_index, buf, devices[j].name, name);
 
-	printf("  [%i] Platform[ %s ] Type[ %s ] Device[ %s ]  uuid= %s\n", global_index, buf, devices[j].name, name, uuid);
-
-	//printf("CL_UUID_SIZE_KHR= %i\n",CL_UUID_SIZE_KHR);
-	printf("uuid= %02x%02x%02x%02x-\n",uuid[0],uuid[1],uuid[2],uuid[3]);
+        //printf("CL_UUID_SIZE_KHR= %i\n",CL_UUID_SIZE_KHR);
+	printf("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n",
+			uuid[0],uuid[1],uuid[2],uuid[3],uuid[4],
+			uuid[5],uuid[6],
+			uuid[7],uuid[8],
+			uuid[9],uuid[10],
+			uuid[11],uuid[12],uuid[13],uuid[14],uuid[15]
+			);
 
 	global_index++;
 	delete [] name;
@@ -210,100 +215,4 @@ int main( int argc, char* argv[] )
     //} // loop over device types
   
   }
-
- /* 
-  // Device ID
-  cl_device_id device;
-  err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
-  //err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
-  _OCL_CHECK_ERRORS(err);
-
-  // check opencl version
-  _OCL_PRINT_TEXT_PROPERTY(device, CL_DEVICE_NAME);
-  _OCL_PRINT_TEXT_PROPERTY(device, CL_DEVICE_VERSION);
-  _OCL_PRINT_TEXT_PROPERTY(device, CL_DEVICE_OPENCL_C_VERSION);
-  
-  _OCL_PRINT_NUMERIC_PROPERTY(device, CL_DEVICE_MAX_COMPUTE_UNITS, cl_uint);
-  _OCL_PRINT_NUMERIC_PROPERTY(device, CL_DEVICE_MAX_CLOCK_FREQUENCY, cl_uint);
-  _OCL_PRINT_NUMERIC_PROPERTY(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, size_t);
-  
-  // OpenCL context 
-  cl_context context;
-  context = clCreateContext(0, 1, &device, NULL, NULL, &err);
-  _OCL_CHECK_ERRORS(err);
-  
-  // OpenCL queue
-  cl_command_queue queue; 
-  queue = clCreateCommandQueue(context, device, 0, &err);
-  _OCL_CHECK_ERRORS(err);
-  
-  // Program from source
-  cl_program program;
-  program = clCreateProgramWithSource(context, 1, (const char **) & kernel_source, NULL, &err);
-  _OCL_CHECK_ERRORS(err);
-  clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-  
-  // Create kernel 
-  cl_kernel kernel;
-  kernel = clCreateKernel(program, "vecadd", &err);
-  _OCL_CHECK_ERRORS(err);
-  
-  // Create device buffers
-  cl_mem d_a;
-  cl_mem d_b;
-  cl_mem d_c;
-
-  int size = N * sizeof(real_t);
-  
-  d_a = clCreateBuffer(context, CL_MEM_READ_ONLY,  size, NULL, NULL);
-  d_b = clCreateBuffer(context, CL_MEM_READ_ONLY,  size, NULL, NULL);
-  d_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY, size, NULL, NULL);
-  
-  // Transfer data to device
-  err  = clEnqueueWriteBuffer(queue, d_a, CL_TRUE, 0, size, a, 0, NULL, NULL);
-  err |= clEnqueueWriteBuffer(queue, d_b, CL_TRUE, 0, size, b, 0, NULL, NULL);
-  _OCL_CHECK_ERRORS(err);
-  
-  // Set arguments
-  err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_a);
-  err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_b);
-  err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &d_c);
-  err |= clSetKernelArg(kernel, 3, sizeof(int),    &N);
-  _OCL_CHECK_ERRORS(err);
-  
-  // Execute kernel 
-  err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_size, &local_size, 0, NULL, NULL);
-  _OCL_CHECK_ERRORS(err);
-  
-  // Synchronize
-  clFinish(queue);
-  
-  // Transfer data from device
-  err = clEnqueueReadBuffer(queue, d_c, CL_TRUE, 0, size, c, 0, NULL, NULL );
-  _OCL_CHECK_ERRORS(err);
-  
-  //Check result on host
-  double diff = 0;
-  for(int i=0; i<N; ++i) diff += (double) c[i];
-  diff = diff/(double) N - 1.0;
-  
-  if(diff*diff < 1e-6) printf("\nResult is CORRECT!! :)\n");
-  else printf("\nResult is WRONG!! :(\n");
-  
-  // Clean up
-  clReleaseMemObject(d_a);
-  clReleaseMemObject(d_b);
-  clReleaseMemObject(d_c);
-  
-  clReleaseProgram(program);
-  clReleaseKernel(kernel);
-  clReleaseCommandQueue(queue);
-  clReleaseContext(context);
-  
-  free(a);
-  free(b);
-  free(c);
-*/
 }
-
-

@@ -97,13 +97,19 @@ int main(int argc, char *argv[])
 
   int num_devices = omp_get_num_devices();
 
-  int gpu_id = -1;
-  #pragma omp target map(tofrom: gpu_id)
-  {
-    gpu_id = omp_get_device_num();
+  int * gpu_id = (int *) malloc(num_devices*sizeof(int));
+
+  for(int i=0; i<num_devices; ++i) {
+
+    omp_set_default_device(i);
+    #pragma omp target map(tofrom: gpu_id[:num_devices])
+    {
+      gpu_id[i] = omp_get_device_num();
+    }
+
   }
 
-  if(rnk == 0) dev_properties(gpu_id);
+  if(rnk == 0) dev_properties(gpu_id[0]);
 
   for(int ir=0; ir<nprocs; ++ir) {
 
@@ -112,8 +118,10 @@ int main(int argc, char *argv[])
         char list_cores[7*CPU_SETSIZE];
         get_cores(list_cores);
 
-        printf("To affinity and beyond!! nname= %s  rnk= %d  list_cores= (%s)  num_devices= %i  gpu_id= %i\n",
-               nname, rnk, list_cores, num_devices, gpu_id);
+        printf("To affinity and beyond!! nname= %s  rnk= %d  list_cores= (%s)  num_devices= %i  gpu_id= ",
+               nname, rnk, list_cores, num_devices);
+	for(int i=0; i<num_devices; ++i) printf("%i ",gpu_id[i]);
+	printf("\n");
         //dev_properties(gpu_id);
         printf("\n");
     }
