@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -l
 #PBS -l select=1
 #PBS -l place=scatter
 #PBS -l walltime=0:15:00
