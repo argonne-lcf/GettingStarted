@@ -6,7 +6,7 @@
 #PBS -A Catalyst
 #PBS -l filesystems=home:flare
 
-#cd ${PBS_O_WORKDIR}
+cd ${PBS_O_WORKDIR}
 
 # MPI example w/ MPI ranks and OpenMP threads spread evenly across cores (one process per physical core)
 NNODES=`wc -l < $PBS_NODEFILE`
