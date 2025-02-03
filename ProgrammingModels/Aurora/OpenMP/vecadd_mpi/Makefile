@@ -2,14 +2,17 @@
 # Definition of MACROS
 
 CXX = mpicxx
-CXXFLAGS = -g -O3 -std=c++0x
-CXXFLAGS += -fiopenmp -fopenmp-targets=spir64
-CXXFLAGS += -D_SINGLE_PRECISION
+CXXFLAGS = 
+#CXXFLAGS += -fiopenmp -fopenmp-targets=spir64
+CXXFLAGS += -fiopenmp -fopenmp-targets=spir64_gen
+#CXXFLAGS += -D_SINGLE_PRECISION
 
 CPP = cpp -P -traditional
 CPPFLAGS =
 
 LD = $(CXX)
+LDFLAGS =
+LDFLAGS += -fiopenmp -fopenmp-targets=spir64_gen -Xopenmp-target-backend "-device pvc"
 LIB = 
 
 BINROOT=./
@@ -25,7 +28,7 @@ OBJ = $(SRC:.cpp=.o)
 # --		Rule to create target
 
 $(EX): 	$(OBJ)
-	$(LD) -o $@ $(CXXFLAGS) $(OBJ) $(LIB)
+	$(LD) -o $@ $(LDFLAGS) $(OBJ) $(LIB)
 
 ####################################################################
 

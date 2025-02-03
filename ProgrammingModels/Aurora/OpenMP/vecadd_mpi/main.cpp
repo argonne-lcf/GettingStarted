@@ -8,7 +8,6 @@
 #include <omp.h>
 
 #define _N 1024
-#define _LOCAL_SIZE 64
 
 #ifdef _SINGLE_PRECISION
   typedef float real_t;
@@ -25,7 +24,7 @@ void _vecadd(real_t * a, real_t * b, real_t * c, int N)
   for(int i=0; i<N; ++i) {
     c[i] = a[i] + b[i];
   }
-  
+
 }
 
 // ----------------------------------------------------------------
@@ -40,9 +39,11 @@ int main( int argc, char* argv[] )
 
   const int N = _N;
 
-  real_t * a = (real_t*) malloc(N*sizeof(real_t));
-  real_t * b = (real_t*) malloc(N*sizeof(real_t));
-  real_t * c = (real_t*) malloc(N*sizeof(real_t));
+  const int bytes = N * sizeof(real_t);
+
+  real_t * a = (real_t*) malloc(bytes);
+  real_t * b = (real_t*) malloc(bytes);
+  real_t * c = (real_t*) malloc(bytes);
 
   // Initialize host
   for(int i=0; i<N; ++i) {
@@ -50,6 +51,8 @@ int main( int argc, char* argv[] )
     b[i] = cos(i)*cos(i);
     c[i] = -1.0;
   }
+
+  int host = omp_get_initial_device();
 
   int num_devices = omp_get_num_devices();
 
@@ -62,11 +65,13 @@ int main( int argc, char* argv[] )
   int device_id = me % num_devices;
   for(int i=0; i<nranks; ++i) {
     if(i == me) {
-      printf("Rank %i running on GPU %i!\n",me,device_id);
+      printf("Rank %i on host %i running on GPU %i!\n",me,host,device_id);
     }
     MPI_Barrier(MPI_COMM_WORLD);
   }
-  
+
+  omp_set_default_device(device_id);
+
 #ifdef _SINGLE_PRECISION
   if(me == 0) printf("Using single-precision\n\n");
 #else
@@ -74,17 +79,22 @@ int main( int argc, char* argv[] )
 #endif
 
   // Create device buffers and transfer data to device
-  
-#pragma omp target enter data map(alloc: a[:N], b[:N], c[:N] )
-#pragma omp target enter data map(to: a[:N], b[:N], c[:N] )
+
+  double * d_a = (double *) omp_target_alloc(bytes, device_id);
+  double * d_b = (double *) omp_target_alloc(bytes, device_id);
+  double * d_c = (double *) omp_target_alloc(bytes, device_id);
+
+  omp_target_memcpy(d_a, a, bytes, 0, 0, device_id, host);
+  omp_target_memcpy(d_b, b, bytes, 0, 0, device_id, host);
+  omp_target_memcpy(d_c, c, bytes, 0, 0, device_id, host);
 
   // Execute kernel
 
-  _vecadd(a, b, c, N);
+  _vecadd(d_a, d_b, d_c, N);
 
   // Transfer data from device
 
-#pragma omp target exit data map(from: c[:N] )
+  omp_target_memcpy(c, d_c, bytes, 0, 0, host, device_id);
 
   //Check result on host
 
@@ -96,7 +106,9 @@ int main( int argc, char* argv[] )
 
   // Clean up
 
-#pragma omp target exit data map(delete: a, b, c)
+  omp_target_free(d_a, device_id);
+  omp_target_free(d_b, device_id);
+  omp_target_free(d_c, device_id);
 
   free(a);
   free(b);

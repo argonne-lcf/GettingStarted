@@ -1,7 +1,7 @@
 # Compilation w/ oneAPI
 
 ```
-qsub -I -l select=1,walltime=0:10:00,place=scatter -A Aurora_deployment -q EarlyAppAccess
+qsub -I -l select=1,walltime=0:10:00 -A Catalyst -q debug
 
 make clean
 make 
@@ -13,7 +13,7 @@ make
 
 The following are important compilation flags for OpenMP with the oneAPI compilers.
  - JIT : `-fiopenmp -fopenmp-targets=spir64`
- - AOT : `-fiopenmp -fopenmp-targets=spir64_gen -Xopenmp-target-backend=spir64_gen "-device 12.60.7"`
+ - AOT : `-fiopenmp -fopenmp-targets=spir64_gen -Xopenmp-target-backend=spir64_gen "-device pvc"`
 
 The default is for OpenMP to target individual devices. Tiles can instead be targeted by setting `LIBOMPTARGET_DEVICES=subdevice`.
 
