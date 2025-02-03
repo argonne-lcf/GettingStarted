@@ -91,9 +91,9 @@ int main(int argc, char **argv)
     MPI_Barrier(world);
   }
 
-  real_t * d_a = malloc_device<real_t>(N, Q);
-  real_t * d_b = malloc_device<real_t>(N, Q);
-  real_t * d_c = malloc_device<real_t>(N, Q);
+  real_t * d_a = sycl::malloc_device<real_t>(N, Q);
+  real_t * d_b = sycl::malloc_device<real_t>(N, Q);
+  real_t * d_c = sycl::malloc_device<real_t>(N, Q);
   
   Q.memcpy(d_a, a.data(), N*sizeof(real_t));
   Q.memcpy(d_b, b.data(), N*sizeof(real_t));

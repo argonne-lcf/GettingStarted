@@ -2,14 +2,15 @@
 # Definition of MACROS
 
 CXX = mpicxx
-CXXFLAGS = -std=c++20
-CXXFLAGS += --intel -fsycl #-fsycl-unnamed-lambda
+CXXFLAGS = --intel -fsycl #-fsycl-unnamed-lambda
 CXXFLAGS += -fsycl-targets=spir64_gen
 
 CPP = cpp -P -traditional
 CPPFLAGS =
 
-LD = $(CXX) -Xsycl-target-backend "-device 12.60.7"
+LD = $(CXX)
+LDFLAGS = $(CXXFLAGS)
+LDFLAGS += -Xsycl-target-backend "-device pvc"
 LIB =
 
 BINROOT=./
@@ -25,7 +26,7 @@ OBJ = $(SRC:.cpp=.o)
 # --		Rule to create target
 
 $(EX): 	$(OBJ)
-	$(LD) -o $@ $(CXXFLAGS) $(OBJ) $(LIB)
+	$(LD) -o $@ $(LDFLAGS) $(OBJ) $(LIB)
 
 ####################################################################
 
