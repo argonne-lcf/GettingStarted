@@ -2,10 +2,9 @@
 # Definition of MACROS
 
 CXX = nvc++
-CXXFLAGS = -g -O3 -std=c++0x
+CXXFLAGS = -g -O3
 CXXFLAGS += -D_SINGLE_PRECISION
 CXXFLAGS += -mp=gpu -gpu=cc80
-#CXXFLAGS += -mp=gpu -gpu=cc80,cuda12.0
 
 
 CPP = cpp -P -traditional
