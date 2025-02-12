@@ -1,12 +1,12 @@
 #
 # Definition of MACROS
+# module use /soft/compilers/nvhpc/nvhpc_2024/modulefiles
+# module load nvhpc
 
-CXX = nvc++
+CXX = mpicxx
 CXXFLAGS = -g -O3 -std=c++0x
 CXXFLAGS += -D_SINGLE_PRECISION
 CXXFLAGS += -mp=gpu -gpu=cc80
-#CXXFLAGS += -mp=gpu -gpu=cc80,cuda12.0
-
 
 CPP = cpp -P -traditional
 CPPFLAGS =

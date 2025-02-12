@@ -1,0 +1,51 @@
+#
+# Definition of MACROS
+# module use /soft/compilers/nvhpc/nvhpc_2024/modulefiles
+# module load nvhpc
+
+CXX = nvc++
+CXXFLAGS = -g -O3 -std=c++0x
+CXXFLAGS += -D_SINGLE_PRECISION
+CXXFLAGS += -mp=gpu -gpu=cc80
+#CXXFLAGS += -mp=gpu -gpu=cc80,cuda12.0
+
+
+CPP = cpp -P -traditional
+CPPFLAGS =
+
+LD = $(CXX)
+LIB = 
+
+BINROOT=./
+EX=vecadd
+SHELL=/bin/sh
+
+SRC = $(wildcard *.cpp)
+INC = $(wildcard *.h)
+OBJ = $(SRC:.cpp=.o)
+
+#
+# -- target : 	Dependencies
+# --		Rule to create target
+
+$(EX): 	$(OBJ) 
+	$(LD) -o $@ $(CXXFLAGS) $(OBJ) $(LIB)
+
+####################################################################
+
+$(OBJ): %.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
+#
+# -- Remove *.o and *~ from the directory
+clean:
+	rm -f *.o *~
+#
+# -- Remove *.o, *~, and executable from the directory
+realclean:
+	rm -f *.o *~ ./$(EX)
+
+#
+# -- Simple dependencies
+
+$(OBJ) : $(INC)
