@@ -62,7 +62,13 @@ int main(int argc, char *argv[])
 
   char nname[16];
   gethostname(nname, 16);
- 
+
+  int num_threads = 1;
+#pragma omp parallel
+  {
+    num_threads = omp_get_num_threads();
+  }
+
   // Initialize gpu
 
   int num_devices = gpu_num_devices();
@@ -80,7 +86,7 @@ int main(int argc, char *argv[])
       gpu_print_summary(rnk, num_devices);
       
       #pragma omp parallel for ordered
-      for(int it=0; it<omp_get_num_threads(); ++it) {
+      for(int it=0; it<num_threads; ++it) {
         char list_cores[7*CPU_SETSIZE];
         get_cores(list_cores);
         #pragma omp ordered

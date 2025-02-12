@@ -1,17 +1,16 @@
 # Submit interactive job to single node
 
 ```
-qsub -I -l select=8,walltime=1:00:00,filesystems=home:eagle -A Catalyst -q workq
+qsub -I -l select=8,walltime=1:00:00,filesystems=home:eagle -A Catalyst -q by-gpu
 ```
 
 ## Compilation
 
 ```
-[knight@sophia-gpu-02 affinity_gpu]$ make -f Makefile.mpi_stub 
-g++ -g -O3 -fopenmp -std=c++0x -I/usr/local/cuda//include -I../mpi_stub -c main.cpp
+[knight@sophia-gpu-02 affinity_gpu]$ make -f Makefile 
+mpicxx -g -fopenmp -O3 -std=c++0x -I/usr/local/cuda/include -c main.cpp
 nvcc -x cu  -c offload.cpp -o offload.o
-g++ -o hello_affinity -g -O3 -fopenmp -std=c++0x -I/usr/local/cuda//include -I../mpi_stub main.o offload.o -L/usr/local/cuda//lib64 -lcuda -lcudart
-
+mpicxx -o hello_affinity -g -fopenmp -O3 -std=c++0x -I/usr/local/cuda/include main.o offload.o -L/usr/local/cuda/lib64 -lcuda -lcudart
 ```
 
 ## Run single node example w/ 8 GPUs
@@ -19,18 +18,18 @@ g++ -o hello_affinity -g -O3 -fopenmp -std=c++0x -I/usr/local/cuda//include -I..
 ```
 [knight@sophia-gpu-02 affinity_gpu]$ cat ./submit_1node.sh 
 #!/bin/bash -l
-#PBS -l select=8:system=sophia
+#PBS -l select=1:system=sophia
 #PBS -l place=scatter
 #PBS -l walltime=0:30:00
-#PBS -q workq 
+#PBS -q by-node
 #PBS -A Catalyst
 #PBS -l filesystems=home:grand:eagle
 
 # Example using all 8 GPUs and 128 cores (1 thread per core)
 NNODES=`wc -l < $PBS_NODEFILE`
-NRANKS_PER_NODE=1
-NDEPTH=128
-NTHREADS=128
+NRANKS_PER_NODE=2
+NDEPTH=64
+NTHREADS=64
 
 NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
 echo "NUM_OF_NODES= ${NNODES} TOTAL_NUM_RANKS= ${NTOTRANKS} RANKS_PER_NODE= ${NRANKS_PER_NODE} THREADS_PER_RANK= ${NTHREADS}"

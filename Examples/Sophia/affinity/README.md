@@ -1,15 +1,16 @@
 # Submit interactive job to single GPU
 
 ```
-qsub -I -l select=1,walltime=1:00:00,filesystems=home:eagle -A Catalyst -q workq
+qsub -I -l select=1,walltime=1:00:00,filesystems=home:eagle -A Catalyst -q by-gpu
 ```
 
 ## Compilation
 
 ```
-[knight@sophia-gpu-01 affinity]$ make -f Makefile.mpi_stub 
-g++ -g -fopenmp -O3 -std=c++0x -I../mpi_stub -c main.cpp
-g++ -o hello_affinity -g -fopenmp -O3 -std=c++0x -I../mpi_stub main.o
+[knight@sophia-gpu-05 affinity]$ module load compilers/openmpi
+[knight@sophia-gpu-05 affinity]$ make
+mpicxx -g -fopenmp -O3 -std=c++0x  -c main.cpp
+mpicxx -o hello_affinity -g -fopenmp -O3 -std=c++0x  main.o
 ```
 
 ## Run single GPU example
@@ -20,9 +21,11 @@ g++ -o hello_affinity -g -fopenmp -O3 -std=c++0x -I../mpi_stub main.o
 #PBS -l select=1:system=sophia
 #PBS -l place=scatter
 #PBS -l walltime=0:30:00
-#PBS -q workq 
+#PBS -q by-gpu
 #PBS -A Catalyst
 #PBS -l filesystems=home:grand:eagle
+
+cd ${PBS_O_WORKDIR}
 
 # Example using 1 GPU and 16 cores (1 thread per core)
 NNODES=`wc -l < $PBS_NODEFILE`
@@ -33,12 +36,10 @@ NTHREADS=16
 NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
 echo "NUM_OF_NODES= ${NNODES} TOTAL_NUM_RANKS= ${NTOTRANKS} RANKS_PER_NODE= ${NRANKS_PER_NODE} THREADS_PER_RANK= ${NTHREADS}"
 
-export OMP_NUM_THREADS=${NTHREADS}
-export OMP_PLACES=cores
-./hello_affinity
+MPI_ARG="-n ${NTOTRANKS} --npernode ${NRANKS_PER_NODE} "
+MPI_ARG=" -x OMP_NUM_THREADS=${NTHREADS} -x OMP_PROC_BIND=spread -x OMP_PLACES=cores "
 
-#echo "Affinitying using cpu-bind depth"
-#mpiexec -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth ./hello_affinity
+mpiexec ${MPI_ARG} ./hello_affinity
 ```
 
 ```
