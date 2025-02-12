@@ -1,6 +1,7 @@
 #
 # Definition of MACROS
-# module use /soft/compilers/nvhpc/nvhpc_2024/modulefiles/
+# module use /soft/compilers/nvhpc/nvhpc_2024/modulefiles
+# module load nvhpc
 
 CXX = mpicxx
 CXXFLAGS = -g -O3 -std=c++0x
