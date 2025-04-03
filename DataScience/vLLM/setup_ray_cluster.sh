@@ -18,7 +18,7 @@ setup_environment() {
     
     # Load modules and activate your conda environment
     module load frameworks
-    conda activate vllm_0125
+    conda activate vllm
     
     module unload oneapi/eng-compiler/2024.07.30.002
     module use /opt/aurora/24.180.3/spack/unified/0.8.0/install/modulefiles/oneapi/2024.07.30.002
@@ -133,7 +133,7 @@ main() {
     # --- Launch Ray workers on each of the other nodes via SSH ---
     for worker in "${worker_nodes_full[@]}"; do
         echo "[$(hostname)] Launching Ray worker on $worker..."
-        ssh "$worker" "bash -l -c 'set -x; export RAY_HEAD_IP=${RAY_HEAD_IP}; export COMMON_SETUP_SCRIPT="/flare/datascience/sraskar/vllm-2025_1_release/vllm-2025_1/vllm/examples/submit-dist.sh" ;source \$COMMON_SETUP_SCRIPT; setup_environment; stop_ray; start_ray_worker'" &
+        ssh "$worker" "bash -l -c 'set -x; export RAY_HEAD_IP=${RAY_HEAD_IP}; export COMMON_SETUP_SCRIPT="/path/to/setup_ray_cluster.sh" ;source \$COMMON_SETUP_SCRIPT; setup_environment; stop_ray; start_ray_worker'" &
     done
 
     # Wait for all background SSH jobs to finish.
@@ -141,8 +141,3 @@ main() {
 
     echo "[$(hostname)] Ray cluster is up and running with $num_nodes nodes."
 }
-
-main 
-
-
-
