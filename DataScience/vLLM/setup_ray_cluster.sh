@@ -30,9 +30,10 @@ setup_environment() {
 
     export ZE_FLAT_DEVICE_HIERARCHY=FLAT
 
+    export HF_HOME="/flare/datasets/model-weights/hub"
+    export HF_DATASETS_CACHE="/flare/datasets/model-weights/hub"
     export HF_TOKEN="YOUR_HF_TOKEN"
-    export HF_HOME="/flare/datascience/model-weights/hub"
-    export HF_DATASETS_CACHE="/flare/datascience/model-weights/hub"
+    export RAY_TMPDIR="/tmp"
     export TMPDIR="/tmp"
 
     export RAY_TMPDIR="/tmp"
