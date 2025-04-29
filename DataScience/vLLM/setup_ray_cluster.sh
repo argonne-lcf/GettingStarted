@@ -31,8 +31,8 @@ setup_environment() {
     export ZE_FLAT_DEVICE_HIERARCHY=FLAT
 
     export HF_TOKEN="YOUR_HF_TOKEN"
-    export HF_HOME="/flare/datascience/model-weights/hub"
-    export HF_DATASETS_CACHE="/flare/datascience/model-weights/hub"
+    export HF_HOME="/flare/datasets/model-weights/hub"
+    export HF_DATASETS_CACHE="/flare/datasets/model-weights/hub"
     export TMPDIR="/tmp"
 
     export RAY_TMPDIR="/tmp"
@@ -133,7 +133,7 @@ main() {
     # --- Launch Ray workers on each of the other nodes via SSH ---
     for worker in "${worker_nodes_full[@]}"; do
         echo "[$(hostname)] Launching Ray worker on $worker..."
-        ssh "$worker" "bash -l -c 'set -x; export RAY_HEAD_IP=${RAY_HEAD_IP}; export COMMON_SETUP_SCRIPT="/flare/datascience/sraskar/vllm-2025_1_release/vllm-2025_1/vllm/examples/submit-dist.sh" ;source \$COMMON_SETUP_SCRIPT; setup_environment; stop_ray; start_ray_worker'" &
+        ssh "$worker" "bash -l -c 'set -x; export RAY_HEAD_IP=${RAY_HEAD_IP}; export COMMON_SETUP_SCRIPT="/path/to/setup_ray_cluster.sh" ;source \$COMMON_SETUP_SCRIPT; setup_environment; stop_ray; start_ray_worker'" &
     done
 
     # Wait for all background SSH jobs to finish.
