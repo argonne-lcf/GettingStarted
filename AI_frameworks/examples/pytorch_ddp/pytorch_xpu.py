@@ -23,7 +23,7 @@ model = model.to(device)
 criterion = criterion.to(device)
 model, optimizer = ipex.optimize(model, optimizer=optimizer)
 
-for epoch in range(10):
+for epoch in range(50):
     print(epoch)
     for source, targets in loader:
         source = source.to(device)

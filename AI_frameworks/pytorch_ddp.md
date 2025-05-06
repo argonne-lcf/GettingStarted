@@ -50,12 +50,11 @@ Along with importing the `torch` library, you need to import the `intel_extensio
    module load frameworks
    ```
 
-# **!!!!!!!!!!     UPDATE THIS !!!!!!!!!!!!!!!!!!!!!**
-1. Then, you can `import` PyTorch in Python as usual (below showing results from the `frameworks/2024.2.1_u1`  module):
+1. Then, you can `import` PyTorch in Python as usual (below showing results from the `frameworks/2025.0.0`  module):
    ```python
    >>> import torch
    >>> torch.__version__
-   '2.3.1+cxx11.abi'
+   '2.5.1+cxx11.abi'
    ```
 
 1. A simple but useful check could be to use PyTorch to get device information on a compute node. You can do this the following way:
@@ -169,6 +168,7 @@ From a compute node of an interactive session:
    ```bash
    python pytorch_xpu.py
    ```
+   ⏱️ The time taken to train for 50 epochs is 145 seconds.
 1. 🌡️ You can **interactively check the utilization of a given GPU** on a compute node with the command:
    ```bash
    module load xpu-smi
@@ -266,6 +266,14 @@ for epoch in range(10):
 
 ### ⌨️   Hands on
 
+
+> ⚠️  **Note:** The following enviroment variables must be set in order to use more than one node: 
+```bash
+export FI_MR_CACHE_MONITOR=userfaultfd
+export CCL_KVS_MODE=mpi
+export CCL_KVS_CONNECTION_TIMEOUT=300
+```
+
 Here are the steps to run the above code on Aurora:
 
 1. [Login to Aurora](https://docs.alcf.anl.gov/aurora/getting-started-on-aurora/):
@@ -280,11 +288,16 @@ Here are the steps to run the above code on Aurora:
 1. [Load the frameworks module](https://docs.alcf.anl.gov/aurora/data-science/python#aiml-framework-module):
    ```bash
    module load frameworks
+   export FI_MR_CACHE_MONITOR=userfaultfd
+   export CCL_KVS_MODE=mpi
+   export CCL_KVS_CONNECTION_TIMEOUT=300
    ```
 1. Run the script on 24 tiles, 12 per node:
    ```bash
    mpiexec -n 24 -ppn 12 python pytorch_ddp.py
    ```
+   ⏱️ The time taken to train for 50 epochs is 34 seconds.
+
 
 
 
