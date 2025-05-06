@@ -82,10 +82,12 @@ Here we show how to use Copper on Aurora to import `torch` from a user-defined c
       	python3 -c "import torch; print(torch.__file__)"
       ```
 
+# !!! Khalid: TO DO !!!
 
 ## CPU affinity and bindings
 
-# !!! Khalid: TO DO !!!
+![aff](https://github.com/argonne-lcf/ALCFBeginnersGuide/raw/master/aurora/media/aurora_exascale_compute_blade2.png)
+
 
 ## Communication: oneCCL
 

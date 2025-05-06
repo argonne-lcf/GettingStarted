@@ -43,7 +43,7 @@ model, optimizer = ipex.optimize(model, optimizer=optimizer)
 # DDP: wrap the model in DDP
 model = DDP(model)
 
-for epoch in range(10):
+for epoch in range(50):
     if RANK == 0:
         print(epoch)
     # DDP: set epoch to sampler for shuffling
