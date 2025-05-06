@@ -19,7 +19,7 @@ source numba-dpex_install_new.sh
 
 or by cloning the base environment with
 ```bash
-numba-dpex_install_clone.sh
+source numba-dpex_install_clone.sh
 ``` 
 
 Note that creating a new environment is quicker, however it will not contain all the packages present in the base module. If these packages are needed for your workload, users should clone the base environment.
