@@ -11,24 +11,23 @@ _2025-05-06_
 
 ## Contents
 
-- [Currently:](#currently)
-- [LLMs on Aurora](#llms-on-aurora)
-- [🍋 `ezpz`](#lemon-ezpz)
-- [🐣 Getting Started](#hatching_chick-getting-started)
-- [⏱️ Job Scheduler(s)](#stopwatch-job-schedulers)
-- [👀 How to Modify Existing Code](#eyes-how-to-modify-existing-code)
-- [✨ Features](#sparkles-features)
-- [🧪 Experiment Tracking](#test_tube-experiment-tracking)
-- [🤏 Minimal Example](#pinching_hand-minimal-example)
-- [🏃‍♂️ Running the Minimal
-  Example](#running_man-running-the-minimal-example)
-- [🏖️ Shell Environment](#beach_umbrella-shell-environment)
-- [🏗️ Setup Environment](#building_construction-setup-environment)
-- [📝 `ezpz-test`](#pencil-ezpz-test)
-- [🦜 Generate Text](#parrot-generate-text)
-- [🤗 Huggingface Trainer](#hugs-huggingface-trainer)
-- [🏎️ Megatron-DeepSpeed](#racing_car-megatron-deepspeed)
-- [Acknowledgements](#acknowledgements)
+- [📍 Currently:](#currently)
+- [💬 LLMs on Aurora](#llms-on-aurora)
+- [🍋 `ezpz`](#-ezpz)
+- [🐣 Getting Started](#-getting-started)
+- [⏱️ Job Scheduler(s)](#-job-schedulers)
+- [👀 How to Modify Existing Code](#-how-to-modify-existing-code)
+- [✨ Features](#-features)
+- [🧪 Experiment Tracking](#-experiment-tracking)
+- [🤏 Minimal Example](#-minimal-example)
+- [🏃‍♂️ Running the Minimal Example](#running-the-minimal-example)
+- [🏖️ Shell Environment](#-shell-environment)
+- [🏗️ Setup Environment](#-setup-environment)
+- [📝 `ezpz-test`](#-ezpz-test)
+- [🦜 Generate Text](#-generate-text)
+- [🤗 Huggingface Trainer](#-huggingface-trainer)
+- [🏎️ Megatron-DeepSpeed](#-megatron-deepspeed)
+- [🙌 Acknowledgements](#acknowledgements)
 
 ## Currently
 
