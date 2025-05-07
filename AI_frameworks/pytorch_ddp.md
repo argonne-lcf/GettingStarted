@@ -156,7 +156,7 @@ for epoch in range(10):
 
 From a compute node of an interactive session:
 
-1. Go into the directory `./examples/pytorch_ddp/` of this repository, and change permissions to the script [`pytorch_xpu.py`](examples/04_AI_frameworks/pytorch_xpu.py) to make it executable:
+1. Go into the directory `./examples/pytorch_ddp/` of this repository, and change permissions to the script [`pytorch_xpu.py`](examples/pytorch_ddp/pytorch_xpu.py) to make it executable:
    ```bash
    chmod a+x pytorch_xpu.py
    ```
@@ -332,7 +332,7 @@ Here are the steps to run the above code on Aurora:
    ```bash
    qsub -q debug -A <your_project_name> -l select=2,walltime=30:00 -l filesystems=home:flare -k doe -j oe -I
    ```
-1. Go into the directory `./examples/pytorch_ddp/` of this repository, and change permissions to the script [`pytorch_ddp.py`](examples/04_AI_frameworks/pytorch_ddp.py) to make it executable with `chmod a+x pytorch_ddp.py`.
+1. Go into the directory `./examples/pytorch_ddp/` of this repository, and change permissions to the script [`pytorch_ddp.py`](examples/pytorch_ddp/pytorch_ddp.py) to make it executable with `chmod a+x pytorch_ddp.py`.
 1. [Load the frameworks module](https://docs.alcf.anl.gov/aurora/data-science/python#aiml-framework-module):
    ```bash
    module load frameworks

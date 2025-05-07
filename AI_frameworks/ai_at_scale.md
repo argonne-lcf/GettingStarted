@@ -51,7 +51,7 @@ Here we show how to use Copper on Aurora to import `numpy` from a user-defined c
    ```bash
    ssh <username>@aurora.alcf.anl.gov
    ```
-1. Submit the script [`simple_with_copper.sh`](examples/copper_example/simple_with_copper.sh) from the directory `./examples/ai_at_scale/` of this repository:
+1. Submit the script [`simple_with_copper.sh`](examples/ai_at_scale/simple_with_copper.sh) from the directory `./examples/ai_at_scale/` of this repository:
    ```bash
    qsub simple_with_copper.sh
    ```
@@ -248,7 +248,7 @@ The command `module show frameworks_optimized` lists the complete list of settin
 
 ### ⌨️   Hands on
 
-Here we show how to run the data parallel training example [`pytorch_ddp.py`](examples/04_AI_frameworks/pytorch_ddp.py`) described in [04_AI_frameworks.md](04_AI_frameworks.md) using the optimized setup of the `frameworks_optimized` module. 
+Here we show how to run the data parallel training example [`pytorch_ddp.py`](examples/pytorch_ddp/pytorch_ddp.py`) described in [04_AI_frameworks.md](pytorch_ddp.md) using the optimized setup of the `frameworks_optimized` module. 
 
 The last two steps of the [hands-on example in 04_AI_frameworks.md](04_AI_frameworks.md#example%3A-training-a-pytorch-model-on-a-single-gpu-tile) should be replaced with the following ones:
 
