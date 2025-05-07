@@ -1,7 +1,7 @@
 # Large Language Models on Aurora
 
 Sam Foreman  
-2025-05-06
+_2025-05-06_
 
 > [!NOTE]
 > This is a markdown version of the original slides.
@@ -30,12 +30,13 @@ Sam Foreman
 - [🏎️ Megatron-DeepSpeed](#racing_car-megatron-deepspeed)
 - [Acknowledgements](#acknowledgements)
 
-## Currently
+## Currently:
 
-<img width="66%" alt="Modern Pretraining Infrastructure" src="https://samforeman.me/talks/incite-hackathon-2025/assets/modern-pretraining.jpeg">
+![](./assets/modern-pretraining.jpeg)
 
 Figure 1: Current state of LLM Pretraining.
 \[[Source](https://x.com/Dorialexander/status/1918822518804132085)\]
+
 
 ## LLMs on Aurora
 
@@ -49,6 +50,15 @@ Figure 1: Current state of LLM Pretraining.
 > Write once, run anywhere
 
 ## 🐣 Getting Started
+
+1. Submit interactive job:
+
+    ```bash
+    qsub -I -l select=2 -l walltime=01:00:00 \
+        -l filesystems=home:flare \
+        -A gpu_hack \
+        -q gpu_hack_prio
+    ```
 
 1.  Install[^1]:
 
@@ -130,6 +140,8 @@ Figure 1: Current state of LLM Pretraining.
 
 ## 🧪 Experiment Tracking
 
+<div class="block-code">
+
 ``` python
 import ezpz
 rank = ezpz.setup_torch()
@@ -160,10 +172,14 @@ if rank == 0:
 2.  Log summary of metrics to stdout
 3.  Update `history.history` with metrics[^3]
 
+</div>
+
 ## 🤏 Minimal Example
 
 - See
   [`ezpz/examples/minimal.py`](https://github.com/saforem2/ezpz/blob/main/src/ezpz/examples/minimal.py)
+
+<div class="block-code">
 
 ``` python
 import os
@@ -292,6 +308,8 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+</div>
 
 ## 🏃‍♂️ Running the Minimal Example
 
@@ -1267,4 +1285,3 @@ bash train_alcf.sh
 [^5]: <https://bit.ly/ezpz-utils>, since
     <https://raw.githubusercontent.com/saforem2/ezpz/main/bin/utils.sh>
     is a bit of a pain
-
