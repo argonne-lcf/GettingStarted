@@ -32,7 +32,7 @@ Sam Foreman
 
 ## Currently
 
-![](./assets/modern-pretraining.jpeg)
+<img width="66%" alt="Modern Pretraining Infrastructure" src="https://samforeman.me/talks/incite-hackathon-2025/assets/modern-pretraining.jpeg">
 
 Figure 1: Current state of LLM Pretraining.
 \[[Source](https://x.com/Dorialexander/status/1918822518804132085)\]
