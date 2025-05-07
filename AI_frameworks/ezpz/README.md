@@ -11,18 +11,22 @@ _2025-05-06_
 
 ## Contents
 
-- [📍 Currently:](#-currently)
+- [📍 Currently](#-currently)
 - [💬 LLMs on Aurora](#-llms-on-aurora)
 - [🍋 `ezpz`](#-ezpz)
 - [🐣 Getting Started](#-getting-started)
-- [⏱️ Job Scheduler(s)](#-job-schedulers)
-- [👀 How to Modify Existing Code](#-how-to-modify-existing-code)
+- [🏖️ Shell Environment](#-shell-environment)
+- [🔍 Environment Setup with `ezpz_setup_env`](#-environment-setup-with-ezpz_setup_env)
+- [⏱️ Working with Job Scheduler(s)](#-working-with-job-schedulers)
+- [🔄 Use Custom Node Lists](#-use-custom-node-lists)
+- [🐍 Python Environments](#-python-environments)
+- [📦 Install `ezpz`](#-install-ezpz)
+- [➕ How to Modify Existing
+  Code](#-how-to-modify-existing-code)
 - [✨ Features](#-features)
 - [🧪 Experiment Tracking](#-experiment-tracking)
 - [🤏 Minimal Example](#-minimal-example)
 - [🏃‍♂️ Running the Minimal Example](#-running-the-minimal-example)
-- [🏖️ Shell Environment](#-shell-environment)
-- [🏗️ Setup Environment](#-setup-environment)
 - [📝 `ezpz-test`](#-ezpz-test)
 - [🦜 Generate Text](#-generate-text)
 - [🤗 Huggingface Trainer](#-huggingface-trainer)
