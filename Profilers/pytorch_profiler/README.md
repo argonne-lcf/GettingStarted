@@ -81,8 +81,12 @@ DFTracer is an I/O profiling tool with the capability of doing application‑lev
 This will generate *.pfw files which can also be visualized using https://ui.perfetto.dev/. One might have to add "[" to the first line and "]" at the end of the file if it is not there. 
 
 ## Examples
-Python code: [./test_miniGPT.py](./test_miniGPT.py) <br>
-Submission script: [./qsub.sc](./qsub.sc) <br>
+* MiniGPT
+  - Python code: [./test_miniGPT.py](./test_miniGPT.py) <br>
+  - Submission script: [./miniGPT.sc](./miniGPT.sc) <br>
+* DTensor
+  - Python code: [./test_dtensor_1d.py](./test_dtensor_1d.py) <br>
+  - Submission script: [./dtensor.sc](./dtensor.sc) <br>
 Flat profiling: 
 ```
 -------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
