@@ -174,6 +174,54 @@ From a compute node of an interactive session:
    module load xpu-smi
    watch -n 0.1 xpu-smi stats -d <GPU_ID>
    ```
+   and this is the output for the device 0:
+   ```bash
+   +-----------------------------+--------------------------------------------------------------------+
+   | Device ID                   | 0                                                                  |
+   +-----------------------------+--------------------------------------------------------------------+
+   | GPU Utilization (%)         | Tile 0: N/A; Tile 1: N/A                                           |
+   | EU Array Active (%)         | Tile 0: N/A; Tile 1: N/A                                           |
+   | EU Array Stall (%)          | Tile 0: N/A; Tile 1: N/A                                           |
+   | EU Array Idle (%)           | Tile 0: N/A; Tile 1: N/A                                           |
+   |                             |                                                                    |
+   | Compute Engine Util (%)     | Tile 0:                                                            |
+   |                             |   Engine 0: 99, Engine 1: 0, Engine 2: 0, Engine 3: 0              |
+   |                             | Tile 1:                                                            |
+   |                             |   Engine 0: 0, Engine 1: 0, Engine 2: 0, Engine 3: 0               |
+   | Render Engine Util (%)      | N/A                                                                |
+   | Media Engine Util (%)       | Tile 0: N/A; Tile 1: N/A                                           |
+   | Decoder Engine Util (%)     | N/A                                                                |
+   | Encoder Engine Util (%)     | N/A                                                                |
+   | Copy Engine Util (%)        | Tile 0:                                                            |
+   |                             |   Engine 0: 42, Engine 1: 0, Engine 2: 0, Engine 3: 0              |
+   |                             |   Engine 4: 0, Engine 5: 0, Engine 6: 0, Engine 7: 0               |
+   |                             | Tile 1:                                                            |
+   |                             |   Engine 0: 0, Engine 1: 0, Engine 2: 0, Engine 3: 0               |
+   |                             |   Engine 4: 0, Engine 5: 0, Engine 6: 0, Engine 7: 0               |
+   | Media EM Engine Util (%)    | N/A                                                                |
+   | 3D Engine Util (%)          | N/A                                                                |
+   +-----------------------------+--------------------------------------------------------------------+
+   | Reset                       | Tile 0: N/A; Tile 1: N/A                                           |
+   | Programming Errors          | Tile 0: N/A; Tile 1: N/A                                           |
+   | Driver Errors               | Tile 0: N/A; Tile 1: N/A                                           |
+   | Cache Errors Correctable    | Tile 0: N/A; Tile 1: N/A                                           |
+   | Cache Errors Uncorrectable  | Tile 0: N/A; Tile 1: N/A                                           |
+   | Mem Errors Correctable      | Tile 0: N/A; Tile 1: N/A                                           |
+   | Mem Errors Uncorrectable    | Tile 0: N/A; Tile 1: N/A                                           |
+   +-----------------------------+--------------------------------------------------------------------+
+   | GPU Power (W)               | Tile 0: 143; Tile 1: 97                                            |
+   | GPU Frequency (MHz)         | Tile 0: 1600; Tile 1: 1600                                         |
+   | Media Engine Freq (MHz)     | Tile 0: N/A; Tile 1: N/A                                           |
+   | GPU Core Temperature (C)    | Tile 0: 40; Tile 1: 37                                             |
+   | GPU Memory Temperature (C)  | Tile 0: 32; Tile 1: 33                                             |
+   | GPU Memory Read (kB/s)      | Tile 0: 22885053; Tile 1: 0                                        |
+   | GPU Memory Write (kB/s)     | Tile 0: N/A; Tile 1: N/A                                           |
+   | GPU Memory Bandwidth (%)    | Tile 0: N/A; Tile 1: N/A                                           |
+   | GPU Memory Used (MiB)       | Tile 0: 1080; Tile 1: 198                                          |
+   | GPU Memory Util (%)         | Tile 0: 2; Tile 1: 0                                               |
+   | Xe Link Throughput (kB/s)   | N/A                                                                |
+   +-----------------------------+--------------------------------------------------------------------+
+    ```
 
 
 ## Distributed Training on multiple GPUs

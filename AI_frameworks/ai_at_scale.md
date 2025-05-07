@@ -45,7 +45,7 @@ Use it only when you need to import Python modules from user-defined conda envir
 
 ### ⌨️   Hands on
 
-Here we show how to use Copper on Aurora to import `torch` from a user-defined conda environment. 
+Here we show how to use Copper on Aurora to import `numpy` from a user-defined conda environment. 
 
 1. [Login to Aurora](https://docs.alcf.anl.gov/aurora/getting-started-on-aurora/):
    ```bash
@@ -55,9 +55,18 @@ Here we show how to use Copper on Aurora to import `torch` from a user-defined c
    ```bash
    qsub simple_with_copper.sh
    ```
-   (The example script will run on 2 nodes only, so that multiple people can test it at the same time. Feel free to edit the line `#PBS -l select=2` to test it on a higher number of nodes.)
 
 ##### Here is a breakdown of what the above script is doing:
+
+1. Create a local conda environment located at `LUS_CONDA_PATH=$HOME/copper_test_env`, and install numpy.
+
+1. Import **without Copper**: each rank imports `numpy` from the local conda environment:
+   ```bash
+   conda activate ${LUS_CONDA_PATH}
+   mpirun --np ${NRANKS} --ppn ${RANKS_PER_NODE} \
+       python3 -c "import numpy; print(numpy.__file__)"
+   conda deactivate
+   ```
 
 1. Launch Copper
    ```bash
@@ -65,28 +74,50 @@ Here we show how to use Copper on Aurora to import `torch` from a user-defined c
    launch_copper.sh
    ```
 
-1. If you have a local conda environment located at `LUS_CONDA_PATH=/lus/flare/projects/alcf_training/softwares/copper-lus-pip-custom-package`, and you want to use Copper, you need to: 
-   - Add `/tmp/${USER}/copper/` to the beginning of the path to your conda environment:
+1. Prepend `/tmp/${USER}/copper/` to all absolute paths if you want the I/O to go through copper, including:
+   - `PATH`:
       ```bash
-      /tmp/${USER}/copper/${LUS_CONDA_PATH}
+      export PATH=/tmp/${USER}/copper/${LUS_CONDA_PATH}/bin:$PATH
       ```
-   - Append the modified environment path to your `PYTHONPATH`
+   - `PYTHONPATH`:
       ```bash
-      PYTHONPATH=/tmp/${USER}/copper/${LUS_CONDA_PATH}:$PYTHONPATH
-      ```
-      in your `mpiexec`:
-      ```bash
-      time mpirun --np ${NRANKS} --ppn ${RANKS_PER_NODE} \
-          --cpu-bind=list:4:9:14:19:20:25:56:61:66:71:74:79 --genvall \
-          --genv=PYTHONPATH=/tmp/${USER}/copper/lus/flare/projects/alcf_training/softwares/copper-lus-pip-custom-package \
-      	python3 -c "import torch; print(torch.__file__)"
+      export PYTHONPATH=/tmp/${USER}/copper/${LUS_CONDA_PATH}:$PYTHONPATH
       ```
 
-# !!! Khalid: TO DO !!!
+1. Import **with Copper**: each rank imports `numpy` from `/tmp/${USER}/copper/`:
+   ```bash
+   mpirun --np ${NRANKS} --ppn ${RANKS_PER_NODE} \
+       --cpu-bind=list:4:9:14:19:20:25:56:61:66:71:74:79 --genvall \
+       python3 -c "import numpy; print(numpy.__file__)"
+   ```
+
+1. Stop Copper 
+   ```bash
+   stop_copper.sh
+   ```
+   and delete the conda environment.
+
+1. The output will contain the following lines:
+   ```bash
+   ...
+   import without copper
+   /home/<username>/copper_test_env/lib/python3.13/site-packages/numpy/__init__.py
+   /home/<username>/copper_test_env/lib/python3.13/site-packages/numpy/__init__.py
+   /home/<username>/copper_test_env/lib/python3.13/site-packages/numpy/__init__.py
+   ...
+   import with copper
+   /tmp/<username>/copper/home/<username>/copper_test_env/lib/python3.13/site-packages/numpy/__init__.py
+   /tmp/<username>/copper/home/<username>/copper_test_env/lib/python3.13/site-packages/numpy/__init__.py
+   /tmp/<username>/copper/home/<username>/copper_test_env/lib/python3.13/site-packages/numpy/__init__.py
+   ...
+   ``` 
+
+
 
 ## CPU affinity and bindings
+
 Binding the available CPU cores to appropriate devices (GPU tiles) is of 
-critical importance, as this is way to leverage the architectural features in 
+critical importance, as this is a way to leverage the architectural features in 
 an optimal way. The following diagrams show the schematics of the connectivity
 of the 6 GPUs (12 tiles) with the 2 CPUs (sockets).
 
@@ -100,11 +131,12 @@ xpu-smi topology -m
 ```
 shows the affinity of each GPU to a particular socket. 
 ![XPU Connectivity](./figures/xpu-smi.png)
-In choosing our CPU bindings we should be mindful about the fact the fact that
-cores from CPU 0 should be pinned to GPU 0, 1 and 2, and CPU 1 should be used 
-for the other 3.
+In choosing our CPU bindings we should be mindful about the fact that
+cores of CPU 0 should be pinned to GPU 0, 1 and 2, and cores of CPU 1 should be used 
+for the other three GPUs.
 
 ### What if we do not do any bindings?
+
 A quick answer: applications will run, at scale too, but the performance will
 hamper. Let's first check how the bindings look like if we do not explicitly
 bind them to the cores that we want, i.e. rely on the system default.
@@ -157,21 +189,21 @@ The oneCCL library provides various algorithms for each collective operation, as
 
 One of the critical components of scaling out an application is the inter-node
 communication which involves the network interconnects (NICs). Each Aurora 
-compute node has 8 NICs, with each socket connected to 4 of them
-Following is a 
-diagram of an aurora compute node and appropriate NIC to core binding list 
+compute node has 8 NICs, with each CPU socket connected to 4 of them
+The following is a 
+diagram of an Aurora compute node and appropriate NIC to core binding list 
 based on the node architecture
 ![Aurora_node](./figures/aurora-node.png)
 
 |               NIC 0               |               NIC 1               |               NIC 2               |               NIC 3               |               NIC 4               |               NIC 5               |               NIC 6               |               NIC 7               |
 | :-------------------------------: | :-------------------------------: | :-------------------------------: | :-------------------------------: | :-------------------------------: | :-------------------------------: | :-------------------------------: | :-------------------------------: |
 |                 0                 |                 1                 |                 2                 |                 3                 |                52                 |                53                 |                54                 |                55                 |
-| <span style="color:red">4</span>  |                 5                 |                 6                 |                 7                 | <span style="color:red">56</span> |                57                 |                58                 |                59                 |
-|                 8                 | <span style="color:red">9</span>  |                10                 |                11                 |                60                 | <span style="color:red">61</span> |                62                 |                63                 |
-|                12                 |                13                 | <span style="color:red">14</span> |                15                 |                64                 |                65                 | <span style="color:red">66</span> |                67                 |
-|                16                 |                17                 |                18                 | <span style="color:red">19</span> |                68                 |                69                 |                70                 | <span style="color:red">71</span> |
-| <span style="color:red">20</span> |                21                 |                22                 |                23                 |                72                 |                73                 | <span style="color:red">74</span> |                75                 |
-|                24                 | <span style="color:red">25</span> |                26                 |                27                 |                76                 |                77                 |                78                 | <span style="color:red">79</span> |
+| <span style="color:red">**4**</span>  |                 5                 |                 6                 |                 7                 | <span style="color:red">**56**</span> |                57                 |                58                 |                59                 |
+|                 8                 | <span style="color:red">**9**</span>  |                10                 |                11                 |                60                 | <span style="color:red">**61**</span> |                62                 |                63                 |
+|                12                 |                13                 | <span style="color:red">**14**</span> |                15                 |                64                 |                65                 | <span style="color:red">**66**</span> |                67                 |
+|                16                 |                17                 |                18                 | <span style="color:red">**19**</span> |                68                 |                69                 |                70                 | <span style="color:red">**71**</span> |
+| <span style="color:red">**20**</span> |                21                 |                22                 |                23                 |                72                 |                73                 | <span style="color:red">**74**</span> |                75                 |
+|                24                 | <span style="color:red">**25**</span> |                26                 |                27                 |                76                 |                77                 |                78                 | <span style="color:red">**79**</span> |
 |                28                 |                29                 |                30                 |                31                 |                80                 |                81                 |                82                 |                83                 |
 |                32                 |                33                 |                34                 |                35                 |                84                 |                85                 |                86                 |                87                 |
 |                36                 |                37                 |                38                 |                39                 |                88                 |                89                 |                90                 |                91                 |
@@ -195,15 +227,17 @@ results are the following:
 | N256xR12 | 347 | 246 | 41% |
 | N512xR12 | 367 | 290 | 27% |
 
-These are the average timing of 7 iterations of the _Allreduce_ measured on the 
+These are the average timings of 7 iterations of the _Allreduce_ measured on 
 rank 0 (we left the first 2 and the last iteration out of the averaging). The
 _Allreduce_ is done with a single communicator. Complicated situations, for
 example the data parallel _Allreduce_ in large language model training, which
 involves sub-communicators for specific group of ranks, we expect the 
 performance penalty to be even higher.
 
-> **Note**: These results are just an illustrative example, more trials and statistics
-based upon run to run variation needs to be performed.
+This simple example illustrates that appropriately setting the `--cpu-bind` 
+argument of the `mpiexec` command can result in significant speedups. 
+We encourage you to test various binding configurations to find the most 
+appropriate one for you particular model or application.
 
 We have run a comprehensive set of tests to measure the performance of different oneCCL configurations when training various deep learning models at scale. 
 Though the best oneCCL configuration is application dependent, we have identified a set of [optimal settings](https://docs.alcf.anl.gov/aurora/data-science/frameworks/oneCCL/) that work well for most applications and made those available in a dedicated module, called `frameworks_optimized`. 
@@ -236,5 +270,4 @@ The last two steps of the [hands-on example in 04_AI_frameworks.md](04_AI_framew
 - [oneCCL on Aurora documentation](https://docs.alcf.anl.gov/aurora/data-science/frameworks/oneCCL/)
 - [Copper repository](https://github.com/argonne-lcf/copper/tree/main), [Copper documentation](https://alcf-copper-docs.readthedocs.io/en/latest/), [Copper paper](https://www.computer.org/csdl/proceedings-article/sc-workshops/2024/555400b320/23l2GFdlusU)
 
-# [NEXT ->](06_DAOS.md)
-
+## [NEXT: -> DAOS](daos.md)
