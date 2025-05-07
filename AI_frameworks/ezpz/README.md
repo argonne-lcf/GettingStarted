@@ -30,9 +30,9 @@ _2025-05-06_
 - [🏎️ Megatron-DeepSpeed](#racing_car-megatron-deepspeed)
 - [Acknowledgements](#acknowledgements)
 
-## Currently:
+## Currently
 
-![](./assets/modern-pretraining.jpeg)
+<img width="66%" alt="Modern Pretraining Infrastructure" src="https://samforeman.me/talks/incite-hackathon-2025/assets/modern-pretraining.jpeg">
 
 Figure 1: Current state of LLM Pretraining.
 \[[Source](https://x.com/Dorialexander/status/1918822518804132085)\]
