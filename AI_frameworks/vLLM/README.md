@@ -97,4 +97,21 @@ vllm serve meta-llama/Llama-3.1-405B-Instruct --port 8000 --tensor-parallel-size
 Setting `--max-model-len` is important in order to fit this model on 2 nodes. In order to use higher `--max-model-len` values, you will need to use additonal nodes. 
 
 
+## Examples 
 
+### OpenAI API Example 
+
+```bash
+vllm serve meta-llama/Llama-2-7b-chat-hf --port 8000 --device xpu --dtype float16
+python openai-example.py
+```
+
+
+### Offline Inference Benchmakr 
+
+```bash
+export VLLM_HOST_IP=$(getent hosts $(hostname).hsn.cm.aurora.alcf.anl.gov | awk '{ print $1 }' | tr ' ' '\n' | sort | head -n 1)
+ray --logging-level debug start --head --verbose --node-ip-address=$VLLM_HOST_IP --port=6379 --num-cpus=64 --num-gpus=8&
+
+python offline-benchmark.py
+```
