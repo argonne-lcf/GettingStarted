@@ -1,7 +1,7 @@
 import argparse
 import os
 import time
-
+from mpi4py import MPI
 import torch
 from torch.distributed._tensor import DeviceMesh, DTensor, Replicate, Shard
 from torch.profiler import (
