@@ -94,6 +94,8 @@ def main():
     ) as prof:
         for step in range(1, 6):
             run(step)
+    if rank == 0:
+        print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=50))
     os.makedirs(args.trace_dir, exist_ok=True)
     prof.export_chrome_trace(f"{args.trace_dir}/torch-trace-{rank}-of-{world_size}.json")
 
