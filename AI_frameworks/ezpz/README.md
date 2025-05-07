@@ -6,13 +6,13 @@ _2025-05-06_
 > [!NOTE]
 > This is a markdown version of the original slides.
 > The original slides can be found at:
-> - [HTML Version](https://samforeman.me/talks/incite-hackathon-2025)
-> - [Reveal.js Version](https://samforeman.me/talks/incite-hackathon-2025/slides)
+> - HTML Version: [samforeman.me/talks/incite-hackathon-2025](https://samforeman.me/talks/incite-hackathon-2025)
+> - Reveal.js (slides) Version: [samforeman.me/talks/incite-hackathon-2025/slides](https://samforeman.me/talks/incite-hackathon-2025/slides)
 
 ## Contents
 
-- [📍 Currently:](#currently)
-- [💬 LLMs on Aurora](#llms-on-aurora)
+- [📍 Currently:](#-currently)
+- [💬 LLMs on Aurora](#-llms-on-aurora)
 - [🍋 `ezpz`](#-ezpz)
 - [🐣 Getting Started](#-getting-started)
 - [⏱️ Job Scheduler(s)](#-job-schedulers)
@@ -20,27 +20,21 @@ _2025-05-06_
 - [✨ Features](#-features)
 - [🧪 Experiment Tracking](#-experiment-tracking)
 - [🤏 Minimal Example](#-minimal-example)
-- [🏃‍♂️ Running the Minimal Example](#running-the-minimal-example)
+- [🏃‍♂️ Running the Minimal Example](#-running-the-minimal-example)
 - [🏖️ Shell Environment](#-shell-environment)
 - [🏗️ Setup Environment](#-setup-environment)
 - [📝 `ezpz-test`](#-ezpz-test)
 - [🦜 Generate Text](#-generate-text)
 - [🤗 Huggingface Trainer](#-huggingface-trainer)
 - [🏎️ Megatron-DeepSpeed](#-megatron-deepspeed)
-- [🙌 Acknowledgements](#acknowledgements)
-
-## Currently
-
-<img width="66%" alt="Modern Pretraining Infrastructure" src="https://samforeman.me/talks/incite-hackathon-2025/assets/modern-pretraining.jpeg">
-
-Figure 1: Current state of LLM Pretraining.
-\[[Source](https://x.com/Dorialexander/status/1918822518804132085)\]
+- [🙌 Acknowledgements](#-acknowledgements)
 
 ## 📍 Currently
 
 <div id="fig-pretraining-infrastructure">
 
-![](./assets/modern-pretraining.jpeg)
+
+<img width="66%" alt="Modern Pretraining Infrastructure" src="https://samforeman.me/talks/incite-hackathon-2025/assets/modern-pretraining.jpeg">
 
 Figure 1: Current state of LLM Pretraining.
 \[[Source](https://x.com/Dorialexander/status/1918822518804132085)\]
