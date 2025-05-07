@@ -17,7 +17,7 @@ _2025-05-06_
 - [🐣 Getting Started](#-getting-started)
 - [🏖️ Shell Environment](#-shell-environment)
 - [🔍 Environment Setup with `ezpz_setup_env`](#-environment-setup-with-ezpz_setup_env)
-- [⏱️ Working with Job Scheduler(s)](#-working-with-job-schedulers)
+- [⏱️ Working with Job Scheduler(s)](#%EF%B8%8F-working-with-job-schedulers)
 - [🔄 Use Custom Node Lists](#-use-custom-node-lists)
 - [🐍 Python Environments](#-python-environments)
 - [📦 Install `ezpz`](#-install-ezpz)
@@ -26,11 +26,11 @@ _2025-05-06_
 - [✨ Features](#-features)
 - [🧪 Experiment Tracking](#-experiment-tracking)
 - [🤏 Minimal Example](#-minimal-example)
-- [🏃‍♂️ Running the Minimal Example](#-running-the-minimal-example)
+- [🏃‍♂️ Running the Minimal Example](#%EF%B8%8F-running-the-minimal-example) 
 - [📝 `ezpz-test`](#-ezpz-test)
 - [🦜 Generate Text](#-generate-text)
 - [🤗 Huggingface Trainer](#-huggingface-trainer)
-- [🏎️ Megatron-DeepSpeed](#-megatron-deepspeed)
+- [🏎️ Megatron-DeepSpeed](#%EF%B8%8F-megatron-deepspeed)
 - [🙌 Acknowledgements](#-acknowledgements)
 
 ## 📍 Currently
