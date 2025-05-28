@@ -51,7 +51,7 @@ Here we show how to use Copper on Aurora to import `torch` from a user-defined c
    ```bash
    ssh <username>@aurora.alcf.anl.gov
    ```
-1. Submit the script [`simple_with_copper.sh`](examples/copper_example/simple_with_copper.sh) from the directory `./examples/ai_at_scale/` of this repository:
+1. Submit the script [`simple_with_copper.sh`](examples/ai_at_scale/simple_with_copper.sh) from the directory `./examples/ai_at_scale/` of this repository:
    ```bash
    qsub simple_with_copper.sh
    ```
