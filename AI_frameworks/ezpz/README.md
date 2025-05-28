@@ -38,7 +38,7 @@ _2025-05-06_
 <div id="fig-pretraining-infrastructure">
 
 
-<img width="66%" alt="Modern Pretraining Infrastructure" src="https://samforeman.me/talks/incite-hackathon-2025/assets/modern-pretraining.jpeg">
+<img width="66%" alt="Modern Pretraining Infrastructure" src="https://pbs.twimg.com/media/GqEG2yxXUAAN5kp?format=png&name=small">
 
 Figure 1: Current state of LLM Pretraining.
 \[[Source](https://x.com/Dorialexander/status/1918822518804132085)\]
