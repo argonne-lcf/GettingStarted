@@ -82,8 +82,6 @@ Here we show how to use Copper on Aurora to import `torch` from a user-defined c
       	python3 -c "import torch; print(torch.__file__)"
       ```
 
-# !!! Khalid: TO DO !!!
-
 ## CPU affinity and bindings
 Binding the available CPU cores to appropriate devices (GPU tiles) is of 
 critical importance, as this is way to leverage the architectural features in 
@@ -214,9 +212,7 @@ The command `module show frameworks_optimized` lists the complete list of settin
 
 ### ⌨️   Hands on
 
-Here we show how to run the data parallel training example [`pytorch_ddp.py`](examples/04_AI_frameworks/pytorch_ddp.py`) described in [04_AI_frameworks.md](04_AI_frameworks.md) using the optimized setup of the `frameworks_optimized` module. 
-
-The last two steps of the [hands-on example in 04_AI_frameworks.md](04_AI_frameworks.md#example%3A-training-a-pytorch-model-on-a-single-gpu-tile) should be replaced with the following ones:
+Here we show how to run an example using the optimized setup of the `frameworks_optimized` module. 
 
 1. Load the `frameworks_optimized` module:
    ```bash
@@ -235,6 +231,4 @@ The last two steps of the [hands-on example in 04_AI_frameworks.md](04_AI_framew
 
 - [oneCCL on Aurora documentation](https://docs.alcf.anl.gov/aurora/data-science/frameworks/oneCCL/)
 - [Copper repository](https://github.com/argonne-lcf/copper/tree/main), [Copper documentation](https://alcf-copper-docs.readthedocs.io/en/latest/), [Copper paper](https://www.computer.org/csdl/proceedings-article/sc-workshops/2024/555400b320/23l2GFdlusU)
-
-# [NEXT ->](06_DAOS.md)
 
