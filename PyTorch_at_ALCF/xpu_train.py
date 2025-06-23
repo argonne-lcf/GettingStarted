@@ -3,16 +3,17 @@
 from mpi4py import MPI
 import os, socket
 import torch
-from torch.nn.parallel import DistributedDataParallel as DDP
-import time
 import intel_extension_for_pytorch as ipex
 import oneccl_bindings_for_pytorch as torch_ccl
+from torch.nn.parallel import DistributedDataParallel as DDP
+import time
 device = torch.device('xpu' if torch.xpu.is_available() else 'cpu')
-
+#print(device)
 # DDP: Set environmental variables used by PyTorch
 SIZE = MPI.COMM_WORLD.Get_size()
 RANK = MPI.COMM_WORLD.Get_rank()
 LOCAL_RANK = os.environ.get('PALS_LOCAL_RANKID')
+#print(LOCAL_RANK)
 os.environ['RANK'] = str(RANK)
 os.environ['WORLD_SIZE'] = str(SIZE)
 MASTER_ADDR = socket.gethostname() if RANK == 0 else None
@@ -26,12 +27,12 @@ torch.distributed.init_process_group(backend='ccl', init_method='env://', rank=i
 
 # DDP: pin GPU to local rank.
 torch.xpu.set_device(int(LOCAL_RANK))
-
+device = torch.device('xpu')
 torch.manual_seed(0)
 torch.xpu.manual_seed(0)
 
-src = torch.rand((2048, 1, 512))
-tgt = torch.rand((2048, 20, 512))
+src = torch.rand((2048, 1, 512), device=f"xpu:{torch.xpu.current_device()}")
+tgt = torch.rand((2048, 20, 512), device=f"xpu:{torch.xpu.current_device()}")
 dataset = torch.utils.data.TensorDataset(src, tgt)
 
 # DDP: use DistributedSampler to partition the training data
@@ -61,6 +62,7 @@ for epoch in range(10):
     for source, targets in loader:
         source = source.to(device)
         targets = targets.to(device)
+        #torch.xpu.set_device(int(LOCAL_RANK))
         optimizer.zero_grad()
 
         output = model(source, targets)
