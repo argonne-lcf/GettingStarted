@@ -1,3 +1,0 @@
-deepspeed
-pydftracer==1.0.5
-git+https://github.com/zhenghh04/pyutils
