@@ -167,7 +167,7 @@ The full snippet:
 Your Local Machine:ssh <ALCF Username>@aurora.alcf.anl.gov
 Password:
 Type in your MobilePass Auto-generated passcode
-<ALCF Username>@aurora-uan-0010:~>qsub -l select=1 -l walltime=00:59:00 -A lighthouse-purdue -q R5020963 -l filesystems=home:flare -I
+<ALCF Username>@aurora-uan-0010:~>qsub -l select=1 -l walltime=00:59:00 -A lighthouse-purdue -q R5779955 -l filesystems=home:flare -I
 ```
 
 ### Load the Frameworks module
