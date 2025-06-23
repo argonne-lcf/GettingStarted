@@ -41,11 +41,15 @@ loader = torch.utils.data.DataLoader(dataset, sampler=sampler, batch_size=32)
 model = torch.nn.Transformer(batch_first=True)
 model.to(device)
 
+# DDP: scale learning rate by the number of GPUs.
+optimizer = torch.optim.Adam(model.parameters(), lr=(0.001*SIZE))
+
+# Wrap your model with IPEX for performance
+model, optimizer = ipex.optimize(model, optimizer=optimizer)
+
 # DDP: wrap the model in DDP
 model = DDP(model)
 
-# DDP: scale learning rate by the number of GPUs.
-optimizer = torch.optim.Adam(model.parameters(), lr=(0.001*SIZE))
 
 model.train()
 start_t = time.time()
