@@ -137,5 +137,81 @@ python gpu_train.py
 mpiexec -n 4 -ppn 4 python ddp_train.py
 ```
 
+## PyTorch on Aurora
+
+### SSH into Aurora
+```bash
+# from your local machine
+ssh <ALCF Username>@aurora.alcf.anl.gov
+```
+- The system will prompt you for a password
+```
+Password:
+Type in your MobilePass Auto-generated passcode
+```
+- A shell opens in the Login-node, and place you in your home directory
+```bash
+<ALCF Username>@aurora-uan-0010:~>
+```
+- Submit a job request for an interactive session with one node
+```bash
+qsub -l select=1 -l walltime=00:59:00 -A lighthouse-purdue -q R5020963 -l filesystems=home:flare -I
+```
+- A session opens in a compute node:
+```bash
+<ALCF Username>@x4711c5s0b0n0:~>
+```
+
+The full snippet:
+```bash 
+Your Local Machine:ssh <ALCF Username>@aurora.alcf.anl.gov
+Password:
+Type in your MobilePass Auto-generated passcode
+<ALCF Username>@aurora-uan-0010:~>qsub -l select=1 -l walltime=00:59:00 -A lighthouse-purdue -q R5020963 -l filesystems=home:flare -I
+```
+
+### Load the Frameworks module
+Loading the frameworks module will activate a `conda` environment with PyTorch
+in it
+```bash
+module load frameworks
+(/opt/aurora/24.347.0/frameworks/aurora_nre_models_frameworks-2025.0.0) <ALCF Username>@x4711c5s0b0n0:~>
+
+which python
+/opt/aurora/24.347.0/frameworks/aurora_nre_models_frameworks-2025.0.0/bin/python
+```
+### Submitting an interactive job
+After you have run your `qsub` command, and are into a login node, you may 
+submit a job using `mpiexec` if you are using more than 1 processes (can be 
+understood as more than 1 GPU), or just call your script, if you are using a
+single GPU, as you would have done in your laptop.
+
+```bash
+mpiexec -n 12 -ppn 12 hostname    # Printing out the hostname from each MPI process
+
+<ALCF Username>@x4711c5s0b0n0:~> mpiexec -n 12 -ppn 12 hostname
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+x4711c5s0b0n0
+```
+
+### Run the example scripts
+```bash
+mpiexec -n 12 -ppn 12 python xpu_train.py
+```
+
+
+
+
+
 
 
