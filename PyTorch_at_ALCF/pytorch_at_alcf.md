@@ -21,7 +21,8 @@ Type in your MobilePass Auto-generated passcode
 qsub -l select=1 -l walltime=00:59:00 -A lighthouse-purdue -q R5020963 -l filesystems=home:eagle -I
 ```
 - A session opens in a compute node:
-```bash 
+```bash
+<ALCF Username>@x3001c0s25b0n0:~>
 ```
 
 The full snippet:
@@ -34,8 +35,26 @@ Type in your MobilePass Auto-generated passcode
 
 ### AI/ML Software Stack
 
-```bash
+```bash linenums="1"
 module avail                    # shows available modules
 module list                     # shows currently loaded modules
 module load <module-name>       # loads a module to the current environment
+module unload <module-name>     # Unloads/removes a module from the current environment
+module use <path>               # Adds an alternative path to the module search path
+module restore                  # Resets the currently loaded modules to the default module sets
+module show <module-name>       # Shows the environment variables that a module sets, and the paths of different files that the user will access through this module
+```
+
+### Load `conda` module and activate the environment
+
+```bash
+module use /soft/modulefiles    # add /soft/modulefiles to the search paths
+module avail conda              # check the available conda modules
+
+
+---------------------- /soft/modulefiles ---------------------------------------
+   conda/2024-04-29-aws-nccl    conda/2024-04-29 (D)    conda/2024-10-30-workshop
+
+  Where:
+   D:  Default Module
 ```
