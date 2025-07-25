@@ -13,9 +13,6 @@ If not sure where to start, then a good place may be perusing ProgrammingModels 
 3. [Examples](./Examples): Collection of examples demonstrating common tasks (e.g. compilation & setting affinity)
 4. [ProgrammingModels](./ProgrammingModels): Simple examples using supported programming models
 
-<!--
-4. [Performance](./Performan: Simple examples using availble performance tools
--->
 
 <!--
 3. [Debug](./DebugTools/Theta/ATP): Simple examples using available debugging tools
