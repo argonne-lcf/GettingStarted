@@ -68,7 +68,7 @@ Cooley was a data analysis and visualization cluster consisting of 126 compute n
 
 ### Theta
 
-Theta was a Cray XC40, 11.7 petaflops system based on the second-generation Intel Xeon Phi processor codenamed Knights Landing (KNL). There are 4,392 compute nodes available to users each with 64 cores, 192 GiB DDR4 & 16 GiB MCDRAM memory, and a 128 GiB SSD. Additional hardware information is available [here][2].
+Theta was a Cray XC40, 11.7 petaflops system based on the second-generation Intel Xeon Phi processor codenamed Knights Landing (KNL).  It contained 4,392 compute nodes available to users each with 64 cores, 192 GiB DDR4 & 16 GiB MCDRAM memory, and a 128 GiB SSD. Additional hardware information is available [here][2].
 
 
 [1]: https://www.alcf.anl.gov/support-center/cooley/cooley-system-overview
