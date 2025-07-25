@@ -24,8 +24,6 @@ submitting jobs.
 1. [Examples](./Examples): Collection of examples demonstrating common tasks
    (e.g. compilation & setting affinity)
 1. [Helper Scripts](./HelperScripts): Collection of scripts for common tasks
-1. [Performance Tools](./PerformanceTools): Simple examples using available
-   performance tools
 1. [Programming Models](./ProgrammingModels): Simple examples using supported
    programming models
 
