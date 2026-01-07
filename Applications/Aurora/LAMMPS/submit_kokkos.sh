@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#PBS -l select=1:system=aurora
+#PBS -l select=1
 #PBS -l place=scatter
 #PBS -l walltime=0:30:00
 #PBS -q debug
@@ -13,25 +13,26 @@ NTHREADS=1
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 export OMP_NUM_THREADS=${NTHREADS}
+export OMP_PROC_BIND=spread
 export OMP_PLACES=cores
 
 NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
 
-INPUT=in.lj
-EXE=/home/knight/lammps/lammps-git/src/lmp_aurora_kokkos
+cd /path_to_work/
 
+EXE=/path_to_lammps/build/lmp
+
+INPUT=in.lj
 EXE_ARG="-in ${INPUT} "
 
 EXE_ARG+=" -k on g 1 -sf kk -pk kokkos neigh half newton on gpu/aware on "
 
-MPI_ARG=" -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth "
+MPI_ARG=" -n ${NTOTRANKS} --ppn ${NRANKS_PER_NODE} "
+MPI_ARG+=" --cpu-bind list:1:2:3:4:5:6:53:54:55:56:57:58 "
+MPI_ARG+=" --env OMP_NUM_THREADS=${NTHREADS} --env OMP_PROC_BIND=spread --env OMP_PLACES=cores "
 
-AFFINITY=""
-AFFINITY=../../../HelperScripts/Aurora/set_affinity_gpu.sh
+AFFINITY="gpu_tile_compact.sh"
 
-NUMA=""
-#NUMA=" numactl --preferred=0 "
-
-COMMAND="mpiexec ${MPI_ARG} ${AFFINITY} ${NUMA} ${EXE} ${EXE_ARG}"
+COMMAND="mpiexec ${MPI_ARG} ${AFFINITY} ${EXE} ${EXE_ARG}"
 echo "COMMAND= ${COMMAND}"
 ${COMMAND}
