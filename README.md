@@ -63,25 +63,12 @@ CPU (32 cores) and four NVIDIA A100 GPUs.
 
 ### Sophia
 
-Sophia is an extension of Theta and is comprised of 24 NVIDIA DGX A100 nodes, each with eight NVIDIA A100 Tensor Core GPUs and two AMD Rome CPUs. 
+Sophia is comprised of 24 NVIDIA DGX A100 nodes, each with eight NVIDIA A100 Tensor Core GPUs and two AMD Rome CPUs. 
 
 - Additional hardware information is available at:
 
   [Getting Started on Sophia](https://docs.alcf.anl.gov/sophia/getting-started/)
 
 <details closed><summary><h2>🪦 Previous Systems</h2></summary>
-
-### Cooley
-
-Cooley was a data analysis and visualization cluster consisting of 126 compute nodes, each with 12 Intel Haswell cores and an NVIDIA Tesla K80 dual-GPU card. Additional hardware information is available [here][1].
-
-### Theta
-
-Theta was a Cray XC40, 11.7 petaflops system based on the second-generation Intel Xeon Phi processor codenamed Knights Landing (KNL).  It contained 4,392 compute nodes available to users each with 64 cores, 192 GiB DDR4 & 16 GiB MCDRAM memory, and a 128 GiB SSD. Additional hardware information is available [here][2].
-
-
-[1]: https://www.alcf.anl.gov/support-center/cooley/cooley-system-overview
-
-[2]: https://www.alcf.anl.gov/support-center/theta/theta-thetagpu-overview
 
 </details>
