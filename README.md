@@ -63,7 +63,7 @@ CPU (32 cores) and four NVIDIA A100 GPUs.
 
 ### Sophia
 
-Sophia is an extension of Theta and is comprised of 24 NVIDIA DGX A100 nodes, each with eight NVIDIA A100 Tensor Core GPUs and two AMD Rome CPUs. 
+Sophia is comprised of 24 NVIDIA DGX A100 nodes, each with eight NVIDIA A100 Tensor Core GPUs and two AMD Rome CPUs. 
 
 - Additional hardware information is available at:
 
