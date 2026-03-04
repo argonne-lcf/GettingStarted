@@ -1,5 +1,5 @@
 # /* ----------------------------------------------------------------------   
-#  Makefile for ThetaGPU at ALCF
+#  Makefile for Polaris at ALCF
 # ------------------------------------------------------------------------- */
 
 # which file will be copied to Makefile.lammps
