@@ -1,21 +1,16 @@
 # `mpi4py`
 
-Simple script demonstrating how to use `mpi4py`.
+Simple script demonstrating how to use `mpi4py` on ALCF systems.
 
 To run on Polaris:
 
 ```cli
-$ bash main.sh
+$ qsub sub_polaris.sh
 ```
 
-`main.sh`:
+To run on Aurora:
 
-```bash
-#!/bin/bash -l
-module load conda
-NRANKS=$(wc -l < "${PBS_NODEFILE}")
-NGPU_PER_RANK=$(nvidia-smi -L | wc -l)
-NGPUS="$((${NRANKS}*${NGPU_PER_RANK}))"
-mpiexec --envall -n "${NGPUS}" --ppn "${NGPU_PER_RANK}" --hostfile="${PBS_NODEFILE}" python3 main.py
+```cli
+$ qsub sub_aurora.sh
 ```
 
