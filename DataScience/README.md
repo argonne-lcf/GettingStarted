@@ -5,5 +5,5 @@ Please refer to the table below to see what is covered and access the desired ex
 
 |     Topic/Software Tool      | Polaris  | Aurora | Crux    |
 |------------------------------|----------|--------|---------|
-| mpi4py                       |   [X](./mpi4py/sub_polaris.sh)      |    [X](./mpi4py/sub_aurora.sh)    |        |
+| mpi4py                       |   [X](./mpi4py/)      |    [X](./mpi4py/)    |        |
 | ... | | | |
