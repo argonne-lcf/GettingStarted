@@ -24,7 +24,7 @@ RANKS_PER_NODE=4
 RANKS=$(( NODES * $RANKS_PER_NODE ))
 
 # Run MPI program
-echo "Running MPI program with $NODES nodes, $RANKS ranks and $RANKS_PER_NODE ranks per node"
+echo -e "Running MPI program with $NODES nodes, $RANKS ranks and $RANKS_PER_NODE ranks per node\n"
 CPU_BIND_LIST="24:16:8:1"
 mpirun -n $RANKS --ppn $RANKS_PER_NODE --cpu-bind=list:${CPU_BIND_LIST} python mpi4py_ex.py
 
