@@ -6,7 +6,7 @@
 #PBS -A Catalyst
 #PBS -l filesystems=home:flare
 
-#d ${PBS_O_WORKDIR}
+cd ${PBS_O_WORKDIR}
 
 # MPI example w/ 12 MPI ranks per node each with access to single GPU tile
 NNODES=`wc -l < $PBS_NODEFILE`
