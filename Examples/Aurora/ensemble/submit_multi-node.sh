@@ -18,13 +18,13 @@ NDEPTH=2
 NTHREADS=2
 
 NTOTRANKS=$(( NUM_NODES_PER_EXE * NUM_RANKS_PER_NODE ))
-echo "NUM_OF_NODES= ${NNODES} NUM_NODES_PER_EXE= ${NUM_NODES_PER_EXE} TOTAL_NUM_RANKS= ${NTOTRANKS} NUM_RANKS_PER_NODE= ${NUM_NRANKS_PER_NODE} THREADS_PER_RANK= ${NTHREADS}"
+echo "NUM_OF_NODES= ${NNODES} NUM_NODES_PER_EXE= ${NUM_NODES_PER_EXE} TOTAL_NUM_RANKS= ${NTOTRANKS} NUM_RANKS_PER_NODE= ${NUM_RANKS_PER_NODE} THREADS_PER_RANK= ${NTHREADS}"
 
 # Launch multiple applications concurrently, each on 2 nodes
 # Each application uses 24 cores (12 MPI x 2 OpenMP) & 6 GPU (1 rank per tile) on each node
 # The first core on each CPU is skipped (0 & 52)
 
-MPI_ARG="-n ${NTOTRANKS} --ppn ${NUM_RANKS_PER_EXE} --depth=${NDEPTH} --cpu-bind depth "
+MPI_ARG="-n ${NTOTRANKS} --ppn ${NUM_RANKS_PER_NODE} --depth=${NDEPTH} --cpu-bind depth "
 MPI_ARG+="--env OMP_NUM_THREADS=${NTHREADS} --env OMP_PLACES=cores "
 
 AFFINITY="../../../HelperScripts/Aurora/set_affinity_gpu.sh"
