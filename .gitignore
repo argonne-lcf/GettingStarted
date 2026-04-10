@@ -5,3 +5,15 @@ a.out
 hello_affinity
 vecadd
 local_hostfile.*
+
+# Conda environments
+_env/
+
+# IntelPython dependencies
+dpctl/
+dpnp/
+numba-dpex/
+
+# PBS log files
+*.o*
+*.e*
