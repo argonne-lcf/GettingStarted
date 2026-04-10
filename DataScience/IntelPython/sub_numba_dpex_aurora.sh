@@ -1,9 +1,9 @@
 #!/bin/bash -l
 #PBS -N numba_dpex_example
 #PBS -l select=1
-#PBS -l walltime=00:20:00
+#PBS -l walltime=01:00:00
 #PBS -l filesystems=home:flare
-#PBS -A <project_name>
+#PBS -A datascience
 #PBS -q debug-scaling
 #PBS -k doe
 #PBS -j oe
@@ -48,7 +48,7 @@ CXX=$(which dpcpp) python setup.py develop
 cd ..
 
 # Run numba-dpex example
-echo "Running numba-dpex example"
-echo "--------------------------------"
+echo -e "\n\nRunning numba-dpex example"
+echo "==========================================="
 python numba_dpex_example.py
-echo "--------------------------------"
+echo "==========================================="

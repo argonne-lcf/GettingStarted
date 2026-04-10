@@ -9,7 +9,7 @@ DPEP is composed of three main packages for programming on CPUs and GPUs:
 
 To find more details on Intel's DPEP packages, please take a look at our [documentation page](https://docs.alcf.anl.gov/aurora/data-science/python/#intels-data-parallel-extensions-for-python-dpep).
 
-To run all `dpctl` and `dpnp` examples on Aurora:
+To run all `dpctl` and `dpnp` examples on Aurora (make sure to change the project name):
 
 ```cli
 $ qsub sub_dpctl_dpnp_aurora.sh

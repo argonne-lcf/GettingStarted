@@ -13,3 +13,7 @@ _env/
 dpctl/
 dpnp/
 numba-dpex/
+
+# PBS log files
+*.o*
+*.e*
