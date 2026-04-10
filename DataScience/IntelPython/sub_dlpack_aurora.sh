@@ -19,9 +19,11 @@ echo "Running on host `hostname`"
 echo "Running on nodes `cat $PBS_NODEFILE`"
 NODES=$(cat $PBS_NODEFILE | wc -l)
 
+# Set environment variables
+ONEAPI_DEVICE_SELECTOR=level_zero:gpu
 
 # Run DLPack example
-echo "Running DLPack example"
-echo "--------------------------------"
+echo -e "\n\nRunning DLPack example"
+echo "==========================================="
 python dlpack_example.py
-echo "--------------------------------"
+echo "==========================================="
