@@ -6,4 +6,4 @@ Please refer to the table below to see what is covered and access the desired ex
 |     Topic/Software Tool      | Polaris  | Aurora | Crux    |
 |------------------------------|----------|--------|---------|
 | mpi4py                       |   [X](./mpi4py/)      |    [X](./mpi4py/)    |        |
-| ... | | | |
+| Intel Data Parallel Python   |    N/A   |  [X](./IntelPython/)      |    N/A  |
