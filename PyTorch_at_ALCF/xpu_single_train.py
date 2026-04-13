@@ -3,7 +3,6 @@ import torch
 import time
 
 import intel_extension_for_pytorch as ipex
-import oneccl_bindings_for_pytorch as torch_ccl
 
 torch.xpu.set_device(0)
 device = torch.device('xpu' if torch.xpu.is_available() else 'cpu')
