@@ -4,7 +4,6 @@ from mpi4py import MPI
 import os, socket
 import torch
 import intel_extension_for_pytorch as ipex
-import oneccl_bindings_for_pytorch as torch_ccl
 from torch.nn.parallel import DistributedDataParallel as DDP
 import time
 device = torch.device('xpu' if torch.xpu.is_available() else 'cpu')
@@ -22,8 +21,8 @@ os.environ['MASTER_ADDR'] = MASTER_ADDR
 os.environ['MASTER_PORT'] = str(2345)
 print(f"DDP: Hi from rank {RANK} of {SIZE} with local rank {LOCAL_RANK}. {MASTER_ADDR}", flush=True)
 
-# DDP: initialize distributed communication with nccl backend
-torch.distributed.init_process_group(backend='ccl', init_method='env://', rank=int(RANK), world_size=int(SIZE))
+# DDP: initialize distributed communication with xccl backend
+torch.distributed.init_process_group(backend='xccl', init_method='env://', rank=int(RANK), world_size=int(SIZE))
 
 # DDP: pin GPU to local rank.
 torch.xpu.set_device(int(LOCAL_RANK))
