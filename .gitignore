@@ -17,3 +17,9 @@ numba-dpex/
 # PBS log files
 *.o*
 *.e*
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
