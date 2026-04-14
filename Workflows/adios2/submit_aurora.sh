@@ -1,15 +1,15 @@
 #!/bin/bash -l
-#PBS -S /bin/bash
-#PBS -N adios2_example
-#PBS -l select=2
-#PBS -l walltime=0:10:00
-#PBS -l filesystems=home:flare
-#PBS -A <project_name>
-#PBS -q debug-scaling
-#PBS -k doe
-#PBS -j oe
+##PBS -S /bin/bash
+##PBS -N adios2_example
+##PBS -l select=2
+##PBS -l walltime=0:10:00
+##PBS -l filesystems=home:flare
+##PBS -A <project_name>
+##PBS -q debug-scaling
+##PBS -k doe
+##PBS -j oe
 
-cd $PBS_O_WORKDIR
+#cd $PBS_O_WORKDIR
 export TZ='/usr/share/zoneinfo/US/Central'
 
 echo Jobid: $PBS_JOBID
@@ -60,22 +60,29 @@ TRAIN_EXE=./trainer.py
 NUM_PTS=10000
 MODE=sync
 TRANSPORT=RDMA
+IO_MODE=posix
 
 # Sequential launch
+echo -e "\nRunning sequential launch"
+echo "================================================"
 mpiexec -np $RANKS --ppn $RANKS_PER_NODE \
   --hostfile ./sim_hostfile --cpu-bind $CPU_BIND \
-  $SIM_EXE $NUM_PTS $MODE $TRANSPORT &
+  $SIM_EXE $NUM_PTS $MODE $TRANSPORT $IO_MODE &
 mpiexec -np $RANKS --ppn $RANKS_PER_NODE \
   --hostfile ./trainer_hostfile --cpu-bind $CPU_BIND \
-  python $TRAIN_EXE --data_plane $TRANSPORT
+  python $TRAIN_EXE --data_plane $TRANSPORT --io_mode $IO_MODE
 wait
+echo "================================================"
 
 # MPMD launch
+echo -e "\nRunning MPMD launch"
+echo "================================================"
 mpiexec -np $RANKS --ppn $RANKS_PER_NODE \
   --cpu-bind $CPU_BIND \
-  $SIM_EXE $NUM_PTS $MODE $TRANSPORT \
-  : -np $RANKS --ppn $RANKS_PER_NODE python $TRAIN_EXE --data_plane $TRANSPORT 
-  
+  $SIM_EXE $NUM_PTS $MODE $TRANSPORT $IO_MODE \
+  : -np $RANKS --ppn $RANKS_PER_NODE python $TRAIN_EXE --data_plane $TRANSPORT --io_mode $IO_MODE
+echo "================================================"
+
 # Clean up
 rm *.sst 
 rm -r *.bp

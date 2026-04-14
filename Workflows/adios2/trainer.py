@@ -22,9 +22,8 @@ rank = comm.Get_rank()
 local_rank = int(os.getenv("PALS_LOCAL_RANKID"))
 local_size = int(os.getenv("PALS_LOCAL_SIZE"))
 host_name = MPI.Get_processor_name()
-if (size < 100):
-    print(f"[Trainer] Hello from rank {rank}/{size} on {host_name} and local rank {local_rank}/{local_size}",flush=True)
 if (rank == 0):
+    print(f"[Trainer] Running with on host {host_name}",flush=True)
     print(f"[Trainer] Running with {size} MPI ranks",flush=True)
 
 # Parse command line arguments

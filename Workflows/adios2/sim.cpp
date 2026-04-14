@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     // Read input
     if (argc != 5) {
         std::cerr << "[Sim] Usage: " << argv[0] << " <num_points> <sync mode> <data plane> <IO mode>" << std::endl;
-        std::cerr << "[Sim] Expected 3 argument, got " << (argc - 1) << std::endl;
+        std::cerr << "[Sim] Expected 4 arguments, got " << (argc - 1) << std::endl;
         MPI_Finalize();
         return -1;
     } 
