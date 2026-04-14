@@ -7,3 +7,4 @@ Please refer to the table below to see what is covered and access the desired ex
 |------------------------------|----------|--------|---------|
 | mpi4py                       |   [X](./mpi4py/)      |    [X](./mpi4py/)    |        |
 | Intel Data Parallel Python   |    N/A   |  [X](./IntelPython/)      |    N/A  |
+| PyTorch DDP   |    [X](./PyTorch_DDP/)   |  [X](./PyTorch_DDP/)      |      |
