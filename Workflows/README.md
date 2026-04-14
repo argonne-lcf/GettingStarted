@@ -5,4 +5,6 @@ Please refer to the table below to see what is covered and access the desired ex
 
 |     Software Tool      | Polaris  | Aurora | Crux    |
 |------------------------------|----------|--------|---------|
-| ... | | | |
+| Parsl | [X](./parsl/) | [X](./parsl/) | |
+| Balsam | [X](./balsam/) | [X](./balsam/) | |
+| DragonHPC | [X](./dragonhpc/) | [X](./dragonhpc/) | |
