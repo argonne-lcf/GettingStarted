@@ -17,12 +17,10 @@ echo Running on host `hostname`
 echo Running on nodes `cat $PBS_NODEFILE`
 
 # Load modules
-module load frameworks
-module load adios2/2.11.0-sycl
+module load adios2/2.11.0-cpu
 module list
 
 # ADIOS2 vars
-export PYTHONPATH=$PYTHONPATH:/opt/aurora/26.26.0/spack/unified/1.1.1/install/linux-x86_64/adios2-2.11.0-vwdc5l7/lib/python3.12/site-packages/
 #export FABRIC_PROVIDER=cxi
 #export FABRIC_IFACE=cxi
 export SstVerbose=1
@@ -30,16 +28,19 @@ export OMP_PROC_BIND=spread
 export OMP_PLACES=threads
 
 # Clean up old files if they exist
-if ls *.sst 1> /dev/null 2>&1
-then
-    echo Cleaning up old .sst files \n
-    rm *.sst
-fi
-if ls *.bp 1> /dev/null 2>&1
-then
-    echo Cleaning up old .bp files
-    rm -r ./*.bp
-fi
+function clean_up {
+    if ls *.sst 1> /dev/null 2>&1
+    then
+        echo Cleaning up old .sst files \n
+        rm *.sst
+    fi
+    if ls *.bp 1> /dev/null 2>&1
+    then
+        echo Cleaning up old .bp files
+        rm -r ./*.bp
+    fi
+}
+clean_up
 
 # Compute number of ranks
 RANKS_PER_NODE=12
@@ -75,6 +76,7 @@ wait
 echo "================================================"
 
 # MPMD launch
+clean_up
 echo -e "\nRunning MPMD launch"
 echo "================================================"
 mpiexec -np $RANKS --ppn $RANKS_PER_NODE \
@@ -84,6 +86,5 @@ mpiexec -np $RANKS --ppn $RANKS_PER_NODE \
 echo "================================================"
 
 # Clean up
-rm *.sst 
-rm -r *.bp
+clean_up
 rm sim_hostfile trainer_hostfile  
