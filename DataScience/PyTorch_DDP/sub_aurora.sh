@@ -1,13 +1,13 @@
 #!/bin/bash -l
-##PBS -N ddp_example
-##PBS -l select=2
-##PBS -l walltime=00:10:00
-##PBS -l filesystems=home:flare
-##PBS -A <project_name>
-##PBS -q debug-scaling
-##PBS -k doe
-##PBS -j oe
-#cd ${PBS_O_WORKDIR}
+#PBS -N ddp_example
+#PBS -l select=2
+#PBS -l walltime=00:10:00
+#PBS -l filesystems=home:flare
+#PBS -A <project_name>
+#PBS -q debug-scaling
+#PBS -k doe
+#PBS -j oe
+cd ${PBS_O_WORKDIR}
 
 # Load and list modules
 module load frameworks
