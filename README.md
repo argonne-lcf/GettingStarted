@@ -26,6 +26,7 @@ submitting jobs.
 1. [Helper Scripts](./HelperScripts): Collection of scripts for common tasks
 1. [Programming Models](./ProgrammingModels): Simple examples using supported
    programming models
+1. [Workflows](./Workflows): Examples of workflow tools and patterns supported on ALCF systems
 
 ## Resources
 
