@@ -18,18 +18,6 @@ A step-by-step tutorial covering ParaView scientific visualization on ALCF syste
 
 ---
 
-### Example Script
-
-> [blood_test_01.py](./blood_test_01.py)
-
-A Python script example generated using ParaView 6.0.0. It demonstrates a complete visualization pipeline for blood flow simulation data, including:
-- Loading time-series VTP (red blood cells — `rbcbad` and `rbcgood`) and VTU (artery mesh and fluid particles) datasets over 100 timesteps
-- Configuring surface representations with custom colors (red for healthy RBCs, cyan for abnormal RBCs, semi-transparent artery)
-- Applying a Glyph filter with sphere glyphs to particle data, colored by velocity magnitude
-- Setting up a 3D render view with camera, lighting, and colormap configurations
-
----
-
 ### ParaView State File
 
 > [dev_session_blood_01.pvsm](./dev_session_blood_01.pvsm)
@@ -39,6 +27,20 @@ A ParaView state file (`.pvsm` XML format) encoding a complete visualization ses
 - Sphere glyph representation for particles colored by velocity
 - Velocity scalar bar and custom colormaps
 - Camera position and lighting setup
+
+---
+
+### Example Python Batch Script
+
+> [blood_test_01.py](./blood_test_01.py)
+
+A Python script example generated using ParaView 6.0.0. It demonstrates a complete visualization pipeline for blood flow simulation data, including:
+- Loading time-series VTP (red blood cells — `rbcbad` and `rbcgood`) and VTU (artery mesh and fluid particles) datasets over 100 timesteps
+- Configuring surface representations with custom colors (red for healthy RBCs, cyan for abnormal RBCs, semi-transparent artery)
+- Applying a Glyph filter with sphere glyphs to particle data, colored by velocity magnitude
+- Setting up a 3D render view with camera, lighting, and colormap configurations
+
+This script can be used to render a requested set of frames in batch.
 
 ---
 
