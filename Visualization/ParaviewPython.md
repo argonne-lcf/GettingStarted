@@ -1,4 +1,4 @@
-# ParaView Tutorial: Interactive Visualization & Automation with Python
+# ParaView Tutorial: Interactive Visualization and Automation with Python
 
 Welcome to this tutorial on using **ParaView** for scientific visualization on ALCF systems.
 By the end of this webinar, you will be able to explore data interactively on ALCF filesystems,
@@ -382,7 +382,7 @@ cue.KeyFrames = keyframes
 Once your camera animation is set up, you can export every frame as an image and assemble
 them into a video. Ask any LLM:
 
-> *"Give me ParaView 6.0 Python code to save each frame of the current animation as a PNG file."*
+> *"Give me ParaView 6.0 Python code to save each frame of the current animation as a PNG file. I have 100 frames and my resolutionn is 1920x1080."*
 
 ```python
 from paraview.simple import *
