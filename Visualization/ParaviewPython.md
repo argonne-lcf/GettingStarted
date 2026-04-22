@@ -20,7 +20,7 @@ automation and fine-grained control.
 ## 1. Setup for Interactive Exploration on ALCF Filesystems
 
 This section walks through how to set up an interactive ParaView session on a Polaris compute node.
-The same steps apply to **Sophia** and **Aurora** as well.
+The same steps apply to all other ALCF compute resources.
 
 ### Step 1: Launch an Interactive Session
 
@@ -289,7 +289,7 @@ your custom viewpoint.
 
 The ParaView GUI covers most common visualization tasks, but the built-in **Python Shell**
 gives you direct access to the full `paraview.simple` API for finer control. A practical
-workflow is to use an **LLM** (such as ChatGPT, Claude, or Copilot) to generate boilerplate
+workflow is to use an **LLM** (such as ChatGPT, Claude, or Gemini) to generate boilerplate
 code snippets, which you can then paste and run directly in ParaView's Python Shell.
 
 ### Step 1: Open the Python Shell
@@ -304,7 +304,7 @@ ParaView window where you can type or paste code and execute it immediately.
 A common first task is to inspect the current camera position so you can use it as a
 reference in scripts. Ask any LLM:
 
-> *"Give me ParaView Python code to print the current camera position, focal point, and view up vector."*
+> *"Give me ParaView 6.0 Python code to print the current camera position, focal point, and view up vector."*
 
 The result will look something like this:
 
@@ -332,7 +332,7 @@ Python gives you full control over the orbit path.
 
 Ask any LLM:
 
-> *"Give me ParaView Python code to create a 360° camera orbit animation around the current
+> *"Give me ParaView 6.0 Python code to create a 360° camera orbit animation around the current
 > camera view, respecting the current position and focal point."*
 
 ```python
@@ -382,7 +382,7 @@ cue.KeyFrames = keyframes
 Once your camera animation is set up, you can export every frame as an image and assemble
 them into a video. Ask any LLM:
 
-> *"Give me ParaView Python code to save each frame of the current animation as a PNG file."*
+> *"Give me ParaView 6.0 Python code to save each frame of the current animation as a PNG file."*
 
 ```python
 from paraview.simple import *
@@ -391,9 +391,9 @@ from paraview.simple import *
 SaveAnimation(
     '/path/to/output/frame.png',   # base filename — ParaView appends 4-digit frame number
     GetActiveView(),
-    ImageResolution=,  # width x height in pixels
+    ImageResolution=1920x1080,     # width x height in pixels
     FrameRate=24,
-    FrameWindow=            # frame range to save (0 to NumberOfFrames-1)
+    FrameWindow=[0, 99]            # frame range to save (0 to NumberOfFrames-1)
 )
 ```
 
@@ -401,7 +401,8 @@ Replace `/path/to/output/` with your desired output directory. Once the frames a
 you can stitch them into a video using `ffmpeg`:
 
 ```bash
-ffmpeg -framerate 24 -i frame_%04d.png -c:v libx264 rotation.mp4
+module use /soft/modulefiles/; module load spack-pe-base ffmpeg
+ffmpeg -r 25 -i /path/frame_%04d.png -r 25 -pix_fmt yuv420p rotation.mp4
 ```
 
 [↑ Back to Table of Contents](#table-of-contents)

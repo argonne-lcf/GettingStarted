@@ -1,6 +1,6 @@
-# ParaView Blood Flow Visualization — ALCF Tutorial
+# Visualization at ALCF: Beyond the Basics
 
-This repository contains resources for the **ParaView Interactive Visualization & Automation** tutorial developed for ALCF (Argonne Leadership Computing Facility) systems. The materials demonstrate how to use ParaView's Python scripting interface to visualize blood flow simulation data, including red blood cells, artery geometry, and fluid particles.
+This repository contains resources for the **Beyond the Basics** tutorial developed for ALCF (Argonne Leadership Computing Facility) systems.
 
 ---
 
@@ -8,9 +8,9 @@ This repository contains resources for the **ParaView Interactive Visualization 
 
 ### Tutorial: [ParaviewPython.md](./ParaviewPython.md)
 
-A step-by-step tutorial covering ParaView scientific visualization on ALCF systems (Polaris, Sophia, Aurora). By following this guide you will learn how to:
+A step-by-step tutorial covering ParaView scientific visualization on ALCF systems (Polaris, Sophia, Aurorai, Crux). By following this guide you will learn how to:
 
-1. **Set up an interactive ParaView session** on an ALCF compute node — launching a job, loading the ParaView module (up to v6.0.1-EGL), starting `pvserver`, and connecting via SSH tunnel.
+1. **Set up an interactive ParaView session** on an ALCF compute node — launching a job, loading the ParaView module, starting `pvserver`, and connecting via SSH tunnel.
 2. **Save and reload visualization states** as portable Python `.py` state files.
 3. **Capture GUI interactions as Python code** using ParaView's built-in trace feature, which translates every click into `paraview.simple` API calls.
 4. **Automate camera rotation animations** — both via the GUI's Animation Panel and via custom Python scripts for full control over orbit path and viewpoint.
@@ -50,8 +50,8 @@ Slide deck from the ALCF Developer Session on ParaView visualization presented o
 
 ---
 
-## Requirements
+## Additional Resources
 
 - [ParaView](https://www.paraview.org/) 6.0.0 or later
-- Blood flow tutorial dataset (VTP/VTU files) from the ALCF training data directory
+- [Dataset](https://web.cels.anl.gov/projects/alcf_vis_internal/MISC/BLOODFLOW_TUTORIAL_DATA.tar.gz) Blood flow tutorial dataset
 
