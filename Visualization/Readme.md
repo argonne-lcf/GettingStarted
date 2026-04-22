@@ -20,7 +20,7 @@ A step-by-step tutorial covering ParaView scientific visualization on ALCF syste
 
 ### 🐍 Example Script
 
-> ⬇️ [Download blood_test_01.py](./blood_test_01.py?raw=true)
+> ⬇️ [Download blood_test_01.py](./blood_test_01.py)
 
 A Python script example generated using ParaView 6.0.0. It demonstrates a complete visualization pipeline for blood flow simulation data, including:
 - Loading time-series VTP (red blood cells — `rbcbad` and `rbcgood`) and VTU (artery mesh and fluid particles) datasets over 100 timesteps
@@ -32,7 +32,7 @@ A Python script example generated using ParaView 6.0.0. It demonstrates a comple
 
 ### 🗂️ ParaView State File
 
-> ⬇️ [Download dev_session_blood_01.pvsm](./dev_session_blood_01.pvsm?raw=true)
+> ⬇️ [Download dev_session_blood_01.pvsm](./dev_session_blood_01.pvsm)
 
 A ParaView state file (`.pvsm` XML format) encoding a complete visualization session for the blood flow dataset. Load it in ParaView via **File → Load State** to instantly restore the full pipeline, including:
 - Four data sources: artery mesh (VTU), fluid particles (VTU), healthy RBCs (VTP), and abnormal RBCs (VTP)
