@@ -6,7 +6,7 @@ This repository contains resources for the **ParaView Interactive Visualization 
 
 ## Files
 
-### 📖 Tutorial: [ParaviewPython-3.md](./ParaviewPython-3.md)
+### 📖 Tutorial: [ParaviewPython.md](./ParaviewPython.md)
 
 A step-by-step tutorial covering ParaView scientific visualization on ALCF systems (Polaris, Sophia, Aurora). By following this guide you will learn how to:
 
@@ -32,7 +32,7 @@ A Python script example generated using ParaView 6.0.0. It demonstrates a comple
 
 ### 🗂️ ParaView State File
 
-> ⬇️ [Download dev_session_blood_01-2.pvsm](./dev_session_blood_01-2.pvsm?raw=true)
+> ⬇️ [Download dev_session_blood_01.pvsm](./dev_session_blood_01.pvsm?raw=true)
 
 A ParaView state file (`.pvsm` XML format) encoding a complete visualization session for the blood flow dataset. Load it in ParaView via **File → Load State** to instantly restore the full pipeline, including:
 - Four data sources: artery mesh (VTU), fluid particles (VTU), healthy RBCs (VTP), and abnormal RBCs (VTP)
