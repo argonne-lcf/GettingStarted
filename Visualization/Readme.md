@@ -1,6 +1,6 @@
 # Visualization at ALCF: Beyond the Basics
 
-This repository contains resources for the **Beyond the Basics** tutorial developed for ALCF (Argonne Leadership Computing Facility) systems.
+This repository contains resources for the **Beyond the Basics** tutorial developed for ALCF systems.
 
 ---
 
