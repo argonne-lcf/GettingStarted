@@ -55,5 +55,5 @@ Slide deck from the ALCF Developer Session on ParaView visualization presented o
 ## Additional Resources
 
 - [ParaView](https://www.paraview.org/) 6.0.0 or later
-- [Dataset](https://web.cels.anl.gov/projects/alcf_vis_internal/MISC/BLOODFLOW_TUTORIAL_DATA.tar.gz) Blood flow tutorial dataset
+- [Dataset](https://web.cels.anl.gov/projects/alcf_vis_internal/MISC/BLOODFLOW_TUTORIAL_DATA.tar.gz) for blood flow tutorial
 
