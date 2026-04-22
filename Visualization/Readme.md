@@ -6,9 +6,9 @@ This repository contains resources for the **Beyond the Basics** tutorial develo
 
 ## Files
 
-### Tutorial: [ParaviewPython.md](./ParaviewPython.md)
+### Tutorial: [ParaViewPython.md](./ParaViewPython.md)
 
-A step-by-step tutorial covering ParaView scientific visualization on ALCF systems (Polaris, Sophia, Aurorai, Crux). By following this guide you will learn how to:
+A step-by-step tutorial covering ParaView scientific visualization on ALCF systems (Polaris, Sophia, Aurora, Crux). By following this guide you will learn how to:
 
 1. **Set up an interactive ParaView session** on an ALCF compute node — launching a job, loading the ParaView module, starting `pvserver`, and connecting via SSH tunnel.
 2. **Save and reload visualization states** as portable Python `.py` state files.
