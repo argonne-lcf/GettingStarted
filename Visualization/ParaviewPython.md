@@ -1,4 +1,4 @@
-# ParaView Tutorial: Interactive Visualization & Automation at ALCF
+# ParaView Tutorial: Interactive Visualization & Automation with Python
 
 Welcome to this tutorial on using **ParaView** for scientific visualization on ALCF systems.
 By the end of this webinar, you will be able to explore data interactively on ALCF filesystems,
@@ -91,7 +91,7 @@ On your **local machine**, open a new terminal and create an SSH tunnel that for
 local port `8000` to the `pvserver` port on the compute node via the Polaris login node:
 
 ```bash
-ssh -v -N -L 8000:x3006c0s13b0n0:8000 polaris
+ssh -v -N -L 8000:x3006c0s13b0n0:8000 polaris.alcf.anl.gov
 ```
 
 - `-N` — do not execute a remote command; just forward the port
@@ -391,7 +391,7 @@ from paraview.simple import *
 SaveAnimation(
     '/path/to/output/frame.png',   # base filename — ParaView appends 4-digit frame number
     GetActiveView(),
-    ImageResolution=1920x1080,     # width x height in pixels
+    ImageResolution=[1920, 1080],     # width x height in pixels
     FrameRate=24,
     FrameWindow=[0, 99]            # frame range to save (0 to NumberOfFrames-1)
 )
@@ -402,7 +402,7 @@ you can stitch them into a video using `ffmpeg`:
 
 ```bash
 module use /soft/modulefiles/; module load spack-pe-base ffmpeg
-ffmpeg -r 25 -i /path/frame_%04d.png -r 25 -pix_fmt yuv420p rotation.mp4
+ffmpeg -r 25 -i /path/frame.%04d.png -r 25 -pix_fmt yuv420p rotation.mp4
 ```
 
 [↑ Back to Table of Contents](#table-of-contents)
