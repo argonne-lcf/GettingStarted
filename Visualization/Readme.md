@@ -6,7 +6,7 @@ This repository contains resources for the **ParaView Interactive Visualization 
 
 ## Files
 
-### 📖 Tutorial: [ParaviewPython.md](./ParaviewPython.md)
+### Tutorial: [ParaviewPython.md](./ParaviewPython.md)
 
 A step-by-step tutorial covering ParaView scientific visualization on ALCF systems (Polaris, Sophia, Aurora). By following this guide you will learn how to:
 
@@ -18,9 +18,9 @@ A step-by-step tutorial covering ParaView scientific visualization on ALCF syste
 
 ---
 
-### 🐍 Example Script
+### Example Script
 
-> ⬇️ [Download blood_test_01.py](./blood_test_01.py)
+> [blood_test_01.py](./blood_test_01.py)
 
 A Python script example generated using ParaView 6.0.0. It demonstrates a complete visualization pipeline for blood flow simulation data, including:
 - Loading time-series VTP (red blood cells — `rbcbad` and `rbcgood`) and VTU (artery mesh and fluid particles) datasets over 100 timesteps
@@ -30,15 +30,23 @@ A Python script example generated using ParaView 6.0.0. It demonstrates a comple
 
 ---
 
-### 🗂️ ParaView State File
+### ParaView State File
 
-> ⬇️ [Download dev_session_blood_01.pvsm](./dev_session_blood_01.pvsm)
+> [dev_session_blood_01.pvsm](./dev_session_blood_01.pvsm)
 
 A ParaView state file (`.pvsm` XML format) encoding a complete visualization session for the blood flow dataset. Load it in ParaView via **File → Load State** to instantly restore the full pipeline, including:
 - Four data sources: artery mesh (VTU), fluid particles (VTU), healthy RBCs (VTP), and abnormal RBCs (VTP)
 - Sphere glyph representation for particles colored by velocity
 - Velocity scalar bar and custom colormaps
 - Camera position and lighting setup
+
+---
+
+### Presentation Slides
+
+> [ALCF-DevSession_visualization_2026.pdf](./ALCF-DevSession_visualization_2026.pdf)
+
+Slide deck from the ALCF Developer Session on ParaView visualization presented on April 22, 2026.
 
 ---
 
