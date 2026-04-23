@@ -1,15 +1,15 @@
 #!/bin/bash -l
-##PBS -S /bin/bash
-##PBS -N adios2_example
-##PBS -l select=2
-##PBS -l walltime=0:10:00
-##PBS -l filesystems=home:flare
-##PBS -A <project_name>
-##PBS -q debug-scaling
-##PBS -k doe
-##PBS -j oe
+#PBS -S /bin/bash
+#PBS -N adios2_example
+#PBS -l select=2
+#PBS -l walltime=0:10:00
+#PBS -l filesystems=home:flare
+#PBS -A <project_name>
+#PBS -q debug-scaling
+#PBS -k doe
+#PBS -j oe
 
-#cd $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR
 export TZ='/usr/share/zoneinfo/US/Central'
 
 echo Jobid: $PBS_JOBID
