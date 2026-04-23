@@ -9,16 +9,16 @@
 #PBS -k doe
 #PBS -j oe
 
-cd $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR/producer-consumer
 export TZ='/usr/share/zoneinfo/US/Central'
 
 echo Jobid: $PBS_JOBID
 echo Running on host `hostname`
 echo Running on nodes `cat $PBS_NODEFILE`
 
-# Load modules
+# Load modules and venv
 module load frameworks
-source /flare/gpu_hack/balin/smartsim/_ssim_env/bin/activate
+source ../_env/bin/activate
 module list
 
 # Cleanup
