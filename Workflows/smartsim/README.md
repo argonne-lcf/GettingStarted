@@ -6,7 +6,7 @@ The workflow initially shares some data through the file system with the BP5 eng
 
 ## Install SmartSim and SmartRedis
 
-On Aurora, execute the following commands or run `source install_venv_aurora.sh`
+On Aurora login nodes, execute the following commands or run `source install_venv_aurora.sh`
 
 ```bash
 # Load the frameworks module
@@ -44,7 +44,7 @@ smart validate
 cd ..
 ``` 
 
-## Biuld the Example
+## Biuld the Proxy Simulation
 
 To build the proxy simulation C++ code, execute 
 
@@ -64,5 +64,5 @@ qsub submit_aurora.sh
 ```
 
 > [!NOTE]
-> - 
+> -  
 

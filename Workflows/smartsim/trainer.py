@@ -30,7 +30,7 @@ else:
     client = Client(address=SSDB,cluster=True)
 comm.Barrier()
 if (rank == 0):
-    print("All Python clients initialized here\n", flush=True)
+    print("All Python clients initialized\n", flush=True)
 
 # Wait for data to be available in DB
 if (rank == 0):
@@ -39,7 +39,7 @@ while True:
     if (client.key_exists(f"y.{rank}")):
         train_data = client.get_tensor(f'y.{rank}')
         N = train_data.shape[0]
-        print(f"Rank {rank} found tensor y.{rank} with shape {N}",flush=True)
+        #print(f"Rank {rank} found tensor y.{rank} with shape {N}",flush=True)
         break
     else:
         sleep(1)

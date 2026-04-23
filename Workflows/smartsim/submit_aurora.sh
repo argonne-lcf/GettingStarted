@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #PBS -S /bin/bash
 #PBS -N smartsim_example
-#PBS -l select=7
+#PBS -l select=3
 #PBS -l walltime=0:30:00
 #PBS -l filesystems=home:flare
 #PBS -A <project-name>
@@ -39,7 +39,7 @@ SIM_EXE=./sim
 TRAIN_EXE=./trainer.py
 NUM_PTS=10000
 DEPLOYMENT="clustered"
-DB_NODES=3
+DB_NODES=1
 
 if [ "$DEPLOYMENT" == "colocated" ]; then
     DB_NODES=1
