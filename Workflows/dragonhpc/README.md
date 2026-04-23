@@ -30,7 +30,6 @@ dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/2.2.0rc1/lib64
 To install `dragonhpc` in an environment on Aurora:
 ```shell
 module load frameworks
-conda activate base
 python -m venv _env --system-site-packages
 source _env/bin/activate
 pip install dragonhpc
