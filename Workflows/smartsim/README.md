@@ -1,8 +1,14 @@
 # Producer-Consumer Workflow with SmartSim/SmartRedis
 
-This example demonstrates how to run a producer-consumer workflow with SmartSim and SmartRedis. The workflow is composed of a proxy producer simulation written in C++ (`sim.cpp`) and a proxy consumer application written in Python (`trainer.py`). This setup could be used to stram simulation data from an ongoing simulation to a post-prtocessing, visualization or ML training/inference script.
+This example demonstrates how to run a producer-consumer workflow with SmartSim and SmartRedis transferring data in-memory with SmartSim's Orchestrator (a wrapper around a Redis database). 
+More information about SmartSim and SmartRedis can be found on the [ALCF documentation](https://docs.alcf.anl.gov/aurora/workflows/smartsim/).
+The workflow is composed of a proxy producer simulation written in C++ (`sim.cpp`) and a proxy consumer application written in Python (`trainer.py`). The workflow also launches the SmartSim Orchestrator (i.e., the database) to store data being transferred between the producer and consumer. 
+This setup could be used to stream simulation data from an ongoing simulation to a post-processing, visualization or ML training/inference script.
 
-The workflow initially shares some data through the file system with the BP5 engine, and then sets up an iteration loop within both the producer and consumer where data is streamed between the two. The workflow is also set up to run with the producer on one set of nodes and the consumer on the other set of nodes in order to force data streaming through the network. The submit script show how to set this case up with sequential `mpiexec` commands and with a single command in MPMD mode.
+The workflow example sets up iteration loops within both the producer and consumer to emulate a time-stepping algorithm or a training algorithm. On one side, on each iteration the producer writes data to the database with a unique key for every rank, thus overwriting the previously stored data with the latest "snapshot". On the other side, on each iteration the consumer reads the latest available data. In this case, the number of producer and consumer MPI ranks is the same and data is written/read by ranks with the same ID on both sides (i.e., data produced by rank 0 of the simulation is read by rank 0 of the trainer). Note this is not a requirement of SmartSim workflows; the number of producer and consumer ranks need not match and there can be arbitrary numbers of producers and consumers connected to the same (or multiple) databases allowing great flexibility. 
+
+The workflow driver script supports two launcher modes: colocated and clustered. In the colocated mode, the database, producer and consumer share the same set of nodes and the resources within those nodes (e.g., trainer runs on 6/12 GPUs on Aurora, simulation runs on the other 6 GPUs, and the database is distributed on the CPUs of those same nodes). In the clustered mode, the total set of nodes is split into three distinct lists, and each component of the workflow is executed on one of those node lists. Which launcher mode is more appropriate depends on the nature of the workflow.
+
 
 ## Install SmartSim and SmartRedis
 
@@ -44,7 +50,7 @@ smart validate
 cd ..
 ``` 
 
-## Biuld the Proxy Simulation
+## Build the Proxy Simulation
 
 To build the proxy simulation C++ code, execute 
 
@@ -64,5 +70,8 @@ qsub submit_aurora.sh
 ```
 
 > [!NOTE]
-> -  
+> -  To change the parameters of the workflow, look at the `NUM_PTS`, `DEPLOYMENT`, and `DB_NODES` environment variables in the submit script. 
+> - `NUM_PTS` determines the amount of data being transferred from producer to consumer and stored in the database.
+> - `DEPLOYMENT` determines the deployment type: colocated or clustered as described above
+> - `DB_NODES` determines the amount of nodes to assign to the database. For colocated deployment, this is always 1; for clustered deployment, any number of nodes can be assigned to the database except for 2 due to a peculiarity with SmartSim's Orchestrator (but make sure to allocate enough nodes for all workflow components). 
 

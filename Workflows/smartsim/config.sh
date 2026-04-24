@@ -3,7 +3,13 @@
 # Default to Aurora
 SYSTEM=${1:-"aurora"}
 
-# Clean directory
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SRC="${ROOT}/producer-consumer"
+SMARTREDIS_INSTALL_DIR="${ROOT}/SmartRedis/install"
+
+cd "$SRC" || exit 1
+
+# Clean build directory
 function clean_directory {
   if [ -f sim ]; then
     rm sim
@@ -29,7 +35,7 @@ if [ "$SYSTEM" == "aurora" ]; then
 fi
 module list
 
-# Build sim.cpp
-cmake -DSMARTREDIS_INSTALL_DIR=$PWD/../SmartRedis/install ./
+# Build sim.cpp in producer-consumer/
+cmake -DSMARTREDIS_INSTALL_DIR="${SMARTREDIS_INSTALL_DIR}" ./
 make
 

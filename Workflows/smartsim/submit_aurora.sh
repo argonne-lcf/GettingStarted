@@ -4,7 +4,7 @@
 #PBS -l select=3
 #PBS -l walltime=0:30:00
 #PBS -l filesystems=home:flare
-#PBS -A <project-name>
+#PBS -A <project_name>
 #PBS -q debug-scaling
 #PBS -k doe
 #PBS -j oe
