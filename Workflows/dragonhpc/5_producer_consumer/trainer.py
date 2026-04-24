@@ -62,6 +62,7 @@ while True:
         break
     else:
         sleep(1)
+        print(f"Available keys in DDict: {dd.keys()}", flush=True)
 comm.Barrier()
 if rank == 0:
     log.info("Data is available in DDict!")

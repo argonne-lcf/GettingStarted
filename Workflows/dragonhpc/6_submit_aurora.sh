@@ -9,7 +9,7 @@
 #PBS -k doe
 #PBS -j oe
 
-cd $PBS_O_WORKDIR/5_producer-consumer
+cd $PBS_O_WORKDIR/5_producer_consumer
 export TZ='/usr/share/zoneinfo/US/Central'
 
 echo Jobid: $PBS_JOBID
@@ -23,8 +23,11 @@ module list
 
 # Cleanup
 function clean_up {
-    if [ -d Example ]; then
-        rm -r Example
+    if [ -f sim.out ]; then
+        rm sim.out
+    fi
+    if [ -f trainer.out ]; then
+        rm trainer.out
     fi
 }
 clean_up
@@ -34,13 +37,13 @@ NUM_PTS=10000
 DEPLOYMENT="mixed"
 DDICT_NODES=1
 
-if [ "$DEPLOYMENT" == "colocated" || "$DEPLOYMENT" == "mixed" ]; then
+if [ "$DEPLOYMENT" == "colocated" ] || [ "$DEPLOYMENT" == "mixed" ]; then
     DDICT_NODES=1
 fi
 
 # Run workflow
-echo -e "\nRunning SmartSim Workflow"
+echo -e "\nRunning DragonHPC Producer-Consumer Workflow"
 echo "================================================"
-python driver.py --deployment $DEPLOYMENT --num_pts $NUM_PTS --ddict_nodes $DDICT_NODES
+dragon driver.py --deployment $DEPLOYMENT --num_pts $NUM_PTS --ddict_nodes $DDICT_NODES
 echo "================================================"
 

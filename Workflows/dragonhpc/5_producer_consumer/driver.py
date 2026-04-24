@@ -2,6 +2,7 @@ import os
 import sys
 from typing import List, Optional
 import argparse
+import socket
 
 import dragon
 import multiprocessing as mp
@@ -11,7 +12,16 @@ from dragon.native.process import ProcessTemplate, MSG_PIPE, MSG_DEVNULL
 from dragon.infrastructure.connection import Connection
 from dragon.infrastructure.policy import Policy
 from dragon.native.machine import System, Node
+from dragon.infrastructure.facts import PMIBackend
 
+## Get some information on the system
+HOSTNAME = socket.getfqdn()
+if "aurora" in HOSTNAME:
+    PMI_BACKEND = PMIBackend.PMIX
+elif "polaris" in HOSTNAME:
+    PMI_BACKEND = PMIBackend.CRAY
+else:
+    raise ValueError(f"Unknown system: {HOSTNAME}")
 
 ## Read output from ProcessGroup
 def read_output(stdout_conn: Connection) -> str:
@@ -54,28 +64,33 @@ def read_error(stderr_conn: Connection) -> str:
     return output
 
 ## Launch a process group
-def launch_ProcessGroup(num_procs: int, num_procs_pn: int, nodelist,
-                        exe: str, args_list: List[str], run_dir: str, 
-                        global_policy: Optional[Policy] = None,
-                        cpu_bind: Optional[List[int]] = None,
-                        ddicts: Optional[List[str]] = None) -> None:
+def launch_ProcessGroup(
+    num_procs_pn: int, 
+    nodelist: List[str],
+    exe: str, 
+    args_list: List[str], 
+    run_dir: str, 
+    global_policy: Optional[Policy] = None,
+    cpu_bind: Optional[List[int]] = None,
+    ddicts: Optional[List[str]] = None
+) -> None:
     """
     Launch a ProcessGroup
-    """ 
-    grp = ProcessGroup(restart=False, pmi_enabled=True, 
-                       ignore_error_on_exit=True, policy=global_policy)
+    """
+    grp = ProcessGroup(
+        restart=False, 
+        pmi=PMI_BACKEND,
+        ignore_error_on_exit=True, 
+        policy=global_policy
+    )
     for node_num in range(len(nodelist)):   
         node_name = Node(nodelist[node_num]).hostname
-        if ddicts is not None:
-            args_list.pop(-1)
-            if 'online.backend=dragon' in args_list:
-                args_list.append(f'online.dragon.dictionary={ddicts[node_num]}')
-            else:
-                args_list.append(f'--dictionary={ddicts[node_num]}')
         if cpu_bind is not None and len(cpu_bind)>0:
             for proc in range(num_procs_pn):
-                local_policy = Policy(placement=Policy.Placement.HOST_NAME,host_name=node_name,
-                                      cpu_affinity=[cpu_bind[proc]])
+                local_policy = Policy(placement=Policy.Placement.HOST_NAME, 
+                    host_name=node_name,
+                    cpu_affinity=[cpu_bind[proc]]
+                )
                 grp.add_process(nproc=1, 
                                 template=ProcessTemplate(target=exe, 
                                                          args=list(args_list), 
@@ -83,7 +98,7 @@ def launch_ProcessGroup(num_procs: int, num_procs_pn: int, nodelist,
                                                          policy=local_policy, 
                                                          stdout=MSG_DEVNULL))
         else:
-            local_policy = Policy(placement=Policy.Placement.HOST_NAME,host_name=node_name)
+            local_policy = Policy(placement=Policy.Placement.HOST_NAME, host_name=node_name)
             grp.add_process(nproc=num_procs_pn, 
                             template=ProcessTemplate(target=exe, 
                                                      args=args_list, 
@@ -159,7 +174,7 @@ def launch_colocated(args: argparse.Namespace, dragon_nodelist: List[str]) -> No
                          f'online.backend=dragon',
                          f'online.launch=colocated'],
                          )
-    ddicts_serialized_nice = [dd_tmp.replace('=','\=') for dd_tmp in ddicts_serialized]
+    ddicts_serialized_nice = [dd_tmp.replace('=',r'\=') for dd_tmp in ddicts_serialized]
     ml_args_list.append(f'online.dragon.dictionary={ddicts_serialized_nice[0]}')
     ml_run_dir = os.getcwd()
     ml_launch_proc = mp.Process(target=launch_ProcessGroup, args=(cfg.train.procs, cfg.train.procs_pn, ml_nodelist,
@@ -238,7 +253,7 @@ def launch_clustered(args: argparse.Namespace, dd_serialized: str, dragon_nodeli
                          f'online.backend=dragon',
                          f'online.launch=clustered'],
                          )
-    dd_serialized_nice = dd_serialized.replace('=','\=')
+    dd_serialized_nice = dd_serialized.replace('=',r'\=')
     ml_args_list.append(f'online.dragon.dictionary={dd_serialized_nice}')
     ml_run_dir = os.getcwd()
     ml_launch_proc = mp.Process(target=launch_ProcessGroup, args=(cfg.train.procs, cfg.train.procs_pn, ml_nodelist,
@@ -278,14 +293,12 @@ def launch_mixed(args: argparse.Namespace, dd_serialized: str, dragon_nodelist: 
     sim_launch_proc = mp.Process(
         target=launch_ProcessGroup, 
         args=(
-            args.procs_per_node * len(sim_nodelist), 
             args.procs_per_node, 
             sim_nodelist, 
             sim_exe, 
             sim_args_list, 
             sim_run_dir,
             global_policy, 
-            None
         )
     )
     sim_launch_proc.start()
@@ -294,29 +307,27 @@ def launch_mixed(args: argparse.Namespace, dd_serialized: str, dragon_nodelist: 
     # Setup and launch the distributed training component
     print('Launching the training ...', flush=True)
     ml_exe = sys.executable # gets the python executable
-    ml_args_list = ["./trainer.py", f"--ddict_ser={dd_serialized}"]
-    dd_serialized_nice = dd_serialized.replace('=','\=')
-    ml_args_list.append(f'online.dragon.dictionary={dd_serialized_nice}')
+    ml_args_list = ["./trainer.py"]
+    dd_serialized_nice = dd_serialized.replace('=',r'\=')
+    ml_args_list.append(f"--ddict_ser={dd_serialized}")
     ml_run_dir = os.getcwd()
     ml_launch_proc = mp.Process(
         target=launch_ProcessGroup, 
         args=(
-            args.procs_per_node * len(ml_nodelist), 
             args.procs_per_node, 
             ml_nodelist,
             ml_exe, 
             ml_args_list, 
             ml_run_dir,
             global_policy, 
-            None
         )
     )
-    ml_launch_proc.start()
+    #ml_launch_proc.start()
     print('Done\n', flush=True)
 
     # Join both simulation and training
     print('Waiting for simulation and training to complete ...', flush=True)
-    ml_launch_proc.join()
+    #ml_launch_proc.join()
     sim_launch_proc.join()
     print('Done\n', flush=True)
 
@@ -324,10 +335,10 @@ def launch_mixed(args: argparse.Namespace, dd_serialized: str, dragon_nodelist: 
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--deployment", type=str, default="mixed", options=["colocated", "clustered", "mixed"], help="Deployment type")
+    parser.add_argument("--deployment", type=str, default="mixed", choices=["colocated", "clustered", "mixed"], help="Deployment type")
     parser.add_argument("--num_pts", type=int, default=10000, help="Number of points in array")
     parser.add_argument("--ddict_nodes", type=int, default=1, help="Number of nodes for the DDict")
-    parser.add_argument("--dict_mem_size_per_node", type=int, default=8, help="Memory size per node for the DDict (in GB)")
+    parser.add_argument("--ddict_mem_size_per_node", type=int, default=8, help="Memory size per node for the DDict (in GB)")
     parser.add_argument("--managers_per_node", type=int, default=1, help="Number of managers per node for the DDict")
     parser.add_argument("--procs_per_node", type=int, default=12, help="Number of processes per node for the simulation and training")
     args = parser.parse_args()
@@ -347,7 +358,7 @@ def main():
         ddict_nodes = num_tot_nodes
     else:
         ddict_nodes = args.ddict_nodes
-    total_mem_size = args.dict.mem_size_per_node * ddict_nodes * (1024*1024*1024)
+    total_mem_size = args.ddict_mem_size_per_node * ddict_nodes * (1024*1024*1024)
     #dd_policy = Policy(cpu_affinity=list(cfg.dict.cpu_bind)) if cfg.dict.cpu_bind else None
     dd = DDict(
         managers_per_node=args.managers_per_node, 
@@ -356,7 +367,7 @@ def main():
         #policy=dd_policy, 
         timeout=3600
     )
-    print("Launched the Dragon Dictionary \n", flush=True)
+    print(f"Launched the Dragon Dictionary on {ddict_nodes} nodes \n", flush=True)
 
     # Serialize the DDict
     dd_serialized = dd.serialize()

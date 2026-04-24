@@ -168,6 +168,10 @@ int main(int argc, char *argv[])
         if (exit_val == 0) {
             break;
         }
+        MPI_Barrier(comm);
+        if (rank == 0) {
+            log_line("[DEBUG] Passed check_run on iter %d", iter);
+        }
 
         // Update solution array and sleep to emulate compute time
         std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -177,6 +181,10 @@ int main(int argc, char *argv[])
                 U[n][c] = static_cast<double>(n + c) + frac;
             }
         }
+        MPI_Barrier(comm);
+        if (rank == 0) {
+            log_line("[DEBUG] Updated solution array on iter %d", iter);
+        }
 
         // Send data to the DDict
         if (rank == 0) {
@@ -185,6 +193,9 @@ int main(int argc, char *argv[])
         MPI_Barrier(comm);
         double tic = MPI_Wtime();
         dragon::SerializableDouble2DVector U_value(U);
+        //if (dd.contains(U_key)) {
+        //    dd.erase(U_key);                 // forces free-old before new alloc
+        //}
         dd[U_key] = U_value;
         double toc = MPI_Wtime();
         if (iter > 0) {
