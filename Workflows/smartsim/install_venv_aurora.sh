@@ -6,8 +6,8 @@ BASE=$PWD
 module load frameworks
 
 # Create a venv for SmartSim
-python -m venv --clear $BASE/_ssim_env --system-site-packages
-source $BASE/_ssim_env/bin/activate
+python -m venv --clear $BASE/_env --system-site-packages
+source $BASE/_env/bin/activate
 pip install --upgrade pip
 
 # Install SmartRedis
