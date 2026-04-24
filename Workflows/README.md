@@ -9,3 +9,4 @@ Please refer to the table below to see what is covered and access the desired ex
 | Balsam | [X](./balsam/) | [X](./balsam/) | |
 | DragonHPC | [X](./dragonhpc/) | [X](./dragonhpc/) | |
 | ADIOS2  |     |    [X](./adios2/)    |     |
+| SmartSim  |     |    [X](./smartsim/)    |     |
