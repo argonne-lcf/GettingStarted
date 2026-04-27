@@ -22,18 +22,24 @@ source ../_env/bin/activate
 module list
 
 # Cleanup
-function clean_up {
-    if [ -f sim.out ]; then
-        rm sim.out
-    fi
-    if [ -f trainer.out ]; then
-        rm trainer.out
-    fi
-    if ls ddict_orc* 1> /dev/null 2>&1; then
-        rm ddict_orc*
-    fi
+function clean_up() {
+    local mode="${1:-}"
+    case "$mode" in
+        all)
+            [ -f sim.out ]     && rm sim.out
+            [ -f trainer.out ] && rm trainer.out
+            ls ddict_orc* 1> /dev/null 2>&1 && rm ddict_orc*
+            ;;
+        ddict)
+            ls ddict_orc* 1> /dev/null 2>&1 && rm ddict_orc*
+            ;;
+        *)
+            echo "clean_up: unknown mode '${mode}'; expected 'all' or 'ddict'" >&2
+            return 1
+            ;;
+    esac
 }
-clean_up
+clean_up all
 
 # Setup run
 NUM_PTS=10000
@@ -50,3 +56,4 @@ echo "================================================"
 dragon driver.py --deployment $DEPLOYMENT --num_pts $NUM_PTS --ddict_nodes $DDICT_NODES
 echo "================================================"
 
+clean_up ddict
