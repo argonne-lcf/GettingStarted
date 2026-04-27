@@ -9,6 +9,8 @@ from dragon.data.ddict.ddict import DDict
 
 from mpi4py import MPI
 
+from custom_pickler import Double2DValuePickler, StringKeyPickler
+
 # MPI
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
@@ -17,8 +19,7 @@ local_rank = int(os.getenv("PALS_LOCAL_RANKID"))
 local_size = int(os.getenv("PALS_LOCAL_SIZE"))
 host_name = MPI.Get_processor_name()
 
-# Logging: all ranks append to a single shared file with the rank in each
-# record. Rank 0 truncates the file first so reruns start clean.
+# Logging
 LOG_FILE = "trainer.out"
 if rank == 0:
     open(LOG_FILE, "w").close()
@@ -44,9 +45,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--ddict_ser", type=str, required=True, help="Serialized DDict")
 args = parser.parse_args()
 
-# Attach to the Distributed Dictionary
-log.info("Attaching to DDict ...")
+# Attach to the Distributed Dictionary and switch to the C++-compatible
+# pickler so keys and values use the same serialization format as sim.cpp
+if rank == 0:
+    log.info("Attaching to DDict ...")
 dd = DDict.attach(args.ddict_ser, timeout=3600)
+dd = dd.pickler(key_pickler=StringKeyPickler(), value_pickler=Double2DValuePickler())
 comm.Barrier()
 if rank == 0:
     log.info("All Dragon clients attached to DDict")
@@ -58,18 +62,19 @@ while True:
     if f"y.{rank}" in dd.keys():
         train_data = dd[f"y.{rank}"]
         N = train_data.shape[0]
-        log.info("Found tensor y.%d with shape %s", rank, train_data.shape)
+        N_cols = train_data.shape[1]
+        log.info("Found tensor y.%d with shape %s x %s", rank, N, N_cols)
         break
     else:
         sleep(1)
-        print(f"Available keys in DDict: {dd.keys()}", flush=True)
 comm.Barrier()
 if rank == 0:
     log.info("Data is available in DDict!")
 
 # Receive training data
-workflow_steps = 15
+workflow_steps = 5
 stream_time = 0.0
+rank_offset = rank * N * N_cols
 try:
     for step in range(workflow_steps):
         sleep(5)
@@ -88,6 +93,16 @@ try:
                 toc - tic,
             )
 
+        # Check correctness of the received data. 
+        expected = (
+            rank_offset
+            + np.arange(N, dtype=np.float64).reshape(-1, 1) * N_cols
+            + np.arange(N_cols, dtype=np.float64).reshape(1, -1)
+        )
+        if not np.array_equal(train_data, expected):
+            log.error("[ML] Data mismatch for step %d and rank %d", step, rank)
+            comm.Abort(1)
+
     # Compute average stream time across all ranks
     stream_time /= workflow_steps - 1
     global_avg_stream_time = comm.allreduce(stream_time, op=MPI.SUM)
@@ -96,7 +111,8 @@ try:
     if rank % local_size == 0:
         if rank == 0:
             log.info("[%d]: Telling simulation to quit ...", rank)
-        arrMLrun = np.int32(np.zeros(1))
+        # C++ side expects a 1x1 SerializableDouble2DVector in float64 
+        arrMLrun = np.zeros((1, 1), dtype=np.float64)
         dd["check-run"] = arrMLrun
 
     comm.Barrier()

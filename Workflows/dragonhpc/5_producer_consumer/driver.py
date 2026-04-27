@@ -322,12 +322,12 @@ def launch_mixed(args: argparse.Namespace, dd_serialized: str, dragon_nodelist: 
             global_policy, 
         )
     )
-    #ml_launch_proc.start()
+    ml_launch_proc.start()
     print('Done\n', flush=True)
 
     # Join both simulation and training
     print('Waiting for simulation and training to complete ...', flush=True)
-    #ml_launch_proc.join()
+    ml_launch_proc.join()
     sim_launch_proc.join()
     print('Done\n', flush=True)
 

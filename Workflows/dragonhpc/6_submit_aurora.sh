@@ -29,6 +29,9 @@ function clean_up {
     if [ -f trainer.out ]; then
         rm trainer.out
     fi
+    if ls ddict_orc* 1> /dev/null 2>&1; then
+        rm ddict_orc*
+    fi
 }
 clean_up
 

@@ -1,5 +1,6 @@
 #include <cstdarg>
 #include <cstdio>
+#include <cstring>
 #include <ctime>
 #include <iostream>
 #include <vector>
@@ -33,6 +34,7 @@ using SimDDict = dragon::DDict<dragon::SerializableString,
 static FILE *g_log_fp = nullptr;
 static int   g_log_rank = 0;
 static int   g_log_size = 0;
+static bool  g_debug_enabled = false;
 
 static void log_init(MPI_Comm comm, const char *path)
 {
@@ -78,6 +80,10 @@ static void log_line(const char *fmt, ...)
     std::fputc('\n', g_log_fp);
     std::fflush(g_log_fp);
 }
+
+// log_debug is a no-op unless the user passed `debug` as the verbosity arg.
+// Format-string checking still applies because we forward to log_line.
+#define log_debug(...) do { if (g_debug_enabled) log_line(__VA_ARGS__); } while (0)
 
 
 int check_run(MPI_Comm comm, SimDDict *dd)
@@ -131,10 +137,12 @@ int main(int argc, char *argv[])
     }
 
     // Read input
-    if (argc != 3) {
+    if (argc < 3 || argc > 4) {
         if (rank == 0) {
-            log_line("[Sim] Usage: %s <num_points> <serialized_ddict>", argv[0]);
-            log_line("[Sim] Expected 2 arguments, got %d", argc - 1);
+            log_line("[Sim] Usage: %s <num_points> <serialized_ddict> [verbosity]",
+                     argv[0]);
+            log_line("[Sim] verbosity: 'info' (default) or 'debug'");
+            log_line("[Sim] Expected 2-3 arguments, got %d", argc - 1);
         }
         log_close();
         MPI_Finalize();
@@ -142,6 +150,17 @@ int main(int argc, char *argv[])
     }
     unsigned long long int N = std::stoll(argv[1]);
     const char *ddict_ser = argv[2];
+    if (argc == 4) {
+        if (std::strcmp(argv[3], "debug") == 0) {
+            g_debug_enabled = true;
+        } else if (std::strcmp(argv[3], "info") != 0 && rank == 0) {
+            log_line("[Sim] Unknown verbosity '%s'; defaulting to 'info'",
+                     argv[3]);
+        }
+    }
+    if (rank == 0 && g_debug_enabled) {
+        log_line("[Sim] Debug logging enabled");
+    }
 
     // Attach to the Distributed Dictionary created on the Python side
     if (rank == 0) {
@@ -154,7 +173,7 @@ int main(int argc, char *argv[])
     }
 
     // Setup iteration loop
-    int iters = 500;
+    int iters = 100;
     const int NCOLS = 3;
     std::vector<std::vector<double>> U(N, std::vector<double>(NCOLS, 0.0));
     dragon::SerializableString U_key("y." + std::to_string(rank));
@@ -170,20 +189,24 @@ int main(int argc, char *argv[])
         }
         MPI_Barrier(comm);
         if (rank == 0) {
-            log_line("[DEBUG] Passed check_run on iter %d", iter);
+            log_debug("[DEBUG] Passed check_run on iter %d", iter);
         }
 
-        // Update solution array and sleep to emulate compute time
+        // Update solution array and sleep to emulate compute time.
         std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-        double frac = (iter != 0) ? (1.0 / iter) : 0.0;
+        const double rank_offset = static_cast<double>(rank)
+                                 * static_cast<double>(N)
+                                 * static_cast<double>(NCOLS);
         for (unsigned long long int n=0; n<N; n++) {
+            const double row_offset = static_cast<double>(n)
+                                    * static_cast<double>(NCOLS);
             for (int c=0; c<NCOLS; c++) {
-                U[n][c] = static_cast<double>(n + c) + frac;
+                U[n][c] = rank_offset + row_offset + static_cast<double>(c);
             }
         }
         MPI_Barrier(comm);
         if (rank == 0) {
-            log_line("[DEBUG] Updated solution array on iter %d", iter);
+            log_debug("[DEBUG] Updated solution array on iter %d", iter);
         }
 
         // Send data to the DDict
@@ -191,22 +214,39 @@ int main(int argc, char *argv[])
             log_line("[Sim] Sending data for step %d", iter);
         }
         MPI_Barrier(comm);
-        double tic = MPI_Wtime();
+        double tic_serialize = MPI_Wtime();
         dragon::SerializableDouble2DVector U_value(U);
-        //if (dd.contains(U_key)) {
-        //    dd.erase(U_key);                 // forces free-old before new alloc
-        //}
+        double toc_serialize = MPI_Wtime();
+        if (rank == 0) {
+            log_debug("[DEBUG] Serialized data for step %d in %.6f seconds",
+                      iter, toc_serialize - tic_serialize);
+        }
+        double tic_put = MPI_Wtime();
         dd[U_key] = U_value;
-        double toc = MPI_Wtime();
+        double toc_put = MPI_Wtime();
+        if (rank == 0) {
+            log_debug("[DEBUG] Put data for step %d in %.6f seconds",
+                      iter, toc_put - tic_put);
+        }
         if (iter > 0) {
-            stream_time += toc - tic;
+            stream_time += toc_put - tic_put;
             count++;
         }
         MPI_Barrier(comm);
         if (rank == 0) {
             log_line("[Sim] Done writing solution data for step %d in %.6f seconds",
-                     iter, toc - tic);
+                     iter, toc_put - tic_serialize);
         }
+
+        // debug: print available keys in the DDict
+        if (rank == 0 && g_debug_enabled) {
+            std::string keys;
+            for (const auto &key : dd.keys()) {
+                keys += key.getVal() + " ";
+            }
+            log_debug("[DEBUG] Available keys in DDict: %s", keys.c_str());
+        }
+        MPI_Barrier(comm);
     }
 
     // Compute average put time across all ranks
