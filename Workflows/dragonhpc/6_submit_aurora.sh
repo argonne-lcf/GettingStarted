@@ -42,13 +42,16 @@ function clean_up() {
 clean_up all
 
 # Setup run
-NUM_PTS=10000
+NUM_PTS=100
 DEPLOYMENT="mixed"
 DDICT_NODES=1
 
 if [ "$DEPLOYMENT" == "colocated" ] || [ "$DEPLOYMENT" == "mixed" ]; then
     DDICT_NODES=1
 fi
+
+# Dragon cleanup
+dragon-cleanup
 
 # Run workflow
 echo -e "\nRunning DragonHPC Producer-Consumer Workflow"

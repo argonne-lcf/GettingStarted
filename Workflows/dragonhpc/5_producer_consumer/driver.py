@@ -215,8 +215,8 @@ def main():
         ml_nodelist = [dragon_nodelist[i] for i in range(args.ddict_nodes+sim_nodes, args.ddict_nodes+sim_nodes+ml_nodes)]
 
     # Start the Dragon Distributed Dictionary (DDict)
-    total_mem_size = args.ddict_mem_size_per_node * ddict_nodes * (1024*1024*1024)
-    print(f"Total memory size for the DDict: {total_mem_size} GB", flush=True)
+    total_mem_size = int(args.ddict_mem_size_per_node * ddict_nodes * (1024*1024*1024))
+    print(f"Total memory size for the DDict: {total_mem_size} bytes", flush=True)
     dd_policy = Policy(cpu_affinity=[50,51,100,101])
     dd = DDict(
         managers_per_node=args.managers_per_node, 
