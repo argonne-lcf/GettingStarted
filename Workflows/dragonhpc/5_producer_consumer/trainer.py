@@ -42,6 +42,7 @@ if rank == 0:
 
 # Parse command line arguments
 parser = argparse.ArgumentParser()
+parser.add_argument("--launcher_mode", type=str, required=True, help="Launcher mode (e.g. colocated, clustered, mixed)")
 parser.add_argument("--ddict_ser", type=str, required=True, help="Serialized DDict")
 args = parser.parse_args()
 
@@ -54,6 +55,10 @@ dd = dd.pickler(key_pickler=StringKeyPickler(), value_pickler=Double2DValuePickl
 comm.Barrier()
 if rank == 0:
     log.info("All Dragon clients attached to DDict")
+
+# For colocated deployments, use the local manager to access local data only
+if args.launcher_mode == "colocated":
+    dd = dd.manager(dd.local_manager)
 
 # Wait for data to be available in DDict
 if rank == 0:

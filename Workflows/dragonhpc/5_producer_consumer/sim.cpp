@@ -137,21 +137,22 @@ int main(int argc, char *argv[])
     }
 
     // Read input
-    if (argc < 3 || argc > 4) {
+    if (argc < 4 || argc > 5) {
         if (rank == 0) {
-            log_line("[Sim] Usage: %s <num_points> <serialized_ddict> [verbosity]",
+            log_line("[Sim] Usage: %s <deployment> <num_points> <serialized_ddict> [verbosity]",
                      argv[0]);
             log_line("[Sim] verbosity: 'info' (default) or 'debug'");
-            log_line("[Sim] Expected 2-3 arguments, got %d", argc - 1);
+            log_line("[Sim] Expected 3-4 arguments, got %d", argc - 1);
         }
         log_close();
         MPI_Finalize();
         return -1;
     }
-    unsigned long long int N = std::stoll(argv[1]);
-    const char *ddict_ser = argv[2];
-    if (argc == 4) {
-        if (std::strcmp(argv[3], "debug") == 0) {
+    std::string deployment = argv[1];
+    unsigned long long int N = std::stoll(argv[2]);
+    const char *ddict_ser = argv[3];
+    if (argc == 5) {
+        if (std::strcmp(argv[4], "debug") == 0) {
             g_debug_enabled = true;
         } else if (std::strcmp(argv[3], "info") != 0 && rank == 0) {
             log_line("[Sim] Unknown verbosity '%s'; defaulting to 'info'",
@@ -170,6 +171,11 @@ int main(int argc, char *argv[])
     MPI_Barrier(comm);
     if (rank == 0) {
         log_line("[Sim] All done");
+    }
+
+    // For colocated deployments, use the local manager to access local data only
+    if (deployment == "colocated") {
+        dd = dd.manager(dd.local_manager());
     }
 
     // Setup iteration loop

@@ -132,7 +132,7 @@ def launch_workflow(args: argparse.Namespace, dd_serialized: str, ddict_nodelist
     # Set up and launch the simulation component
     print('Launching the simulation ...', flush=True)
     sim_exe = "./sim"
-    sim_args_list = [f"{args.num_pts}", f"{dd_serialized}"]
+    sim_args_list = [f"{args.deployment}", f"{args.num_pts}", f"{dd_serialized}"]
     sim_run_dir = os.getcwd()
     sim_cpu_bind = [1,8,16,24,32,40,53,60,68,76,84,92]
     sim_launch_proc = mp.Process(
@@ -153,7 +153,7 @@ def launch_workflow(args: argparse.Namespace, dd_serialized: str, ddict_nodelist
     # Setup and launch the distributed training component
     print('Launching the training ...', flush=True)
     ml_exe = sys.executable # gets the python executable
-    ml_args_list = ["./trainer.py", f"--ddict_ser={dd_serialized}"]
+    ml_args_list = ["./trainer.py", f"--launcher_mode={args.deployment}", f"--ddict_ser={dd_serialized}"]
     #dd_serialized_nice = dd_serialized.replace('=',r'\=')
     ml_run_dir = os.getcwd()
     ml_cpu_bind = [4,12,20,28,36,44,56,64,72,80,88,96]
