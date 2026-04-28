@@ -41,6 +41,9 @@ function clean_up() {
 }
 clean_up all
 
+# Build
+./config.sh
+
 # Setup run
 NUM_PTS=100
 DEPLOYMENT="mixed"
