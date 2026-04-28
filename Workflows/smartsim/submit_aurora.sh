@@ -35,8 +35,6 @@ export SR_LOG_LEVEL=QUIET
 export SR_SOCKET_TIMEOUT=10000
 
 # Setup run
-SIM_EXE=./sim
-TRAIN_EXE=./trainer.py
 NUM_PTS=10000
 DEPLOYMENT="clustered"
 DB_NODES=1
