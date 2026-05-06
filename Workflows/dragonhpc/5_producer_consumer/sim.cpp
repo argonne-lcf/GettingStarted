@@ -13,8 +13,8 @@
 #include <dragon/serializable.hpp>
 #include <mpi.h>
 
-// Default DDict operation timeout (60s)
-static timespec_t TIMEOUT = {60, 0};
+// Default DDict operation timeout
+static timespec_t TIMEOUT = {600, 0};
 
 // DDict type used by this proxy simulation:
 //   keys  : strings (e.g. "check-run", "y.<rank>")
