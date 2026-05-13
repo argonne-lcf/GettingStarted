@@ -81,7 +81,8 @@ int main(int argc, char *argv[])
 
     // Setup iteration loop
     int iters = 500;
-    std::vector<double> U(N, 0.0);
+    const int NFIELDS = 3;
+    std::vector<double> U(N * NFIELDS, 0.0);
     std::string key = "y." + std::to_string(rank);
     double stream_time = 0.0;
     int count = 0;
@@ -96,9 +97,13 @@ int main(int argc, char *argv[])
         
         // Update solution vector and sleep to emulate compute time
         std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-        double frac = (iter != 0) ? (1.0 / iter) : 0.0;
-        for (int n=0; n<N; n++) {
-            U[n] = static_cast<double>(n+frac);
+        const double rank_offset = static_cast<double>(rank)
+                                 * static_cast<double>(N)
+                                 * static_cast<double>(NFIELDS);
+        for (int c=0; c<NFIELDS; c++) {
+            for (unsigned long long int n=0; n<N; n++) {
+                U[c * N + n] = rank_offset + static_cast<double>(c);
+            }
         }
 
         // Send data to DB
@@ -107,7 +112,7 @@ int main(int argc, char *argv[])
         }
         MPI_Barrier(comm);
         double tic = MPI_Wtime();
-        client.put_tensor(key, U.data(), {N}, SRTensorTypeDouble, SRMemLayoutContiguous);
+        client.put_tensor(key, U.data(), {NFIELDS, N}, SRTensorTypeDouble, SRMemLayoutContiguous);
         double toc = MPI_Wtime();
         if (iter > 0) {
             stream_time += toc - tic;
@@ -128,12 +133,13 @@ int main(int argc, char *argv[])
     // Print put_tensor performance summary
     if (rank == 0) {
         std::cout << "\n=== Performance Summary ===" << std::endl;
-        double data_size_gb = N * 8.0 / 1e9;
-        double recv_bw = N * 8.0 / global_avg_stream_time / 1e9;
+        double data_size_gb = N * NFIELDS * 8.0 / 1e9;
+        double put_bw = data_size_gb / global_avg_stream_time;
+        std::cout << "Array shape per message: " << N << " x " << NFIELDS << std::endl;
         std::cout << "Data size per message: " << data_size_gb << " GB" << std::endl;
         std::cout << "Total iterations: " << count+1 << std::endl;
         std::cout << "Average put_tensor time: " << global_avg_stream_time << " seconds" << std::endl;
-        std::cout << "Average put_tensor bandwidth: " << recv_bw << " GB/s" << std::endl;
+        std::cout << "Average put_tensor bandwidth: " << put_bw << " GB/s" << std::endl;
     }
 
     MPI_Finalize();

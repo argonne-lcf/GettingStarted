@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #PBS -S /bin/bash
 #PBS -N smartsim_example
-#PBS -l select=3
+#PBS -l select=2
 #PBS -l walltime=0:30:00
 #PBS -l filesystems=home:flare
 #PBS -A <project_name>
@@ -36,7 +36,7 @@ export SR_SOCKET_TIMEOUT=10000
 
 # Setup run
 NUM_PTS=10000
-DEPLOYMENT="clustered"
+DEPLOYMENT="colocated"
 DB_NODES=1
 
 if [ "$DEPLOYMENT" == "colocated" ]; then

@@ -45,7 +45,7 @@ clean_up all
 ./config.sh
 
 # Setup run
-NUM_PTS=100
+NUM_PTS=10000
 DEPLOYMENT="mixed"
 DDICT_NODES=1
 

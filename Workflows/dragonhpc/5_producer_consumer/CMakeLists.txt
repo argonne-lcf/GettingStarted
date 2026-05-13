@@ -30,7 +30,7 @@ message(STATUS "Dragon include : ${DRAGON_INCLUDE_DIR}")
 message(STATUS "Dragon library : ${DRAGON_LIBRARY}")
 
 # Build
-add_executable(sim sim.cpp)
+add_executable(sim sim.cpp cpp_serializers.cpp)
 target_compile_definitions(sim PRIVATE _GLIBCXX_USE_CXX11_ABI=0) # Needed to resolve conflict with dragon library shipped with wheel
 target_include_directories(sim PRIVATE ${DRAGON_INCLUDE_DIR})
 target_link_libraries(sim PRIVATE
