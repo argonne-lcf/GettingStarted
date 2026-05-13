@@ -9,7 +9,9 @@ from dragon.data.ddict.ddict import DDict
 
 from mpi4py import MPI
 
-from custom_pickler import Double2DValuePickler, StringKeyPickler
+from custom_pickler import NumPy1DPickler, StringKeyPickler
+
+NFIELDS = 3
 
 # MPI
 comm = MPI.COMM_WORLD
@@ -51,7 +53,7 @@ args = parser.parse_args()
 if rank == 0:
     log.info("Attaching to DDict ...")
 dd = DDict.attach(args.ddict_ser, timeout=3600)
-dd = dd.pickler(key_pickler=StringKeyPickler(), value_pickler=Double2DValuePickler())
+dd = dd.pickler(key_pickler=StringKeyPickler(), value_pickler=NumPy1DPickler(np.float64))
 comm.Barrier()
 if rank == 0:
     log.info("All Dragon clients attached to DDict")
@@ -65,28 +67,24 @@ if rank == 0:
     log.info("Waiting for data to be available in DDict ...")
 while True:
     if f"y.{rank}" in dd.keys():
-        train_data = dd[f"y.{rank}"]
-        N = train_data.shape[0]
-        N_cols = train_data.shape[1]
-        log.info("Found tensor y.%d with shape %s x %s", rank, N, N_cols)
+        train_data = dd[f"y.{rank}"].reshape(NFIELDS,-1)
+        N = train_data.shape[1]
+        log.info("Found tensor y.%d with shape %s x %s", rank, NFIELDS, N)
         break
     else:
         sleep(1)
-comm.Barrier()
-if rank == 0:
-    log.info("Data is available in DDict!")
 
 # Receive training data
-workflow_steps = 5
+workflow_steps = 15
 stream_time = 0.0
-rank_offset = rank * N * N_cols
+rank_offset = rank * N * NFIELDS
 try:
     for step in range(workflow_steps):
         sleep(5)
         if rank == 0:
             log.info("[ML] Reading solution data for step %d", step)
         tic = MPI.Wtime()
-        train_data = dd[f"y.{rank}"]
+        train_data = dd[f"y.{rank}"].reshape(NFIELDS,-1)
         toc = MPI.Wtime()
         if step > 0:
             stream_time += toc - tic
@@ -101,8 +99,11 @@ try:
         # Check correctness of the received data. 
         expected = (
             rank_offset
-            + np.arange(N, dtype=np.float64).reshape(-1, 1) * N_cols
-            + np.arange(N_cols, dtype=np.float64).reshape(1, -1)
+            + np.vstack((
+                0 * np.ones(N, dtype=np.float64),
+                1 * np.ones(N, dtype=np.float64),
+                2 * np.ones(N, dtype=np.float64))
+            )
         )
         if not np.array_equal(train_data, expected):
             log.error("[ML] Data mismatch for step %d and rank %d", step, rank)
@@ -116,8 +117,8 @@ try:
     if rank % local_size == 0:
         if rank == 0:
             log.info("[%d]: Telling simulation to quit ...", rank)
-        # C++ side expects a 1x1 SerializableDouble2DVector in float64 
-        arrMLrun = np.zeros((1, 1), dtype=np.float64)
+        # C++ side expects a 1 SerializableDoubleVector in float64 
+        arrMLrun = np.zeros((1,), dtype=np.float64)
         dd["check-run"] = arrMLrun
 
     comm.Barrier()
@@ -126,9 +127,10 @@ try:
 
     # Print stream performance summary
     if rank == 0:
-        data_size_gb = N * 8 / 1e9
-        recv_bw = N * 8 / global_avg_stream_time / 1e9
+        data_size_gb = N * NFIELDS * 8 / 1e9
+        recv_bw = data_size_gb / global_avg_stream_time
         log.info("=== Communication Performance Summary ===")
+        log.info("Array shape per message: %s x %s", NFIELDS, N)
         log.info("Data size per message: %.4e GB", data_size_gb)
         log.info("Total iterations: %d", workflow_steps)
         log.info("Average receive time: %.6f seconds", global_avg_stream_time)

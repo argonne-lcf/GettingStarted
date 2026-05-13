@@ -11,6 +11,7 @@
 
 #include <dragon/dictionary.hpp>
 #include <dragon/serializable.hpp>
+#include "cpp_serializers.hpp"
 #include <mpi.h>
 
 // Default DDict operation timeout
@@ -18,19 +19,12 @@ static timespec_t TIMEOUT = {600, 0};
 
 // DDict type used by this proxy simulation:
 //   keys  : strings (e.g. "check-run", "y.<rank>")
-//   values: 2D vectors of doubles (check-run is a 1x1 entry whose value
+//   values: 1D vectors of doubles (check-run is a 1 entry whose value
 //           is interpreted as a boolean run flag by the reader)
 using SimDDict = dragon::DDict<dragon::SerializableString,
-                               dragon::SerializableDouble2DVector>;
+                               custom::SerializableDoubleVector>;
 
-// ---------------------------------------------------------------------------
-// Minimal rank-aware file logger
-//
-// All ranks append to a single shared file (sim.out). Rank 0 truncates the
-// file at startup and every rank appends afterwards. POSIX guarantees that
-// writes <= PIPE_BUF to an O_APPEND file are atomic, so line-sized records
-// from multiple ranks stay intact.
-// ---------------------------------------------------------------------------
+// Logger
 static FILE *g_log_fp = nullptr;
 static int   g_log_rank = 0;
 static int   g_log_size = 0;
@@ -81,8 +75,6 @@ static void log_line(const char *fmt, ...)
     std::fflush(g_log_fp);
 }
 
-// log_debug is a no-op unless the user passed `debug` as the verbosity arg.
-// Format-string checking still applies because we forward to log_line.
 #define log_debug(...) do { if (g_debug_enabled) log_line(__VA_ARGS__); } while (0)
 
 
@@ -96,10 +88,10 @@ int check_run(MPI_Comm comm, SimDDict *dd)
     // Only head rank queries the DDict
     if (rank == 0) {
         if (dd->contains(run_key)) {
-            dragon::SerializableDouble2DVector run_val = (*dd)[run_key];
-            const std::vector<std::vector<double>> &run_val_vec = run_val.getVal();
-            if (!run_val_vec.empty() && !run_val_vec[0].empty()) {
-                exit_val = static_cast<int>(run_val_vec[0][0]);
+            custom::SerializableDoubleVector run_val = (*dd)[run_key];
+            const std::vector<double> &run_val_vec = run_val.getVal();
+            if (!run_val_vec.empty()) {
+                exit_val = static_cast<int>(run_val_vec[0]);
             }
         }
     }
@@ -180,8 +172,8 @@ int main(int argc, char *argv[])
 
     // Setup iteration loop
     int iters = 100;
-    const int NCOLS = 3;
-    std::vector<std::vector<double>> U(N, std::vector<double>(NCOLS, 0.0));
+    const int NFIELDS = 3;
+    std::vector<double> U(N * NFIELDS, 0.0);
     dragon::SerializableString U_key("y." + std::to_string(rank));
     double stream_time = 0.0;
     int count = 0;
@@ -202,12 +194,10 @@ int main(int argc, char *argv[])
         std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         const double rank_offset = static_cast<double>(rank)
                                  * static_cast<double>(N)
-                                 * static_cast<double>(NCOLS);
-        for (unsigned long long int n=0; n<N; n++) {
-            const double row_offset = static_cast<double>(n)
-                                    * static_cast<double>(NCOLS);
-            for (int c=0; c<NCOLS; c++) {
-                U[n][c] = rank_offset + row_offset + static_cast<double>(c);
+                                 * static_cast<double>(NFIELDS);
+        for (int c=0; c<NFIELDS; c++) {
+            for (unsigned long long int n=0; n<N; n++) {
+                U[c * N + n] = rank_offset + static_cast<double>(c);
             }
         }
         MPI_Barrier(comm);
@@ -221,7 +211,7 @@ int main(int argc, char *argv[])
         }
         MPI_Barrier(comm);
         double tic_serialize = MPI_Wtime();
-        dragon::SerializableDouble2DVector U_value(U);
+        custom::SerializableDoubleVector U_value(U);
         double toc_serialize = MPI_Wtime();
         if (rank == 0) {
             log_debug("[DEBUG] Serialized data for step %d in %.6f seconds",
@@ -263,15 +253,14 @@ int main(int argc, char *argv[])
 
     // Print performance summary
     if (rank == 0) {
-        double nbytes = static_cast<double>(N) * NCOLS * 8.0;
-        double data_size_gb = nbytes / 1e9;
-        double recv_bw = nbytes / global_avg_stream_time / 1e9;
+        double data_size_gb = static_cast<double>(N) * NFIELDS * 8.0 / 1e9;
+        double put_bw = data_size_gb / global_avg_stream_time;
         log_line("=== Performance Summary ===");
-        log_line("Array shape per message: %llu x %d", N, NCOLS);
+        log_line("Array shape per message: %llu x %d", N, NFIELDS);
         log_line("Data size per message: %g GB", data_size_gb);
         log_line("Total iterations: %d", count + 1);
         log_line("Average DDict put time: %g seconds", global_avg_stream_time);
-        log_line("Average DDict put bandwidth: %g GB/s", recv_bw);
+        log_line("Average DDict put bandwidth: %g GB/s", put_bw);
     }
 
     log_close();

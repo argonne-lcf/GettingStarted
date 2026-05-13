@@ -15,6 +15,8 @@
 
 import struct
 import numpy as np
+import ctypes
+import sys
 
 _SIZE_T = struct.Struct("=Q")  # native-endian unsigned 8-byte (matches size_t)
 
@@ -29,36 +31,100 @@ class StringKeyPickler:
         n = _SIZE_T.unpack_from(blob, 0)[0]
         return bytes(blob[_SIZE_T.size : _SIZE_T.size + n]).decode("utf-8")
 
+class NumPy2DPickler:
 
-def _read_exact(file, n: int) -> bytes:
-    """Pull exactly ``n`` bytes off the FLI stream, looping over partial reads."""
-    buf = bytearray()
-    while len(buf) < n:
-        chunk = file.read(n - len(buf))
-        if not chunk:
-            raise EOFError(f"expected {n} bytes, got {len(buf)}")
-        buf.extend(chunk)
-    return bytes(buf)
+    def __init__(self, data_type: np.dtype):
+        self._data_type = data_type
 
+    def dump(self, nparr, file) -> None:
 
-class Double2DValuePickler:
-    """Pickler matching dragon::SerializableDouble2DVector serialization format."""
+        # write the dimension of the array
+        size_t_size = ctypes.sizeof(ctypes.c_size_t)
+        nrow, ncol = nparr.shape
+        bytes_nrow = nrow.to_bytes(size_t_size, byteorder=sys.byteorder)
+        bytes_ncol = ncol.to_bytes(size_t_size, byteorder=sys.byteorder)
+        file.write(bytes_nrow)
 
-    def dump(self, arr, file) -> None:
-        a = np.ascontiguousarray(arr, dtype=np.float64)
-        if a.ndim != 2:
-            raise ValueError(
-                f"Double2DValuePickler requires a 2D array; got shape {a.shape}"
-            )
-        nrows, ncols = a.shape
-        file.write(_SIZE_T.pack(nrows))
-        file.write(_SIZE_T.pack(ncols))
-        file.write(a.tobytes(order="C"))
+        # Write the 2D array as a sequence of 1D array rows. Numpy's
+        # default is that rows are guaranteed contiguous. If your
+        # application had completely contiguous data, then crafting
+        # a new pickler and writing your own C++ serializable class
+        # would be in order. Otherwise, this should work for most
+        # default numpy matrices.
+
+        for i in range(nrow):
+            mv = memoryview(nparr[i])
+            bobj = mv.tobytes()
+            file.write(bytes_ncol) # The C++ (de)serialization for vector 1D expects this.
+            file.write(bobj)
+
 
     def load(self, file):
-        nrows = _SIZE_T.unpack(_read_exact(file, _SIZE_T.size))[0]
-        ncols = _SIZE_T.unpack(_read_exact(file, _SIZE_T.size))[0]
-        if nrows == 0 or ncols == 0:
-            return np.empty((nrows, ncols), dtype=np.float64)
-        body = _read_exact(file, nrows * ncols * 8)
-        return np.frombuffer(body, dtype=np.float64).reshape(nrows, ncols)
+
+        obj = None
+
+        # read the dimension of the array
+        size_t_size = ctypes.sizeof(ctypes.c_size_t)
+        nrow = int.from_bytes(file.read(size_t_size), sys.byteorder)
+        item_size = np.dtype(self._data_type).itemsize
+
+        try:
+            while True:
+                ncol = int.from_bytes(file.read(size_t_size), sys.byteorder)
+                data = file.read(ncol*item_size)
+                if obj is None:
+                    # convert bytes to bytearray
+                    view = memoryview(data)
+                    obj = bytearray(view)
+                else:
+                    obj.extend(data)
+        except EOFError:
+            pass
+
+        ret_arr = np.frombuffer(obj, dtype=self._data_type).reshape((nrow, ncol))
+
+        return ret_arr
+
+
+class NumPy1DPickler:
+
+    def __init__(self, data_type: np.dtype):
+        self._data_type = data_type
+
+    def dump(self, nparr, file) -> None:
+
+        # write the dimension of the array
+        size_t_size = ctypes.sizeof(ctypes.c_size_t)
+        ncol = nparr.shape[0]
+        bytes_ncol = ncol.to_bytes(size_t_size, byteorder=sys.byteorder)
+        file.write(bytes_ncol)
+
+        mv = memoryview(nparr[0])
+        bobj = mv.tobytes()
+        file.write(bytes_ncol) # The C++ (de)serialization for vector 1D expects this.
+        file.write(bobj)
+
+
+    def load(self, file):
+
+        obj = None
+
+        # read the dimension of the array
+        size_t_size = ctypes.sizeof(ctypes.c_size_t)
+        ncol = int.from_bytes(file.read(size_t_size), sys.byteorder)
+        item_size = np.dtype(self._data_type).itemsize
+
+        try:
+            data = file.read(ncol*item_size)
+            if obj is None:
+                # convert bytes to bytearray
+                view = memoryview(data)
+                obj = bytearray(view)
+            else:
+                obj.extend(data)
+        except EOFError:
+            pass
+
+        ret_arr = np.frombuffer(obj, dtype=self._data_type)
+
+        return ret_arr

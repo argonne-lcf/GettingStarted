@@ -7,6 +7,8 @@ from smartredis import Client
 
 from mpi4py import MPI
 
+NFIELDS = 3
+
 # MPI
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
@@ -38,8 +40,10 @@ if (rank == 0):
 while True:
     if (client.key_exists(f"y.{rank}")):
         train_data = client.get_tensor(f'y.{rank}')
-        N = train_data.shape[0]
-        #print(f"Rank {rank} found tensor y.{rank} with shape {N}",flush=True)
+        nfields = train_data.shape[0]
+        assert nfields == NFIELDS, f"Number of fields in tensor y.{rank} is {nfields} but expected {NFIELDS}"
+        N = train_data.shape[1]
+        #print(f"Rank {rank} found tensor y.{rank} with shape {nfields} x {N}",flush=True)
         break
     else:
         sleep(1)
@@ -50,6 +54,7 @@ if (rank == 0):
 # Receive training data
 workflow_steps = 15
 stream_time = 0.0
+rank_offset = rank * N * NFIELDS
 try:
     for step in range(workflow_steps):
         sleep(5)
@@ -60,6 +65,22 @@ try:
         if step > 0:
             stream_time += toc - tic
         comm.Barrier()
+        
+        # Check correctness of the received data
+        expected = (
+            rank_offset
+            + np.vstack((
+                0 * np.ones(N, dtype=np.float64),
+                1 * np.ones(N, dtype=np.float64),
+                2 * np.ones(N, dtype=np.float64))
+            )
+        )
+        if not np.array_equal(train_data, expected):
+            print(f"[ML] Data mismatch for step {step} and rank {rank}",flush=True)
+            print(f"[ML:{rank}] train_data:{train_data}",flush=True)
+            print(f"[ML:{rank}] expected:{expected}",flush=True)
+            comm.Abort(1)
+
         if rank == 0: print(f'[ML] Done reading solution data for step {step} in {toc - tic} seconds',flush=True)
 
     # Compute average stream time across all ranks
@@ -78,8 +99,9 @@ try:
     # Print stream performance summary
     if rank == 0:
         print("\n=== Communication Performance Summary ===")
-        data_size_gb = N * 8 / 1e9
-        recv_bw = N * 8 / global_avg_stream_time / 1e9
+        data_size_gb = N * NFIELDS * 8 / 1e9
+        recv_bw = data_size_gb / global_avg_stream_time
+        print(f"Array shape per message: {NFIELDS} x {N}")
         print(f"Data size per message: {data_size_gb:.4e} GB")
         print(f"Total iterations: {workflow_steps}")
         print(f"Average receive time: {global_avg_stream_time:.6f} seconds")
