@@ -8,6 +8,8 @@ local_hostfile.*
 
 # Conda environments
 _env/
+_venv/
+*venv*/
 
 # IntelPython dependencies
 dpctl/
