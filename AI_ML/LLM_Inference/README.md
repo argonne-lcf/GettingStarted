@@ -2,6 +2,18 @@
 
 Intro ...
 
+## MPI
+
+### Set up
+
+### Run
+
+## EnsembleLauncher (EL)
+
+### Set up
+
+### Run
+
 ## DragonHPC
 
 ### Set up
@@ -24,12 +36,6 @@ dragon-config add --ofi-runtime-lib=="/opt/cray/libfabric/1.22.0/lib64/"
 qsub sub_dragon_aurora.sh
 ```
 
-
-...
-
-## EnsembleLauncher (EL)
-
-...
 
 ## Tips for scaling
 

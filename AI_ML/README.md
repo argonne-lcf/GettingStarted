@@ -9,4 +9,4 @@ Please refer to the table below to see what is covered and access the desired ex
 | Intel Data Parallel Python   |    N/A                   |  [X](./IntelPython/)   |  N/A          |
 | PyTorch DDP                  |    [X](./PyTorch_DDP/)   |  [X](./PyTorch_DDP/)   |  N/A          |
 | ezpz                         |    [X](./ezpz/)          |  [X](./ezpz/)          | [X](./ezpz/)  |
-| LLM Inference                |                          |  [X](./llm_inference)      |               |
+| LLM Inference                |                          |  [X](./LLM_Inference)      |               |
