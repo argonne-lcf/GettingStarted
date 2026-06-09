@@ -200,7 +200,7 @@ def main():
     # Set up the envirnoment variables
     hostname = "127.0.0.1" # localhost
     #hostname = socket.gethostbyname(socket.gethostname())
-    port_number = 10000 + rank * 200
+    port_number = 10000 + local_rank * 200
     port_number = find_free_port((port_number, port_number + 200), hostname)
     if args.log_level == "debug":
         print(f"[{rank}] Found port {port_number}", flush=True)
