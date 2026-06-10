@@ -1,8 +1,74 @@
 # Scaling LLM Inference on ALCF Systems
 
-Intro ...
+When it comes to scaling LLM inference workflows on ALCF systems, there are a few recommended approaches depending on the user's needs and setup.
+Here we describe these approaches in detail and provide useful examples and scripts for users to get started with scaling their own workflows. 
+Note that all examples use the vLLM packege since this is the officially supported inference engine across our systems, however users may use other libraries.
 
-## MPI
+At a high level, we separate inference workflows into two categories; high-throughput batched (static) inference and request-driven (dynamic) inference. 
+In the **batched inference** case, the work is often static or determined *a priori* and homogeneous in nature. For example, users may want to perform inference on a long list of pre-determined prompts using the same model or a few different models in the shortest possible time. In such a case, various inference engines of the same kind can all be launched in unison and the work can be easily partitioned among the engines to ensure good load balancing. 
+MPI is therefore a good candidate for efficient launching of such static workflows and to ensure high-throughput, however other wokflow tools, such as EnsembleLauncher (EL), can be used as well. 
+Additionally, the offline approach to vLLM inference which uses the Python `LLM()` API is preferred due to its batching functionality. 
+
+In the **request-driven inference** case, the idea is to launch persistent processes or servers which stand up inference engines and continuously listen and wait for prompts to be submitted in a dynamic and asynchronous pattern. For example, agentic or human-driven workflows often require such a pattern, since the prompts are generated *on-the-fly* as the workflow progresses.
+Additionally, it may also be necessary to serve differenct models tailored to different tasks. 
+Due to the increased complexity of such workflows, the MPI based solution is less likely and instead workflow tools provide efficient and scalable solutions by routing the prompts to the various inference engines as they are generated.
+In the context of vLLM, this is the classic fit for the `vllm serve` CLI command, however we'll see that the Python `LLM()` API can still be used when wrapping it around a workflow harness such as EL and Dragon to proivide both the request-driven advantage `vllm serve` and the high-throuput of the Python `LLM()` API.
+
+Below we compare the performance of batched and request-driven approaches implemented with different workflow tools on Aurora. Describe setup briefly ...
+
+Insert performance plot.
+
+
+### Choosing the Correct Scaling Approach
+
+We could have a section guiding users to the specific approach based on questions about their workflow, but it may repeat some of the information in the intriduction.
+
+### Batched Inference with MPI
+
+For the batched inference case, MPI is an easy and performant solition. 
+An example Python script is provided in the [MPI](./MPI/) directory along with submit scripts for both Aurora and Polaris.
+
+In this case, a Python script is launched across nodes with `mpiexec` with as many processes per node as desired inference engines per node. Each rank initializes a `vllm.LLM()` object based on various input parameters and performs inference on a batch of prompts distributed by rank 0. 
+
+#### Set up
+
+No specific set up is required for this approach since it leverages the vllm installations that come with the data science modules on Aurora and Polaris. The modules to load are shown below for completeness, however these are loaded within the submit scripts provided.
+
+```bash
+# On Aurora
+module load frameworks
+
+# On Polaris
+module use /soft/modulefiles
+module load conda
+conda activate
+```
+
+#### Run the example
+
+To run the example, simply submit the scripts provided for Aurora and Polaris. For example, on Aurora execute
+
+```bash
+qsub sub_mpi_aurora.sh
+```
+
+The [mpi_llm_inference.py](./MPI/mpi_llm_inference.py) script takes in a few runtime parameters to note:
+
+* The Hugging Face token (required)
+* The model name (required)
+* The tensor parallel (TP) size to use for the model (defaults to 1)
+* The data type to use (defaults to `bfloat16`)
+* The maximum number of output tokens (defaults to 128). This parameter can impact performance significantly and may need to be adjusted depending on the expected length of the LLM response.
+* The prompt batch size (defaults to 1). Increasing the batch size can also significantly improve overall inference throughput (requests per second).
+* File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
+
+### Batched Inference with EL
+
+### Request-driven Inference with EL
+
+### Request-driven Inference with Dragon
+
+## Batched Inference with MPI
 
 ### Set up
 

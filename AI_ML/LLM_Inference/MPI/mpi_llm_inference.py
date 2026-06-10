@@ -173,7 +173,7 @@ def main():
     parser.add_argument(
         "--prompt_file",
         type=str,
-        default="/tmp/hf_home/prompts.jsonl",
+        default="../utils/prompts.jsonl",
         help="File containing prompts to benchmark with.",
     )
     parser.add_argument(
