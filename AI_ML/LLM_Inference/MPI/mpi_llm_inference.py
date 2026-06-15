@@ -199,7 +199,6 @@ def main():
     
     # Set up the envirnoment variables
     hostname = "127.0.0.1" # localhost
-    #hostname = socket.gethostbyname(socket.gethostname())
     port_number = 10000 + local_rank * 200
     port_number = find_free_port((port_number, port_number + 200), hostname)
     if args.log_level == "debug":
@@ -209,10 +208,8 @@ def main():
     os.environ["VLLM_PORT"] = str(port_number)
     os.environ["MASTER_ADDR"] = hostname
     os.environ["MASTER_PORT"] = str(port_number)
-    os.environ["RANK"] = str(local_rank % args.tp_size)
+    os.environ["RANK"] = "0"
     os.environ["WORLD_SIZE"] = str(args.tp_size)
-    #os.environ["LOCAL_RANK"] = str(local_rank % args.tp_size)
-    #os.environ["LOCAL_WORLD_SIZE"] = str(args.tp_size)
     my_tmp = f"/tmp/vllm_inst_{rank}"
     os.makedirs(my_tmp, exist_ok=True)
     os.environ["TMPDIR"] = my_tmp

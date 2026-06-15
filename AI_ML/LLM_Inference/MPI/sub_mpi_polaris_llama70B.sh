@@ -1,12 +1,12 @@
 #!/bin/bash -l
-##PBS -N mpi-vllm
-##PBS -l select=2
-##PBS -l walltime=00:30:00
-##PBS -q debug-scaling
-##PBS -A <project_name>
-##PBS -l filesystems=home:eagle
-##PBS -j oe
-#cd $PBS_O_WORKDIR
+#PBS -N mpi-vllm
+#PBS -l select=2
+#PBS -l walltime=00:30:00
+#PBS -q debug-scaling
+#PBS -A <project_name>
+#PBS -l filesystems=home:eagle
+#PBS -j oe
+cd $PBS_O_WORKDIR
 
 set -e
 
@@ -24,12 +24,12 @@ fi
 
 # Set env variables
 NODES=$(cat ${PBS_NODEFILE} | wc -l)
-MODEL=meta-llama/Llama-3.1-8B-Instruct
-TP_SIZE=1
+MODEL=meta-llama/Llama-3.1-70B-Instruct
+TP_SIZE=4
 BATCH_SIZE=16
-ENGINES_PER_NODE=4 
+ENGINES_PER_NODE=1
 RANKS=$(( NODES * ENGINES_PER_NODE ))
-CPU_BIND="list:24-31,16-23,8-15,0-7"
+CPU_BIND="list:0-31"
 
 # Compile bcast to scatter weights to /tmp on the nodes
 UTILS=$PWD/../utils
