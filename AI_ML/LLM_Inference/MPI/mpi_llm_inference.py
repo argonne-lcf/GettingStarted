@@ -108,8 +108,8 @@ def set_gpu_affinity(
     else:
         if rank == 0:
             print("No GPU devices found", flush=True)
-            comm.Abort(1)
-    if (len(gpus) / (local_size * tp_size)) <= 1:
+        comm.Abort(1)
+    if (len(gpus) / (local_size * tp_size)) < 1:
         msg = (
             f"Not enough GPUs on the node to carry out {local_size} "
             f"inference instances with TP size {tp_size}"
@@ -199,7 +199,6 @@ def main():
     
     # Set up the envirnoment variables
     hostname = "127.0.0.1" # localhost
-    #hostname = socket.gethostbyname(socket.gethostname())
     port_number = 10000 + local_rank * 200
     port_number = find_free_port((port_number, port_number + 200), hostname)
     if args.log_level == "debug":
@@ -209,10 +208,8 @@ def main():
     os.environ["VLLM_PORT"] = str(port_number)
     os.environ["MASTER_ADDR"] = hostname
     os.environ["MASTER_PORT"] = str(port_number)
-    os.environ["RANK"] = str(local_rank % args.tp_size)
+    os.environ["RANK"] = "0"
     os.environ["WORLD_SIZE"] = str(args.tp_size)
-    #os.environ["LOCAL_RANK"] = str(local_rank % args.tp_size)
-    #os.environ["LOCAL_WORLD_SIZE"] = str(args.tp_size)
     my_tmp = f"/tmp/vllm_inst_{rank}"
     os.makedirs(my_tmp, exist_ok=True)
     os.environ["TMPDIR"] = my_tmp
@@ -226,7 +223,7 @@ def main():
         distributed_executor_backend="mp", # mp, uni
         disable_custom_all_reduce=True,
         dtype=args.data_type,
-        gpu_memory_utilization=0.95,
+        gpu_memory_utilization=0.90, # how much to allocate for model + KV cache pool
         max_num_seqs=args.batch_size,
         max_model_len=8192, # max length of sequence (input+output)
     )
@@ -304,3 +301,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
