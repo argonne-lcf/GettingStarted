@@ -31,7 +31,7 @@ ENGINES_PER_NODE=4
 RANKS=$(( NODES * ENGINES_PER_NODE ))
 CPU_BIND="list:24-31,16-23,8-15,0-7"
 
-# Compile bcast to scatter weights to /tmp on the nodes
+# Compile bcast 
 UTILS=$PWD/../utils
 mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c -lmpi_gtl_cuda
 

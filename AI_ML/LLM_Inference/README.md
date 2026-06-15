@@ -14,9 +14,9 @@ Additionally, it may also be necessary to serve differenct models tailored to di
 Due to the increased complexity of such workflows, the MPI based solution is less likely and instead workflow tools provide efficient and scalable solutions by routing the prompts to the various inference engines as they are generated.
 In the context of vLLM, this is the classic fit for the `vllm serve` CLI command, however we'll see that the Python `LLM()` API can still be used when wrapping it around a workflow harness such as EL and Dragon to proivide both the request-driven advantage `vllm serve` and the high-throuput of the Python `LLM()` API.
 
-Below we compare the performance of batched and request-driven approaches implemented with different workflow tools on Aurora. Describe setup briefly ...
+Below we compare the performance of batched and request-driven approaches implemented with different workflow tools on Aurora. 
 
-Insert performance plot.
+**Insert performance plot.**
 
 
 ### Choosing the Correct Scaling Approach
@@ -32,7 +32,7 @@ In this case, a Python script is launched across nodes with `mpiexec` with as ma
 
 #### Set up
 
-No specific set up is required for this approach since it leverages the vllm installations that come with the data science modules on Aurora and Polaris. The modules to load are shown below for completeness, however these are loaded within the submit scripts provided.
+No specific set up is required for this approach since it leverages the vLLM installations that come with the data science modules on Aurora and Polaris. The modules to load are shown below for completeness, however these are loaded within the submit scripts provided.
 
 ```bash
 # On Aurora
@@ -44,12 +44,14 @@ module load conda
 conda activate
 ```
 
-#### Run the example
+#### Run the examples
 
-To run the example, simply submit the scripts provided for Aurora and Polaris. For example, on Aurora execute
+For both Aurora and Polaris, there are submit scripts to run a small, single-GPU model with tensor parallelism (`TP`) size of 1 and an example running a larger model requirung `TP>1`. The main difference to not for these scenarios is how 
+
+To run the examples, simply submit the scripts provided for Aurora and Polaris. For example, to run the example with the Llama 3.1 8B model on Aurora execute
 
 ```bash
-qsub sub_mpi_aurora.sh
+qsub sub_mpi_aurora_llama8B.sh
 ```
 
 The [mpi_llm_inference.py](./MPI/mpi_llm_inference.py) script takes in a few runtime parameters to note:
@@ -59,7 +61,7 @@ The [mpi_llm_inference.py](./MPI/mpi_llm_inference.py) script takes in a few run
 * The tensor parallel (TP) size to use for the model (defaults to 1)
 * The data type to use (defaults to `bfloat16`)
 * The maximum number of output tokens (defaults to 128). This parameter can impact performance significantly and may need to be adjusted depending on the expected length of the LLM response.
-* The prompt batch size (defaults to 1). Increasing the batch size can also significantly improve overall inference throughput (requests per second).
+* The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
 * File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
 
 ### Batched Inference with EL
