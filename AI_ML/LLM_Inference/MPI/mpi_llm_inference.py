@@ -109,7 +109,7 @@ def set_gpu_affinity(
         if rank == 0:
             print("No GPU devices found", flush=True)
             comm.Abort(1)
-    if (len(gpus) / (local_size * tp_size)) <= 1:
+    if (len(gpus) / (local_size * tp_size)) < 1:
         msg = (
             f"Not enough GPUs on the node to carry out {local_size} "
             f"inference instances with TP size {tp_size}"
