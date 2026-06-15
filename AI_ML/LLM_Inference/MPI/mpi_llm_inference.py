@@ -258,16 +258,26 @@ def main():
             )
         )
     inference_time = time.time() - inf_start_time
-    rps = num_rank_prompts / inference_time
     comm.Barrier()
     if rank == 0:
         print(f"Completed all inference requests! ({inference_time:.2f} s)", flush=True)
 
     # Extract responses
-    responses = [output.outputs[0].text for output in outputs]
+    responses = []
+    num_successful = 0
+    num_failed = 0
+    for output in outputs:
+        if output.outputs and output.outputs[0].finish_reason in ("stop", "length"):
+            num_successful += 1
+            responses.append(output.outputs[0].text)
+        else:
+            num_failed += 1
+            responses.append(None)
+    rps = num_successful / inference_time
     if args.log_level == "debug":
-        for prompt, response in zip(prompts_chunk,responses):
-            print(f"[{rank}] PROMPT: {prompt}\t RESPONSE: {response}\n\n", flush=True)
+        print(f"[{rank}] Successful: {num_successful}, Failed: {num_failed}", flush=True)
+        #for prompt, response in zip(prompts_chunk,responses):
+        #    print(f"[{rank}] PROMPT: {prompt}\t RESPONSE: {response}\n\n", flush=True)
 
     comm.Barrier()
     end_time = time.time()
@@ -276,13 +286,15 @@ def main():
     # Gather statistics from ranks
     init_times = comm.allgather(init_time)
     inf_times = comm.allgather(inference_time)
+    tot_successful_requests = comm.allgather(num_successful)
     rpss = comm.allgather(rps)
 
     # Print summary of performance stats
     if rank == 0:
         print("\n\n=========================================")
         print("Performance Summary:")
-        print(f"Total number of prompts: {num_tot_prompts}")
+        print(f"Total number of input prompts: {num_tot_prompts}")
+        print(f"Total number of successful requests: {sum(tot_successful_requests)}")
         print(f"Total run time = {total_runtime:.4f} s")
         print(f"Initialization time (min, max, avg) = {min(init_times):.4f}, {max(init_times):.4f}, {sum(init_times)/len(init_times):.4f} s")
         print(f"Inference time (min, max, avg) = {min(inf_times):.4f}, {max(inf_times):.4f}, {sum(inf_times)/len(inf_times):.4f} s")
