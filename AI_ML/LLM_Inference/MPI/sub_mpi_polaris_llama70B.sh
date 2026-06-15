@@ -59,7 +59,7 @@ export OPENBLAS_NUM_THREADS=1
 export VLLM_LOGGING_LEVEL=INFO # DEBUG, INFO, WARNING, ERROR
 
 # Launch workflow
-echo -e "\n\nLaunching workflow on $NODES nodes with $ENGINES_PER_NODE engines per node..."
+echo -e "\n\nLaunching $MODEL on $NODES nodes with $ENGINES_PER_NODE engines per node..."
 mpiexec -n $RANKS --ppn $ENGINES_PER_NODE --cpu-bind $CPU_BIND \
   python ./mpi_llm_inference.py \
   --hf_token $HF_TOKEN  \

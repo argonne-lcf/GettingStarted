@@ -109,6 +109,7 @@ def set_gpu_affinity(
         if rank == 0:
             print("No GPU devices found", flush=True)
         comm.Abort(1)
+    
     if (len(gpus) / (local_size * tp_size)) < 1:
         msg = (
             f"Not enough GPUs on the node to carry out {local_size} "
@@ -116,10 +117,18 @@ def set_gpu_affinity(
         )
         print(msg, flush=True)
         comm.Abort(1)
+    
     gpus = [str(i) for i in gpus]
     num_gpus_per_instance = tp_size
-    start_ind = local_rank * num_gpus_per_instance
-    end_ind = (local_rank + 1) * num_gpus_per_instance
+    # Might need to offset GPus on Aurora 
+    # (6 tiles per CPU socket but TP size is multiple of 2 usually)
+    offset = 0
+    if torch.xpu.is_available():
+        if tp_size > 2 and local_size == 2:
+            offset = 6 - tp_size
+    
+    start_ind = local_rank * (num_gpus_per_instance + offset)
+    end_ind = start_ind + num_gpus_per_instance
     gpus_per_instance = gpus[start_ind:end_ind]
     if log_level == "debug":
         print(f"[{rank}] Setting GPUs {gpus_per_instance}", flush=True)
