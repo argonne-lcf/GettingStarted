@@ -108,7 +108,7 @@ def set_gpu_affinity(
     else:
         if rank == 0:
             print("No GPU devices found", flush=True)
-            comm.Abort(1)
+        comm.Abort(1)
     if (len(gpus) / (local_size * tp_size)) < 1:
         msg = (
             f"Not enough GPUs on the node to carry out {local_size} "
@@ -226,7 +226,7 @@ def main():
         distributed_executor_backend="mp", # mp, uni
         disable_custom_all_reduce=True,
         dtype=args.data_type,
-        gpu_memory_utilization=0.95,
+        gpu_memory_utilization=0.90, # how much to allocate for model + KV cache pool
         max_num_seqs=args.batch_size,
         max_model_len=8192, # max length of sequence (input+output)
     )
@@ -292,3 +292,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
