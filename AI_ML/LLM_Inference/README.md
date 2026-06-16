@@ -66,7 +66,27 @@ The [mpi_llm_inference.py](./MPI/mpi_llm_inference.py) script takes in a few run
 
 ### Batched Inference with EL
 
+Like the MPI approach, batch inference can be useful when you have a static list of prompts. Here, we used EnsembleLauncher (EL) to launch inference calls as a EL Tasks.
+
+### Set up
+1. Install EL and dependencies in a Python virtual environment (https://github.com/argonne-lcf/ensemble_launcher/tree/multi_node_vllm).
+2. Download model weights or use the ones already available on the system. If downloading, ensure the weights are available on a shared file system accessible by all nodes or use utilities to copy them to each node's local storage.
+
+### Run the examples
+An example EL workflow is provided in the [EL](./EL/) directory. To run the example, simply submit the provided script for Aurora or Polaris. For example, to run the example on Aurora execute
+
+```bash
+qsub submit_batched.sh
+```
 ### Request-driven Inference with EL
+
+The setup and run for request-driven inference with EL is similar to the batched case, however the main difference is that the prompts are submitted to EL dynamically.
+
+A deatailed readme for this example is provided in the [EL](./EL/) directory, however to run the example, simply submit the provided script for Aurora or Polaris. For example, to run the example on Aurora execute
+
+```bash
+qsub submit_request_driven.sh
+```
 
 ### Request-driven Inference with Dragon
 
