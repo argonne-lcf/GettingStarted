@@ -1,12 +1,12 @@
 #!/bin/bash -l
-##PBS -N dragon-llm
-##PBS -l select=2
-##PBS -l walltime=00:30:00
-##PBS -q debug-scaling
-##PBS -A <project_name>
-##PBS -l filesystems=home:flare
-##PBS -j oe
-#cd $PBS_O_WORKDIR
+#PBS -N dragon-llm
+#PBS -l select=2
+#PBS -l walltime=00:30:00
+#PBS -q debug-scaling
+#PBS -A <project_name>
+#PBS -l filesystems=home:flare
+#PBS -j oe
+cd $PBS_O_WORKDIR
 
 set -e
 
@@ -26,7 +26,7 @@ NODES=$(cat ${PBS_NODEFILE} | wc -l)
 MODEL=meta-llama/Llama-3.3-70B-Instruct
 TP_SIZE=4
 BATCH_SIZE=16
-ENGINES_PER_NODE=2
+ENGINES_PER_NODE=3
 
 # Compile bcast
 UTILS=$PWD/../utils
