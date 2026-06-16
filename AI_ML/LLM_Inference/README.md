@@ -16,21 +16,17 @@ In the context of vLLM, this is the classic fit for the `vllm serve` CLI command
 
 Below we compare the performance of batched and request-driven approaches implemented with different workflow tools on Aurora. 
 
-**Insert performance plot.**
+![Weak scaling tests of LLM inference with various approaches on Aurora. The tests deploy one engine per PVC tile (12 per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file.](./utils/requests_per_second.png)
 
 
-### Choosing the Correct Scaling Approach
-
-We could have a section guiding users to the specific approach based on questions about their workflow, but it may repeat some of the information in the intriduction.
-
-### Batched Inference with MPI
+## Batched Inference with MPI
 
 For the batched inference case, MPI is an easy and performant solition. 
 An example Python script is provided in the [MPI](./MPI/) directory along with submit scripts for both Aurora and Polaris.
 
 In this case, a Python script is launched across nodes with `mpiexec` with as many processes per node as desired inference engines per node. Each rank initializes a `vllm.LLM()` object based on various input parameters and performs inference on a batch of prompts distributed by rank 0. 
 
-#### Set up
+### Set up
 
 No specific set up is required for this approach since it leverages the vLLM installations that come with the data science modules on Aurora and Polaris. The modules to load are shown below for completeness, however these are loaded within the submit scripts provided.
 
@@ -44,7 +40,7 @@ module load conda
 conda activate
 ```
 
-#### Run the examples
+### Run the examples
 
 For both Aurora and Polaris, there are submit scripts to run a small, single-GPU model with tensor parallelism (`TP`) size of 1 and an example running a larger model requirung `TP>1`. The main difference to not for these scenarios is how 
 
@@ -64,25 +60,11 @@ The [mpi_llm_inference.py](./MPI/mpi_llm_inference.py) script takes in a few run
 * The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
 * File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
 
-### Batched Inference with EL
+## Batched Inference with EL
 
-### Request-driven Inference with EL
+## Request-driven Inference with EL
 
-### Request-driven Inference with Dragon
-
-## Batched Inference with MPI
-
-### Set up
-
-### Run
-
-## EnsembleLauncher (EL)
-
-### Set up
-
-### Run
-
-## DragonHPC
+## Request-driven Inference with Dragon
 
 ### Set up
 
