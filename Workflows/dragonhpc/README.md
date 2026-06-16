@@ -18,6 +18,7 @@ qsub -I -A alcf_training -l select=2 -l walltime=0:30:0 -l filesystems=home:eagl
 
 To install `dragonhpc` in an environment on Polaris:
 ```shell
+module use /soft/modulefiles
 module unload xalt
 module load conda
 conda activate base

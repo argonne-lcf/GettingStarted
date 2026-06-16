@@ -237,7 +237,7 @@ def main():
         max_model_len=8192, # max length of sequence (input+output)
     )
     sampling_params = SamplingParams(
-        max_tokens=args.max_output_tokens
+        max_tokens=args.max_output_tokens # max number of output tokens
     )
     
     # Start the LLM Inference 

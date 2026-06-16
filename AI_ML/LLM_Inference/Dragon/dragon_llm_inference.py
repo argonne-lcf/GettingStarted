@@ -44,6 +44,18 @@ def main():
         help="Determines the tensor parallel size to use for the run.",
     )
     parser.add_argument(
+        "--data_type",
+        type=str,
+        default="bfloat16",
+        help="Determines the data type to use for the run.",
+    )
+    parser.add_argument(
+        "--max_output_tokens",
+        type=int,
+        default=128,
+        help="Maximum number of tokens in the response.",
+    )
+    parser.add_argument(
         "--batch_size",
         required=False,
         type=int,
@@ -101,11 +113,11 @@ def main():
             model_name=args.model_name,
             hf_token=args.hf_token,
             tp_size=args.tp_size,
-            max_tokens=1024, # Max number of tokens the inferencing engine can work with
-            max_model_len=32768,
-            dtype="bfloat16",
+            max_tokens=args.max_output_tokens, # max number of output tokens
+            max_model_len=8192, # max length of sequence (input+output)
+            dtype=args.data_type,
             top_k=50,
-            top_p=0.95,
+            top_p=0.90, # how much to allocate for model + KV cache pool
             system_prompt=["You are a helpful assistant."],
         ),
         hardware=HardwareConfig(
@@ -191,13 +203,12 @@ def main():
     # Print summary of performance stats
     print("\n\n=========================================")
     print("Performance Summary:")
-    print(f"Total number of prompts: {num_prompts}")
+    print(f"Total number of input prompts: {num_tot_prompts}")
+    print(f"Total number of successful requests: {sum(tot_successful_requests)}")
     print(f"Total run time = {total_runtime:.4f} s")
-    print(f"Initialization time = {init_time:.4f} s")
-    print(f"Inference time = {inference_time:.4f} s")
-    print(f"Teardown time = {teardown_time:.4f} s")
-    rps = num_prompts / inference_time
-    print(f"Successful requests per second (total requests / inference time): {rps:.4f}")
+    print(f"Initialization time (min, max, avg) = {min(init_times):.4f}, {max(init_times):.4f}, {sum(init_times)/len(init_times):.4f} s")
+    print(f"Inference time (min, max, avg) = {min(inf_times):.4f}, {max(inf_times):.4f}, {sum(inf_times)/len(inf_times):.4f} s")
+    print(f"Total successful requests per second (requests / inference time) : {sum(rpss):.4f}")
 
 
 if __name__ == "__main__":
