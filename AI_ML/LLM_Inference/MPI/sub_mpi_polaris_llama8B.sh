@@ -57,6 +57,8 @@ mpiexec -np $NODES -ppn 1 --cpu-bind numa $UTILS/bcast \
 export TMPDIR=/tmp
 export OPENBLAS_NUM_THREADS=1
 export VLLM_LOGGING_LEVEL=INFO # DEBUG, INFO, WARNING, ERROR
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
 
 # Launch workflow
 echo -e "\n\nLaunching $MODEL on $NODES nodes with $ENGINES_PER_NODE engines per node..."
