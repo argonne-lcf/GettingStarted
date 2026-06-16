@@ -123,7 +123,7 @@ def main():
         hardware=HardwareConfig(
             num_nodes=num_nodes,
             num_gpus=num_gpus,
-            num_inf_workers_per_cpu=1,
+            num_inf_workers_per_cpu=6,
         ),
         batching=BatchingConfig(
             enabled=True, 
@@ -203,12 +203,12 @@ def main():
     # Print summary of performance stats
     print("\n\n=========================================")
     print("Performance Summary:")
-    print(f"Total number of input prompts: {num_tot_prompts}")
-    print(f"Total number of successful requests: {sum(tot_successful_requests)}")
+    print(f"Total number of input prompts: {num_prompts}")
+    print(f"Total number of successful requests: {num_prompts}")
     print(f"Total run time = {total_runtime:.4f} s")
-    print(f"Initialization time (min, max, avg) = {min(init_times):.4f}, {max(init_times):.4f}, {sum(init_times)/len(init_times):.4f} s")
-    print(f"Inference time (min, max, avg) = {min(inf_times):.4f}, {max(inf_times):.4f}, {sum(inf_times)/len(inf_times):.4f} s")
-    print(f"Total successful requests per second (requests / inference time) : {sum(rpss):.4f}")
+    print(f"Initialization time (max) = {init_time:.4f} s")
+    print(f"Inference time (max) = {inference_time:.4f} s")
+    print(f"Total successful requests per second (requests / inference time) : {(num_prompts/inference_time):.4f}")
 
 
 if __name__ == "__main__":
