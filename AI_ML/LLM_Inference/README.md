@@ -107,7 +107,13 @@ qsub sub_dragon_aurora_llama8B.sh
 
 The [dragon_llm_inference.py](./Dragon/dragon_llm_inference.py) script takes a few runtime parameters to note:
 
-* ...
+* The Hugging Face token (required)
+* The model name (required)
+* The tensor parallel (TP) size to use for the model (defaults to 1)
+* The data type to use (defaults to `bfloat16`)
+* The maximum number of output tokens (defaults to 128). This parameter can impact performance significantly and may need to be adjusted depending on the expected length of the LLM response.
+* The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
+* File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
 
 
 ## Tips for scaling
