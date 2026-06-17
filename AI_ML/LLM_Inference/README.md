@@ -14,13 +14,13 @@ Additionally, it may also be necessary to serve differenct models tailored to di
 Due to the increased complexity of such workflows, the MPI based solution is less likely and instead workflow tools provide efficient and scalable solutions by routing the prompts to the various inference engines as they are generated.
 In the context of vLLM, this is the classic fit for the `vllm serve` CLI command, however we'll see that the Python `LLM()` API can still be used when wrapping it around a workflow harness such as EL and Dragon to proivide both the request-driven advantage `vllm serve` and the high-throuput of the Python `LLM()` API.
 
-Below we compare the weak-scaling performance of batched and request-driven approaches implemented with different workflow tools on Aurora. The tests deploy one engine per PVC tile (12 per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file (the length of the response is limited to `max_model_len=8192` and for offline LLM the batch size is set to 16).
+Below we compare the weak-scaling performance of batched and request-driven approaches implemented with different workflow tools on Aurora. The tests deploy one engine per PVC tile (12 per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file (the length of the response is limited to 128 tokens, `max_model_len=8192` and for offline LLM the batch size is set to 16).
 
-![Weak scaling tests of LLM inference with various approaches on Aurora. The tests deploy one engine per PVC tile (12 per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file.](./utils/requests_per_second_aurora.png)
+![Weak scaling tests of LLM inference with various approaches on Aurora. The tests deploy one engine per PVC tile (12 per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file. The length of the response is limited to 128 tokens, `max_model_len=8192` and for offline LLM the batch size is set to 16.](./utils/requests_per_second_aurora.png)
 
 Below, we show performance of the same weak scaling tets on Polaris (one engine per A100 GPU).
 
-![Weak scaling tests of LLM inference with various approaches on Polaris. The tests deploy one engine per A100 GPU (4) per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file.](./utils/requests_per_second_polaris.png)
+![Weak scaling tests of LLM inference with various approaches on Polaris. The tests deploy one engine per A100 GPU (4) per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file. The length of the response is limited to 128 tokens, `max_model_len=8192` and for offline LLM the batch size is set to 16.](./utils/requests_per_second_polaris.png)
 
 
 ## Choosing the Correct Scaling Approach
