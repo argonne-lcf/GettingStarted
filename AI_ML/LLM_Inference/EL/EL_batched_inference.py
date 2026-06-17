@@ -7,20 +7,17 @@ import uuid
 from typing import List
 
 from ensemble_launcher import EnsembleLauncher
+from ensemble_launcher.config import aurora_config
 from ensemble_launcher.comm import AsyncZMQTransport, transport_registry
-from ensemble_launcher.config import (
-    LauncherConfig,
-    MPIConfig,
-    PolicyConfig,
-    SystemConfig,
-)
 from ensemble_launcher.ensemble import Task
 from ensemble_launcher.helper_functions import get_nodes
-from ensemble_launcher.inference import PrivateVLLMInference, copy_model
+from ensemble_launcher.inference import (
+    PrivateVLLMInference, copy_model, default_inference_launcher_config
+)
 from ensemble_launcher.inference.utils import call_llm
 from ensemble_launcher.orchestrator import ClusterClient
-from utils import get_logger, parse_args
 
+from utils import get_logger, parse_args
 logger = get_logger("main_offline", log_dir=f"{os.getcwd()}/script_logs")
 
 
@@ -63,9 +60,11 @@ async def Warmup(args_dict, vllm_cache):
 
 async def async_main():
     t_start = time.time()
-    logger.info("main_offline started")
 
+    # Parse arguments
     args_dict = parse_args()
+
+    # Get nodes and set up vllm cache
     nodes = get_nodes()
 
     local_cache = os.path.join("/tmp", "model_cache")
@@ -81,65 +80,34 @@ async def async_main():
         except Exception as e:
             logger.warning(f"Warmup failed with error {e}")
 
-    ## Copy model and vllm_cache to /tmp
+    # Copy model weights and vllm_cache to /tmp
     tic = time.perf_counter()
-    copy_model.sync_to_root(
+    copy_model.distribute_model(
         model=args_dict["model"],
         cache_dir=args_dict["cache_dir"],
-        np=102,
+        nnodes=len(nodes),
         node_local_cache=local_cache,
+        sync_np=102,
+        scatter_ppn=8,
         logger=logger,
+        cpu_binding="--cpu-bind=list:1-12,13-24,25-36,37-48,53-64,65-76,77-88,89-100",
         cache_modelinfo=pre_build_vllm_cache,
         vllm_cache=vllm_cache,
         node_local_vllm_cache=node_local_vllm_cache,
     )
-    logger.info("Done sync to root")
-    copy_model.scatter_from_root(
-        model=args_dict["model"],
-        nnodes=len(nodes),
-        node_local_cache=local_cache,
-        chunk_size=100 * 1024 * 1024,
-        ppn=8,
-        logger=logger,
-        cpu_binding="--cpu-bind=list:1-12,13-24,25-36,37-48,53-64,65-76,77-88,89-100",
-        cache_modelinfo=pre_build_vllm_cache,
-        node_local_vllm_cache=node_local_vllm_cache,
-    )
     logger.info(f"Copying model took {time.perf_counter() - tic}s")
 
-    # Create EL
-    cpus = list(range(104))
-    cpus.pop(52)
-    cpus.pop(0)
-    sys_config = SystemConfig(
-        name="aurora", ncpus=102, ngpus=12, cpus=cpus, gpus=list(range(12))
-    )
+    # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
-    launcher_config = LauncherConfig(
-        child_executor_name="async_mpi",
-        task_executor_name=["async_processpool", "async_mpi"],
-        comm_name="async_zmq",
-        children_scheduler_policy="fixed_leafs_children_policy",
-        policy_config=PolicyConfig(
-            nlevels=1 if len(nodes) <= 256 else 2, leaf_nodes=len(nodes)
-        ),
-        mpi_config=MPIConfig(flavor="mpich", cpu_bind_method="none"),
-        cluster=True,
-        worker_logs=False,
-        master_logs=True,
-        return_stdout=True,
-        checkpoint_dir=ckpt_dir,
-        report_interval=10.0,
-        heartbeat_dead_threshold=120,
-        heartbeat_interval=5.0,
-    )
+    sys_config = aurora_config
+    launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
 
+    # Start EL
     el = EnsembleLauncher(
         ensemble_file={}, system_config=sys_config, launcher_config=launcher_config
     )
-
     t0 = time.time()
-    logger.info("starting EnsembleLauncher")
+    logger.info("Starting EnsembleLauncher ...")
     el.start()
     await asyncio.sleep(10.0)
     logger.info("EnsembleLauncher ready (%.1fs)", time.time() - t0)

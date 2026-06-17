@@ -16,8 +16,11 @@ In the context of vLLM, this is the classic fit for the `vllm serve` CLI command
 
 Below we compare the weak-scaling performance of batched and request-driven approaches implemented with different workflow tools on Aurora. The tests deploy one engine per PVC tile (12 per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file (the length of the response is limited to `max_model_len=8192` and for offline LLM the batch size is set to 16).
 
-![Weak scaling tests of LLM inference with various approaches on Aurora. The tests deploy one engine per PVC tile (12 per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file.](./utils/requests_per_second.png)
+![Weak scaling tests of LLM inference with various approaches on Aurora. The tests deploy one engine per PVC tile (12 per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file.](./utils/requests_per_second_aurora.png)
 
+Below, we show performance of the same weak scaling tets on Polaris (one engine per A100 GPU).
+
+![Weak scaling tests of LLM inference with various approaches on Polaris. The tests deploy one engine per A100 GPU (4) per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file.](./utils/requests_per_second_polaris.png)
 
 
 ## Choosing the Correct Scaling Approach
@@ -67,18 +70,52 @@ The [mpi_llm_inference.py](./MPI/mpi_llm_inference.py) script takes in a few run
 
 ## Batched Inference with EL
 
-Like the MPI approach, batch inference can be useful when you have a static list of prompts. Here, we used EnsembleLauncher (EL) to launch inference calls as a EL Tasks.
+While MPI is a performant tool for the batched inference case, many workflow tools can support this workload as well. Here, we demonstrate how to use [EnsembleLauncher (EL)](https://github.com/argonne-lcf/ensemble_launcher) to set up the static batched inference approach on Aurora and Polaris. EL is a lightweight, scalable Python tool developed at ALCF for launching and orchestrating task ensembles across HPC clusters with intelligent resource management and hierarchical execution. 
+
+The main idea for this implementation of the workflow (see [EL_batched_inference.py](./EL/EL_batched_inference.py)) is that LLM inference task, via the offline `vllm.LLM()` API, *and* the prompts are sent together to EL and are executed as transient processes, meaning that once the task is done with its workload it quits. Once again, this approach works well for cases where there is a static, *a priori* defined set of work to be efficiently distributed and parallelized across many resources. 
 
 ### Set up
-1. Install EL and dependencies in a Python virtual environment (https://github.com/argonne-lcf/ensemble_launcher/tree/multi_node_vllm).
-2. Download model weights or use the ones already available on the system. If downloading, ensure the weights are available on a shared file system accessible by all nodes or use utilities to copy them to each node's local storage.
 
-### Run the examples
-An example EL workflow is provided in the [EL](./EL/) directory. To run the example, simply submit the provided script for Aurora or Polaris. For example, to run the example on Aurora execute
+To install EnsembleLauncher on ALCF systems, simply create a new virtual environment, clone the repository, and install it as shown below. Note, however, that the submit scripts are set up to install the virtual environments directly in `/tmp` on the compute nodes at the beginning of the job.
 
 ```bash
-qsub submit_batched.sh
+# On Aurora
+module load frameworks
+python -m venv _env --system-site-packages
+source _env/bin/activate
+git clone https://github.com/argonne-lcf/ensemble_launcher.git
+cd ensemble_launcher
+pip install .
+cd ..
+
+# On Polaris
+module use /soft/modulefiles
+module load conda
+conda activate base
+python -m venv _env --system-site-packages
+source _env/bin/activate
+git clone https://github.com/argonne-lcf/ensemble_launcher.git
+cd ensemble_launcher
+pip install .
+cd ..
 ```
+
+### Run the examples
+
+For both Aurora and Polaris, there are submit scripts to run a small, single-GPU model with tensor parallelism (`TP`) size of 1 and an example running a larger model requirung `TP>1`. 
+
+To run the examples, simply submit the scripts provided for Aurora and Polaris. For example, to run the example with the Llama 3.1 8B model on Aurora execute
+
+```bash
+qsub sub_el_batched_aurora_llama8B.sh
+```
+
+The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few runtime parameters to note:
+
+* ...
+
+
+
 ### Request-driven Inference with EL
 
 The setup and run for request-driven inference with EL is similar to the batched case, however the main difference is that the prompts are submitted to EL dynamically.
@@ -98,7 +135,7 @@ Among many other valuable features (see the [Dragon getting started examples](..
 
 ### Set up
 
-To install `dragonhpc` on ALCF systems, execute the following steps
+To install Dragon on ALCF systems, simply create a new virtual environment and pip install `dragonhpc` as shown below. Note, however, that the submit scripts are set up to install the virtual environments directly in `/tmp` on the compute nodes at the beginning of the job.
 
 ```bash
 # On Aurora
@@ -121,7 +158,7 @@ dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/2.2.0rc1/lib64
 The last installation step of running `dragon-config` configures `dragon` to use fast RDMA transfers across the Slingshot network present on both systems.  Without this step, `dragon` would run in the default mode that uses slower TCP transfers.
 
 
-### Run
+### Run the examples
 
 For both Aurora and Polaris, there are submit scripts to run a small, single-GPU model with tensor parallelism (`TP`) size of 1 and an example running a larger model requirung `TP>1`. 
 
