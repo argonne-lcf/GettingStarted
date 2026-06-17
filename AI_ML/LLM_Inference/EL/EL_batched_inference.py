@@ -4,7 +4,8 @@ import multiprocessing as mp
 import os
 import time
 import uuid
-from typing import List
+import json
+import sys
 
 from ensemble_launcher import EnsembleLauncher
 from ensemble_launcher.config import aurora_config
@@ -17,13 +18,7 @@ from ensemble_launcher.inference import (
 from ensemble_launcher.inference.utils import call_llm
 from ensemble_launcher.orchestrator import ClusterClient
 
-from utils import get_logger, parse_args
-logger = get_logger("main_offline", log_dir=f"{os.getcwd()}/script_logs")
-
-
-def create_prompt(nprompts) -> List[str]:
-    prompt = "Hi, can you introduce yourself?"
-    return [prompt for i in range(nprompts)]
+from utils import get_num_gpu, parse_args
 
 
 async def Warmup(args_dict, vllm_cache):
@@ -59,26 +54,23 @@ async def Warmup(args_dict, vllm_cache):
 
 
 async def async_main():
-    t_start = time.time()
+    start_time = time.time()
 
-    # Parse arguments
+    # Parse arguments and get system info
     args_dict = parse_args()
-
-    # Get nodes and set up vllm cache
     nodes = get_nodes()
+    num_gpus = get_num_gpu()
 
-    local_cache = os.path.join("/tmp", "model_cache")
-
-    pre_build_vllm_cache = args_dict["pre_build_vllm_cache"] == 1
-    vllm_cache = os.path.join(os.getcwd(), "vllm_cache")
-    node_local_vllm_cache = "/tmp/vllm_cache"
-    if pre_build_vllm_cache:
-        # Build vllm cache
-        try:
-            result = await asyncio.wait_for(Warmup(args_dict, vllm_cache), timeout=600)
-            logger.info(f"Warmup returned result: {result}")
-        except Exception as e:
-            logger.warning(f"Warmup failed with error {e}")
+    # Read prompts from file
+    try:
+        prompts = []
+        for line in open(args_dict["prompt_file"]):
+            data = json.loads(line)
+            prompts.append(data["prompt"])
+        print(f"Read prompts from {args_dict["prompt_file"]}", flush=True)
+    except FileNotFoundError:
+        print(f"Error: The prompt file {args_dict["prompt_file"]} was not found.", flush=True)
+        sys.exit(1)
 
     # Copy model weights and vllm_cache to /tmp
     tic = time.perf_counter()
@@ -86,16 +78,13 @@ async def async_main():
         model=args_dict["model"],
         cache_dir=args_dict["cache_dir"],
         nnodes=len(nodes),
-        node_local_cache=local_cache,
+        node_local_cache=args_dict["tmp_dir"],
         sync_np=102,
         scatter_ppn=8,
-        logger=logger,
+        #logger=logger,
         cpu_binding="--cpu-bind=list:1-12,13-24,25-36,37-48,53-64,65-76,77-88,89-100",
-        cache_modelinfo=pre_build_vllm_cache,
-        vllm_cache=vllm_cache,
-        node_local_vllm_cache=node_local_vllm_cache,
     )
-    logger.info(f"Copying model took {time.perf_counter() - tic}s")
+    print(f"Copied model weights to nodes in {(time.perf_counter() - tic):.1f} s", flush=True)
 
     # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
@@ -106,18 +95,19 @@ async def async_main():
     el = EnsembleLauncher(
         ensemble_file={}, system_config=sys_config, launcher_config=launcher_config
     )
-    t0 = time.time()
-    logger.info("Starting EnsembleLauncher ...")
+    tic = time.time()
+    print("Starting EnsembleLauncher ...", flush=True)
     el.start()
     await asyncio.sleep(10.0)
-    logger.info("EnsembleLauncher ready (%.1fs)", time.time() - t0)
+    print(f"EnsembleLauncher ready in {(time.perf_counter() - tic):.1f} s", flush=True)
 
+    # Create tasks
     llm_tasks = []
-
-    n_tasks = 12 * len(nodes) // args_dict["ngpus_per_model"]
+    n_tasks = num_gpu * len(nodes) // args_dict["ngpus_per_model"]
+    prompts = prompts * n_tasks  # NOTE: only needed for weak scaling
+    num_prompts = len(prompts)
 
     # Send prompts as batches to each actor
-    prompts = create_prompt(args_dict["num_prompts"]) * n_tasks
     chunks = [[] for _ in range(n_tasks)]
     for i, prompt in enumerate(prompts):
         chunks[i % n_tasks].append(prompt)
@@ -135,36 +125,46 @@ async def async_main():
             )
         )
 
-    # Submit actors and run inference
+    # Submit tasks with EL client-cluster approach
+    tic = time.perf_counter()
     with ClusterClient(checkpoint_dir=ckpt_dir, checkpoint_timeout=300) as client:
-        t0 = time.time()
+        # Submit tasks
         llm_futures = []
         llm_futures = client.submit_batch(tasks=llm_tasks)
+        print(f"Submitted {n_tasks} llm tasks", flush=True)
 
-        logger.info("submitted %d llm tasks", n_tasks)
-
-        start = time.perf_counter()
+        # Wait for task completion
         done, pending = concurrent.futures.wait(llm_futures, timeout=1200)
+        init_inf_time = time.perf_counter() - tic
 
+        # Check successful tasks
         if len(done) == n_tasks:
-            logger.info(f"all prompts done ({time.perf_counter() - start: .1f})")
+            print(f"Done with all tasks in ({(time.perf_counter() - tic):.1f})", flush=True)
         else:
-            logger.info(
-                f" {len(done)}/{n_tasks} prompts done ({time.perf_counter() - start})"
+            print(
+                f"{len(done)}/{n_tasks} tasks done ({time.perf_counter() - tic})",
+                flush=True
             )
-
+        successful_requests = len(done)
         for i, f in enumerate(done):
             if f.exception() is not None:
-                logger.warning(f"Task {i} failed with exception: {f.exception()}")
-            else:
-                logger.debug(f"Result {i}: {f.result()}")
+                print(f"Task {i} failed with exception: {f.exception()}", flush=True)
+                successful_requests -= 1
 
-    t0 = time.time()
-    logger.info("stopping EnsembleLauncher")
+    tic = time.perf_counter()
+    print("Stopping EnsembleLauncher ...")
     el.stop()
-    logger.info("EnsembleLauncher stopped (%.1fs)", time.time() - t0)
+    print(f"EnsembleLauncher stopped in {(time.perf_counter() - tic):.1f}", flush=True)
+    total_runtime = time.perf_counter() - start_time
 
-    logger.info("main_offline done (total %.1fs)", time.time() - t_start)
+    # Print summary of performance stats
+    print("\n\n=========================================")
+    print("Performance Summary:")
+    print(f"Total number of input prompts: {num_prompts}")
+    print(f"Total number of successful requests: {sum(successful_requests)}")
+    print(f"Total run time = {total_runtime:.4f} s")
+    print(f"Initialization + Inference time (max) = {init_inf_time} s")
+    print(f"Total successful requests per second (requests / inference time) : {sum(rpss):.4f}")
 
 
 if __name__ == "__main__":

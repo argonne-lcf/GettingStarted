@@ -72,7 +72,7 @@ The [mpi_llm_inference.py](./MPI/mpi_llm_inference.py) script takes in a few run
 
 While MPI is a performant tool for the batched inference case, many workflow tools can support this workload as well. Here, we demonstrate how to use [EnsembleLauncher (EL)](https://github.com/argonne-lcf/ensemble_launcher) to set up the static batched inference approach on Aurora and Polaris. EL is a lightweight, scalable Python tool developed at ALCF for launching and orchestrating task ensembles across HPC clusters with intelligent resource management and hierarchical execution. 
 
-The main idea for this implementation of the workflow (see [EL_batched_inference.py](./EL/EL_batched_inference.py)) is that LLM inference task, via the offline `vllm.LLM()` API, *and* the prompts are sent together to EL and are executed as transient processes, meaning that once the task is done with its workload it quits. Once again, this approach works well for cases where there is a static, *a priori* defined set of work to be efficiently distributed and parallelized across many resources. 
+The main idea for this implementation of the workflow (see [EL_batched_inference.py](./EL/EL_batched_inference.py)) is that LLM inference, via the offline `vllm.LLM()` API, *and* the prompts are sent together to EL as tasks and are executed as transient processes, meaning that once the task is done with its workload it quits. The workload Once again, this approach works well for cases where there is a static, *a priori* defined set of work to be efficiently distributed and parallelized across many resources. 
 
 ### Set up
 
@@ -109,6 +109,8 @@ To run the examples, simply submit the scripts provided for Aurora and Polaris. 
 ```bash
 qsub sub_el_batched_aurora_llama8B.sh
 ```
+
+Note that EL provides API to transfer the model weights and the vLLM cache to `/tmp` on the compute nodes, thus the [bcast.c](./utils/bcast.c) utility is not needed in this case. However, it is still used to broadcast the virtual environment.
 
 The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few runtime parameters to note:
 

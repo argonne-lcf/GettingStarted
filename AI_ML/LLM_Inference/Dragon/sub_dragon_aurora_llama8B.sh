@@ -53,7 +53,7 @@ mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
 export HF_HOME=/tmp/hf_home
 
 # Pre-build vLLM model-info caches
-export VLLM_CACHE_ROOT=/flare/datascience/balin/vllm/dragon_Jun26/.vllm_cache
+export VLLM_CACHE_ROOT=$PWD/.vllm_cache
 echo "Building vLLM model-info caches in ${VLLM_CACHE_ROOT} ..."
 python $UTILS/vllm_build_model_cache.py
 echo "Cache build complete."

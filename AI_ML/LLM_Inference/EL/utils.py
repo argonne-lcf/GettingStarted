@@ -2,6 +2,8 @@ import argparse
 import logging
 import os
 from typing import TypedDict
+import sys
+import torch
 
 
 def get_logger(name, log_dir):
@@ -13,6 +15,21 @@ def get_logger(name, log_dir):
         fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
         logger.addHandler(fh)
     return logger
+
+
+def create_prompt(nprompts) -> List[str]:
+    prompt = "Hi, can you introduce yourself?"
+    return [prompt for i in range(nprompts)]
+
+
+def get_num_gpu():
+    if torch.cuda.is_available():
+        num_gpus = torch.cuda.device_count()
+    elif torch.xpu.is_available():
+        num_gpus = torch.xpy.device_count()
+    else:
+        print("No GPU devices found", flush=True)
+        sys.exit(1)
 
 
 class Args(TypedDict):
@@ -55,9 +72,15 @@ def parse_args():
         help="Number of prompts to send (default: 1)",
     )
     parser.add_argument(
+        "--prompt_file",
+        type=str,
+        default="../utils/prompts.jsonl",
+        help="File containing prompts to benchmark with.",
+    )
+    parser.add_argument(
         "--cache-dir",
         type=str,
-        default="/lus/flare/projects/datascience/hari/vllm_inference/.cache",
+        default="",
         help="Model cache dir",
     )
     parser.add_argument(
