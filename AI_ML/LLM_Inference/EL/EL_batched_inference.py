@@ -1,6 +1,6 @@
 import asyncio
 import concurrent.futures
-import multiprocessing as mp
+import argparse
 import os
 import time
 import uuid
@@ -9,86 +9,106 @@ import sys
 
 from ensemble_launcher import EnsembleLauncher
 from ensemble_launcher.config import aurora_config
-from ensemble_launcher.comm import AsyncZMQTransport, transport_registry
 from ensemble_launcher.ensemble import Task
-from ensemble_launcher.helper_functions import get_nodes
-from ensemble_launcher.inference import (
-    PrivateVLLMInference, copy_model, default_inference_launcher_config
-)
+from ensemble_launcher.helper_functions import get_nodes, get_gpus
+from ensemble_launcher.inference import copy_model, default_inference_launcher_config
 from ensemble_launcher.inference.utils import call_llm
 from ensemble_launcher.orchestrator import ClusterClient
 
-from utils import get_num_gpu, parse_args, get_logger
+from utils import parse_args, get_logger
 logger = get_logger("main_offline", log_dir=f"{os.getcwd()}/script_logs")
-
-
-async def Warmup(args_dict, vllm_cache):
-    transport: AsyncZMQTransport = transport_registry.get("zmq")["transport"]()
-    server, client = transport.create_child_pipe("server", "secret", "actor", "secret")
-    actor = PrivateVLLMInference(
-        name="warmpup-actor",
-        model=args_dict["model"],
-        cache_dir=args_dict["cache_dir"],
-        tensor_parallel_size=args_dict["ngpus_per_model"],
-        client_conn=client,
-        model_info_cache=vllm_cache,
-    )
-    os.environ["ZE_AFFINITY_MASK"] = ",".join(
-        map(str, list(range(args_dict["ngpus_per_model"])))
-    )
-    mp.set_start_method("spawn")
-    p = mp.Process(target=actor)
-    p.start()
-    try:
-        handle = PrivateVLLMInference.create_handle(server)
-        await handle.open()
-        await handle.send(("generate", ("hello",), ()), "actor:secret")
-        result = await handle.recv()
-        await handle.stop()
-        await handle.close()
-    finally:
-        p.join(30.0)
-        if p.is_alive():
-            p.kill()
-        os.environ.pop("ZE_AFFINITY_MASK")
-    return result
 
 
 async def async_main():
     start_time = time.time()
 
-    # Parse arguments and get system info
-    args_dict = parse_args()
-    nodes = get_nodes()
-    num_gpus = get_num_gpu()
-    num_inf_engines = (num_gpus // args_dict["num_gpus_per_model"]) * len(nodes) 
+    # Parse arguments
+    parser = argparse.ArgumentParser(description="EL inference with vLLM")
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        required=True,
+        help="Model name to load",
+    )
+    parser.add_argument(
+        "--cache_dir",
+        type=str,
+        required=True,
+        help="Directory where model weights are found",
+    )
+    parser.add_argument(
+        "--tp_size",
+        type=int,
+        default=1,
+        help="Determines the tensor parallel size to use for the run.",
+    )
+    parser.add_argument(
+        "--data_type",
+        type=str,
+        default="bfloat16",
+        help="Determines the data type to use for the run.",
+    )
+    parser.add_argument(
+        "--max_output_tokens",
+        type=int,
+        default=128,
+        help="Maximum number of tokens in the response.",
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=1,
+        help="Batch size for prompt batching.",
+    )
+    parser.add_argument(
+        "--prompt_file",
+        type=str,
+        default="../utils/prompts.jsonl",
+        help="File containing input prompts",
+    )
+    args = parser.parse_args()
 
-    # Read prompts from file
+    # Get system info
+    nodes = get_nodes()
+    gpus = get_gpus()
+    if not gpus:
+        print(f"No GPUs found on system", flush=True)
+        sys.exit(1)
+    num_gpus = len(gpus)
+    print(f"Running on {len(nodes)} nodes with {num_gpus} GPUs", flush=True) 
+
+    # Read prompts from file and chunk them
     try:
         prompts = []
-        for line in open(args_dict["prompt_file"]):
+        for line in open(args.prompt_file):
             data = json.loads(line)
             prompts.append(data["prompt"])
-        print(f"Read prompts from {args_dict["prompt_file"]}", flush=True)
+        print(f"Read prompts from {args.prompt_file}", flush=True)
     except FileNotFoundError:
-        print(f"Error: The prompt file {args_dict["prompt_file"]} was not found.", flush=True)
+        print(f"Error: The prompt file {args.prompt_file} was not found.", flush=True)
         sys.exit(1)
+    
+    num_inf_engines = (num_gpus // args.tp_size) * len(nodes)
     prompts = prompts * num_inf_engines  # NOTE: only needed for weak scaling
     num_prompts = len(prompts)
+    print(f"Submitting {num_prompts} prompts to {num_inf_engines} inference engines", flush=True)
+    chunks = [[] for _ in range(num_inf_engines)]
+    for i, prompt in enumerate(prompts):
+        chunks[i % num_inf_engines].append(prompt)
 
     # Copy model weights and vllm_cache to /tmp
-    tic = time.perf_counter()
-    copy_model.distribute_model(
-        model=args_dict["model"],
-        cache_dir=args_dict["cache_dir"],
-        nnodes=len(nodes),
-        node_local_cache=args_dict["tmp_dir"],
-        sync_np=102,
-        scatter_ppn=8,
-        logger=logger,
-        cpu_binding="--cpu-bind=list:1-12,13-24,25-36,37-48,53-64,65-76,77-88,89-100",
-    )
-    print(f"Copied model weights to nodes in {(time.perf_counter() - tic):.1f} s", flush=True)
+    #tic = time.perf_counter()
+    #copy_model.distribute_model(
+    #    model=args_dict["model"],
+    #    cache_dir=args_dict["cache_dir"],
+    #    nnodes=len(nodes),
+    #    node_local_cache=args_dict["tmp_dir"],
+    #    sync_np=102,
+    #    scatter_ppn=8,
+    #    logger=logger,
+    #    cpu_binding="--cpu-bind=list:1-12,13-24,25-36,37-48,53-64,65-76,77-88,89-100",
+    #)
+    #print(f"Copied model weights to nodes in {(time.perf_counter() - tic):.1f} s", flush=True)
 
     # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
@@ -105,26 +125,33 @@ async def async_main():
     await asyncio.sleep(10.0)
     print(f"EnsembleLauncher ready in {(time.perf_counter() - tic):.1f} s", flush=True)
 
-    # Chunk the prompts
-    chunks = [[] for _ in range(num_inf_engines)]
-    for i, prompt in enumerate(prompts):
-        chunks[i % num_inf_engines].append(prompt)
+    # Define vllmn engine parameters
+    vllm_engine_params = {
+        "tensor_parallel_size": args.tp_size,
+        "max_model_len": 8192,
+        "dtype": args.data_type,
+        "gpu_memory_utilization": 0.90, # safe to ask for 90% of GPU memory
+        "max_num_seqs": args.batch_size,
+    }
+    vllm_sampling_params = {
+        "max_tokens": args.max_output_tokens,
+    }
     
-    # Create tasks, each with a chunk of the total prompts
+    # Create tasks, each taking a chunk of the total prompts
     llm_tasks = []
     num_tasks = num_inf_engines
+    cpu_cores_per_task = 8
     for i in range(num_tasks):
         task_id = f"task-{i}"
         llm_tasks.append(
             Task(
                 task_id=task_id,
                 nnodes=1, # single node models only for now
-                ppn=args_dict["num_gpus_per_model"] * 2, # number of cores for each task (8 )
-                ngpus_per_process=1 / 2, # this times ppn has to equal TP size
+                ppn=cpu_cores_per_task, # number of cores for each task
+                ngpus_per_process=args.tp_size/cpu_cores_per_task, # this times ppn has to equal TP size
                 executable=call_llm,
-                cpu_affinity=,
-                gpu_affinity=,
-                args=(args_dict["model"], chunks[i]),
+                args=(args.model_name, args.cache_dir, chunks[i]),
+                kwargs={"llm_kwargs": vllm_engine_params, "sampling_kwargs": vllm_sampling_params},
             )
         )
 
@@ -138,21 +165,31 @@ async def async_main():
 
         # Wait for task completion
         done, pending = concurrent.futures.wait(llm_futures, timeout=1200)
-        init_inf_time = time.perf_counter() - tic
 
-        # Check successful tasks
+        # Check completed tasks
         if len(done) == num_tasks:
             print(f"Done with all tasks in {(time.perf_counter() - tic):.1f} s", flush=True)
         else:
             print(
-                f"{len(done)}/{num_tasks} tasks done ({time.perf_counter() - tic})",
+                f"Only {len(done)}/{num_tasks} tasks completed."
+                "May have to increase the timeout",
                 flush=True
             )
+        
+        # Get successful requests, LLM responses and timings
         successful_requests = len(done)
+        tot_times, init_times, inf_times, rpss = [], [], [], []
         for i, f in enumerate(done):
             if f.exception() is not None:
                 print(f"Task {i} failed with exception: {f.exception()}", flush=True)
                 successful_requests -= 1
+            else:
+                result = f.result()
+                responses = result["responses"]
+                tot_times.append(result["total_time"])
+                init_times.append(result["initialization_time"])
+                inf_times.append(result["inference_time"])
+                rpss.append(len(responses)/result["inference_time"])
 
     tic = time.perf_counter()
     print("Stopping EnsembleLauncher ...")
@@ -164,9 +201,11 @@ async def async_main():
     print("\n\n=========================================")
     print("Performance Summary:")
     print(f"Total number of input prompts: {num_prompts}")
-    print(f"Total number of successful requests: {sum(successful_requests)}")
+    print(f"Total number of successful requests: {successful_requests}")
     print(f"Total run time = {total_runtime:.4f} s")
-    print(f"Initialization + Inference time (max) = {init_inf_time} s")
+    print(f"Total run time = {total_runtime:.4f} s")
+    print(f"Initialization time (min, max, avg) = {min(init_times):.4f}, {max(init_times):.4f}, {sum(init_times)/len(init_times):.4f} s")
+    print(f"Inference time (min, max, avg) = {min(inf_times):.4f}, {max(inf_times):.4f}, {sum(inf_times)/len(inf_times):.4f} s")
     print(f"Total successful requests per second (requests / inference time) : {sum(rpss):.4f}")
 
 
