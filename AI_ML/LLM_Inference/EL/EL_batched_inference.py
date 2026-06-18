@@ -18,7 +18,8 @@ from ensemble_launcher.inference import (
 from ensemble_launcher.inference.utils import call_llm
 from ensemble_launcher.orchestrator import ClusterClient
 
-from utils import get_num_gpu, parse_args
+from utils import get_num_gpu, parse_args, get_logger
+logger = get_logger("main_offline", log_dir=f"{os.getcwd()}/script_logs")
 
 
 async def Warmup(args_dict, vllm_cache):
@@ -60,6 +61,7 @@ async def async_main():
     args_dict = parse_args()
     nodes = get_nodes()
     num_gpus = get_num_gpu()
+    num_inf_engines = (num_gpus // args_dict["num_gpus_per_model"]) * len(nodes) 
 
     # Read prompts from file
     try:
@@ -71,6 +73,8 @@ async def async_main():
     except FileNotFoundError:
         print(f"Error: The prompt file {args_dict["prompt_file"]} was not found.", flush=True)
         sys.exit(1)
+    prompts = prompts * num_inf_engines  # NOTE: only needed for weak scaling
+    num_prompts = len(prompts)
 
     # Copy model weights and vllm_cache to /tmp
     tic = time.perf_counter()
@@ -81,7 +85,7 @@ async def async_main():
         node_local_cache=args_dict["tmp_dir"],
         sync_np=102,
         scatter_ppn=8,
-        #logger=logger,
+        logger=logger,
         cpu_binding="--cpu-bind=list:1-12,13-24,25-36,37-48,53-64,65-76,77-88,89-100",
     )
     print(f"Copied model weights to nodes in {(time.perf_counter() - tic):.1f} s", flush=True)
@@ -95,32 +99,31 @@ async def async_main():
     el = EnsembleLauncher(
         ensemble_file={}, system_config=sys_config, launcher_config=launcher_config
     )
-    tic = time.time()
+    tic = time.perf_counter()
     print("Starting EnsembleLauncher ...", flush=True)
     el.start()
     await asyncio.sleep(10.0)
     print(f"EnsembleLauncher ready in {(time.perf_counter() - tic):.1f} s", flush=True)
 
-    # Create tasks
-    llm_tasks = []
-    n_tasks = num_gpu * len(nodes) // args_dict["ngpus_per_model"]
-    prompts = prompts * n_tasks  # NOTE: only needed for weak scaling
-    num_prompts = len(prompts)
-
-    # Send prompts as batches to each actor
-    chunks = [[] for _ in range(n_tasks)]
+    # Chunk the prompts
+    chunks = [[] for _ in range(num_inf_engines)]
     for i, prompt in enumerate(prompts):
-        chunks[i % n_tasks].append(prompt)
-
-    for i in range(n_tasks):
+        chunks[i % num_inf_engines].append(prompt)
+    
+    # Create tasks, each with a chunk of the total prompts
+    llm_tasks = []
+    num_tasks = num_inf_engines
+    for i in range(num_tasks):
         task_id = f"task-{i}"
         llm_tasks.append(
             Task(
                 task_id=task_id,
-                nnodes=1,
-                ppn=args_dict["ngpus_per_model"] * 2,
-                ngpus_per_process=1 / 2,
+                nnodes=1, # single node models only for now
+                ppn=args_dict["num_gpus_per_model"] * 2, # number of cores for each task (8 )
+                ngpus_per_process=1 / 2, # this times ppn has to equal TP size
                 executable=call_llm,
+                cpu_affinity=,
+                gpu_affinity=,
                 args=(args_dict["model"], chunks[i]),
             )
         )
@@ -131,18 +134,18 @@ async def async_main():
         # Submit tasks
         llm_futures = []
         llm_futures = client.submit_batch(tasks=llm_tasks)
-        print(f"Submitted {n_tasks} llm tasks", flush=True)
+        print(f"Submitted {num_tasks} LLM inference tasks", flush=True)
 
         # Wait for task completion
         done, pending = concurrent.futures.wait(llm_futures, timeout=1200)
         init_inf_time = time.perf_counter() - tic
 
         # Check successful tasks
-        if len(done) == n_tasks:
-            print(f"Done with all tasks in ({(time.perf_counter() - tic):.1f})", flush=True)
+        if len(done) == num_tasks:
+            print(f"Done with all tasks in {(time.perf_counter() - tic):.1f} s", flush=True)
         else:
             print(
-                f"{len(done)}/{n_tasks} tasks done ({time.perf_counter() - tic})",
+                f"{len(done)}/{num_tasks} tasks done ({time.perf_counter() - tic})",
                 flush=True
             )
         successful_requests = len(done)

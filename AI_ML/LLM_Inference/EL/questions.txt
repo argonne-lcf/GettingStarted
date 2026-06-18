@@ -1,0 +1,5 @@
+In Task definition, what is ppn and ngpus_per_process? Why is it number of gpus per nodel x 2 and then 1/2?
+
+What can we extract from the future of the task? It seems we get the exception and the result. Can we get the timings for LLM init and inference??
+
+Can we expose LLM engine and sampling parameters like in the MPI or Dragon cases so users can tune those?

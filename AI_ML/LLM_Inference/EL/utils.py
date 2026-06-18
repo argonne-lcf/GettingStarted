@@ -17,16 +17,16 @@ def get_logger(name, log_dir):
     return logger
 
 
-def create_prompt(nprompts) -> List[str]:
+def create_prompt(nprompts) -> list[str]:
     prompt = "Hi, can you introduce yourself?"
     return [prompt for i in range(nprompts)]
 
 
 def get_num_gpu():
     if torch.cuda.is_available():
-        num_gpus = torch.cuda.device_count()
+        return torch.cuda.device_count()
     elif torch.xpu.is_available():
-        num_gpus = torch.xpy.device_count()
+        return torch.xpu.device_count()
     else:
         print("No GPU devices found", flush=True)
         sys.exit(1)
@@ -72,7 +72,7 @@ def parse_args():
         help="Number of prompts to send (default: 1)",
     )
     parser.add_argument(
-        "--prompt_file",
+        "--prompt-file",
         type=str,
         default="../utils/prompts.jsonl",
         help="File containing prompts to benchmark with.",
@@ -90,7 +90,7 @@ def parse_args():
         help="tmp dir",
     )
     parser.add_argument(
-        "--ngpus-per-model",
+        "--num-gpus-per-model",
         type=int,
         default=1,
         help="Number of GPUs per model, equal to the tensor parallel size (default: 1)",
@@ -110,13 +110,13 @@ def parse_args():
         help="method to launch vllm servers on multi-node (default: mpi)",
     )
     parser.add_argument(
-        "--num-gpus_per_node",
+        "--num-gpus-per-node",
         type=int,
         default=12,
         help="Number of GPUs per node (default: 12 as on Aurora)",
     )
     parser.add_argument(
-        "--num-cpus_per_node",
+        "--num-cpus-per-node",
         type=int,
         default=104,
         help="Number of CPUs per node (default: 104 as on Aurora)",
