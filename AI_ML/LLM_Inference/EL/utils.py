@@ -1,8 +1,9 @@
 import argparse
 import logging
 import os
-from typing import TypedDict
 import sys
+from typing import TypedDict
+
 import torch
 
 
@@ -137,7 +138,7 @@ def parse_args():
         default=3,
     )
     parser.add_argument(
-        "--actors-per-process",
+        "--actors-per-pool",
         type=int,
         default=384,
     )
