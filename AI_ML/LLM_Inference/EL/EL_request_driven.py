@@ -116,8 +116,7 @@ async def async_main():
     el = EnsembleLauncher(
         ensemble_file={}, system_config=sys_config, launcher_config=launcher_config
     )
-    tic = time.perf_counter()
-    print("Starting EnsembleLauncher ...", flush=True)
+
     tic = time.perf_counter()
     print("Starting EnsembleLauncher ...", flush=True)
     el.start()
@@ -133,8 +132,6 @@ async def async_main():
     ACTORS_PER_POOL = 384
 
     actor_chunks = [
-        list(range(i, min(i + ACTORS_PER_POOL, n_actors)))
-        for i in range(0, n_actors, ACTORS_PER_POOL)
         list(range(i, min(i + ACTORS_PER_POOL, n_actors)))
         for i in range(0, n_actors, ACTORS_PER_POOL)
     ]
@@ -218,7 +215,6 @@ async def async_main():
         async def _run_pool(pool_id, msg):
             _, results = await pool_handle.invoke_all(msg, actor_id=pool_id)
             print(f"Pool {pool_id.split(':')[0]} completed")
-            print(f"results: {results}")
             return results
 
         # Step 5:
