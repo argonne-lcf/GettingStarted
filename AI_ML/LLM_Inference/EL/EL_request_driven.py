@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 import json
 import os
@@ -10,36 +11,81 @@ from ensemble_launcher import EnsembleLauncher
 from ensemble_launcher.comm import transport_registry
 from ensemble_launcher.config import aurora_config
 from ensemble_launcher.ensemble import ActorPool
-from ensemble_launcher.helper_functions import get_nodes
+from ensemble_launcher.helper_functions import get_gpus, get_nodes
 from ensemble_launcher.inference import (
     PrivateVLLMInference,
     default_inference_launcher_config,
 )
 from ensemble_launcher.orchestrator import ClusterClient
-from utils import get_logger, get_num_gpu, parse_args
+from utils import get_logger
 
 logger = get_logger("main_offline", log_dir=f"{os.getcwd()}/script_logs")
 
 
 async def async_main():
-    start_time = time.time()
+    start_time = time.perf_counter()
+
+    # Parse arguments
+    parser = argparse.ArgumentParser(description="EL inference with vLLM")
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        required=True,
+        help="Model name to load",
+    )
+    parser.add_argument(
+        "--cache_dir",
+        type=str,
+        required=True,
+        help="Directory where model weights are found",
+    )
+    parser.add_argument(
+        "--tp_size",
+        type=int,
+        default=1,
+        help="Determines the tensor parallel size to use for the run.",
+    )
+    parser.add_argument(
+        "--data_type",
+        type=str,
+        default="bfloat16",
+        help="Determines the data type to use for the run.",
+    )
+    parser.add_argument(
+        "--max_output_tokens",
+        type=int,
+        default=128,
+        help="Maximum number of tokens in the response.",
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=1,
+        help="Batch size for prompt batching.",
+    )
+    parser.add_argument(
+        "--prompt_file",
+        type=str,
+        default="../utils/prompts.jsonl",
+        help="File containing input prompts",
+    )
+    args = parser.parse_args()
 
     # Parse arguments and get system info
-    args_dict = parse_args()
     nodes = get_nodes()
-    num_gpus = get_num_gpu()
-    num_inf_engines = (num_gpus // args_dict["num_gpus_per_model"]) * len(nodes)
+    num_gpus = len(get_gpus())
+    num_inf_engines = (num_gpus // args.tp_size) * len(nodes)
 
     # Read prompts from file
     try:
         prompts = []
-        for line in open(args_dict["prompt_file"]):
+        for line in open(args.prompt_file):
             data = json.loads(line)
             prompts.append(data["prompt"])
-        print(f"Read prompts from {args_dict['prompt_file']}", flush=True)
+        print(f"Read prompts from {args.prompt_file}", flush=True)
     except FileNotFoundError:
         print(
-            f"Error: The prompt file {args_dict['prompt_file']} was not found.",
+            f"Error: The prompt file {args.prompt_file} was not found.",
             flush=True,
         )
         sys.exit(1)
@@ -49,10 +95,10 @@ async def async_main():
     # # Copy model weights and vllm_cache to /tmp
     # tic = time.perf_counter()
     # copy_model.distribute_model(
-    #     model=args_dict["model"],
-    #     cache_dir=args_dict["cache_dir"],
+    #     model=args."model"],
+    #     cache_dir=args."cache_dir"],
     #     nnodes=len(nodes),
-    #     node_local_cache=args_dict["tmp_dir"],
+    #     node_local_cache=args."tmp_dir"],
     #     sync_np=102,
     #     scatter_ppn=8,
     #     logger=logger,
@@ -72,7 +118,6 @@ async def async_main():
     tic = time.perf_counter()
     print("Starting EnsembleLauncher ...", flush=True)
     el.start()
-    await asyncio.sleep(10.0)
     print(f"EnsembleLauncher ready in {(time.perf_counter() - tic):.1f} s", flush=True)
 
     # Chunk the prompts
@@ -82,7 +127,7 @@ async def async_main():
 
     # Step 3: Create ActorPools and submit them to the cluster
     n_actors = num_inf_engines
-    ACTORS_PER_POOL = args_dict["actors_per_pool"]
+    ACTORS_PER_POOL = 384
 
     actor_chunks = [
         list(range(i, min(i + ACTORS_PER_POOL, n_actors)))
@@ -93,18 +138,30 @@ async def async_main():
     server_id = "global_server"
     server_secret = secrets.token_hex(16)
     pool_ids = []
+    pool_futures = []
+    # Define vllmn engine parameters
+    vllm_engine_params = {
+        "dtype": args.data_type,
+        "gpu_memory_utilization": 0.90,  # safe to ask for 90% of GPU memory
+        "max_num_seqs": args.batch_size,
+        "max_model_len": 8192,
+        # "enforce_eager": True,
+    }
+    vllm_sampling_params = {
+        "max_tokens": args.max_output_tokens,
+    }
     actor_kwargs = {
-        "model": args_dict["model"],
-        "cache_dir": args_dict["cache_dir"],
-        "tensor_parallel_size": args_dict["ngpus_per_model"],
-        "send_timeout": args_dict["send_timeout"],
-        "send_retries": args_dict["send_retries"],
-        "llm_kwargs": {"enforce_eager": True},
+        "model": args.model_name,
+        "cache_dir": args.cache_dir,
+        "tensor_parallel_size": args.tp_size,
+        "use_cached_modelinfo": os.environ.get("VLLM_CACHE_ROOT", None) is not None,
+        "model_info_cache": os.environ.get("VLLM_CACHE_ROOT", None),
+        "llm_kwargs": vllm_engine_params,
     }
     task_kwargs = {
         "nnodes": 1,
-        "ppn": args_dict["ngpus_per_model"] * 2,
-        "ngpus_per_process": 1 / 2,
+        "ppn": args.tp_size * 2,
+        "ngpus_per_process": args.tp_size / 2,
     }
 
     with ClusterClient(
@@ -128,26 +185,24 @@ async def async_main():
                 task_kwargs=task_kwargs,
                 checkpoint_dir=ckpt_dir,
                 req_res=True,
-                child_send_timeout=args_dict["send_timeout"],
-                child_send_retries=args_dict["send_retries"],
-                send_timeout=args_dict["send_timeout"],
-                send_retries=args_dict["send_retries"],
                 child_ready_timeout=600,
             )
             pool_task = actor_pool.create_task(task_id=pool_name, nnodes=1, ppn=1)
-            cluster_client.submit(pool_task)
+            pool_futures.append(cluster_client.submit(pool_task))
             pool_ids.append(f"{pool_name}:{server_secret}")
         pool_handle = ActorPool.create_handle(
             server,
-            send_timeout=args_dict["send_timeout"],
-            send_retries=args_dict["send_retries"],
         )
         await pool_handle.open()
         print(f"Waiting for {len(pool_ids)} pools to be ready...")
         init_inf_start = time.perf_counter()
         try:
-            await pool_handle.wait_for_ready(expected=len(pool_ids), timeout=660)
+            await pool_handle.wait_for_ready(expected=len(pool_ids), timeout=600)
+            ready_pools = pool_handle.ready_actors
         except asyncio.TimeoutError:
+            for pid, future in enumerate(pool_futures):
+                if future.done():
+                    print(f"Pool {pid} failed with error: {future.exception()}")
             ready_pools = pool_handle.ready_actors
             print(
                 f"Not all actor pools are ready. Only {len(ready_pools)}/{len(actor_chunks)} are ready"
@@ -158,6 +213,7 @@ async def async_main():
         async def _run_pool(pool_id, msg):
             _, results = await pool_handle.invoke_all(msg, actor_id=pool_id)
             print(f"Pool {pool_id.split(':')[0]} completed")
+            print(f"results: {results}")
             return results
 
         # Step 5:
@@ -165,22 +221,38 @@ async def async_main():
             f"{len(ready_pools)}/{len(actor_chunks)} pools ready. Starting inference..."
         )
         t_inference_start = time.perf_counter()
-        inference_msg = ("generate", ("hi, introduce yourself",), None)
+
         tasks = [
-            asyncio.create_task(_run_pool(pid, inference_msg)) for pid in ready_pools
+            asyncio.create_task(
+                _run_pool(
+                    pid,
+                    [
+                        (
+                            "generate",
+                            (chunk,),
+                            {"sampling_params": vllm_sampling_params},
+                        )
+                        for chunk in chunks[
+                            idx * ACTORS_PER_POOL : (idx + 1) * ACTORS_PER_POOL
+                        ]
+                    ],
+                )
+            )
+            for idx, pid in enumerate(ready_pools)
         ]
 
-        done, pending = await asyncio.wait(tasks, timeout=100)
-        inf_time = time.perf_counter() - t_inference_start
-        successful_requests = (
-            len(done) * ACTORS_PER_POOL * (num_prompts // num_inf_engines)
-        )
-        if len(pending) != 0:
-            print(
-                f"Only {len(done) * ACTORS_PER_POOL}/{len(pool_ids) * ACTORS_PER_POOL} finished in 100s"
+        if len(ready_pools) > 0:
+            done, pending = await asyncio.wait(tasks, timeout=100)
+            inf_time = time.perf_counter() - t_inference_start
+            successful_requests = (
+                len(done) * ACTORS_PER_POOL * (num_prompts // num_inf_engines)
             )
-            for t in pending:
-                t.cancel()
+            if len(pending) != 0:
+                print(
+                    f"Only {len(done) * ACTORS_PER_POOL}/{len(pool_ids) * ACTORS_PER_POOL} finished in 100s"
+                )
+                for t in pending:
+                    t.cancel()
 
         # Step 6: Stop pools and EnsembleLauncher
         await pool_handle.stop()
