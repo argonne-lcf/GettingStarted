@@ -112,9 +112,12 @@ async def async_main():
     launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
 
     # Start EL
+    # Start EL
     el = EnsembleLauncher(
         ensemble_file={}, system_config=sys_config, launcher_config=launcher_config
     )
+    tic = time.perf_counter()
+    print("Starting EnsembleLauncher ...", flush=True)
     tic = time.perf_counter()
     print("Starting EnsembleLauncher ...", flush=True)
     el.start()
@@ -130,6 +133,8 @@ async def async_main():
     ACTORS_PER_POOL = 384
 
     actor_chunks = [
+        list(range(i, min(i + ACTORS_PER_POOL, n_actors)))
+        for i in range(0, n_actors, ACTORS_PER_POOL)
         list(range(i, min(i + ACTORS_PER_POOL, n_actors)))
         for i in range(0, n_actors, ACTORS_PER_POOL)
     ]
