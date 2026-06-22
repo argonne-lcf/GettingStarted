@@ -96,20 +96,6 @@ async def async_main():
     for i, prompt in enumerate(prompts):
         chunks[i % num_inf_engines].append(prompt)
 
-    # Copy model weights and vllm_cache to /tmp
-    #tic = time.perf_counter()
-    #copy_model.distribute_model(
-    #    model=args_dict["model"],
-    #    cache_dir=args_dict["cache_dir"],
-    #    nnodes=len(nodes),
-    #    node_local_cache=args_dict["tmp_dir"],
-    #    sync_np=102,
-    #    scatter_ppn=8,
-    #    logger=logger,
-    #    cpu_binding="--cpu-bind=list:1-12,13-24,25-36,37-48,53-64,65-76,77-88,89-100",
-    #)
-    #print(f"Copied model weights to nodes in {(time.perf_counter() - tic):.1f} s", flush=True)
-
     # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
     sys_config = aurora_config
@@ -121,8 +107,7 @@ async def async_main():
     )
     tic = time.perf_counter()
     print("Starting EnsembleLauncher ...", flush=True)
-    el.start()
-    await asyncio.sleep(10.0)
+    el.start(wait_time=1)
     print(f"EnsembleLauncher ready in {(time.perf_counter() - tic):.1f} s", flush=True)
 
     # Define vllmn engine parameters
@@ -161,10 +146,10 @@ async def async_main():
         # Submit tasks
         llm_futures = []
         llm_futures = client.submit_batch(tasks=llm_tasks)
-        print(f"Submitted {num_tasks} LLM inference tasks", flush=True)
+        print(f"Submitted {num_tasks} LLM inference tasks across {len(nodes)} nodes", flush=True)
 
         # Wait for task completion
-        done, pending = concurrent.futures.wait(llm_futures, timeout=1200)
+        done, pending = concurrent.futures.wait(llm_futures, timeout=300)
 
         # Check completed tasks
         if len(done) == num_tasks:
@@ -177,15 +162,16 @@ async def async_main():
             )
         
         # Get successful requests, LLM responses and timings
-        successful_requests = len(done)
+        successful_requests = 0
         tot_times, init_times, inf_times, rpss = [], [], [], []
         for i, f in enumerate(done):
             if f.exception() is not None:
                 print(f"Task {i} failed with exception: {f.exception()}", flush=True)
-                successful_requests -= 1
             else:
                 result = f.result()
                 responses = result["responses"]
+                if len(responses) == len(chunks[i]):
+                    successful_requests += len(responses)
                 tot_times.append(result["total_time"])
                 init_times.append(result["initialization_time"])
                 inf_times.append(result["inference_time"])
@@ -195,14 +181,13 @@ async def async_main():
     print("Stopping EnsembleLauncher ...")
     el.stop()
     print(f"EnsembleLauncher stopped in {(time.perf_counter() - tic):.1f}", flush=True)
-    total_runtime = time.perf_counter() - start_time
+    total_runtime = time.time() - start_time
 
     # Print summary of performance stats
     print("\n\n=========================================")
     print("Performance Summary:")
     print(f"Total number of input prompts: {num_prompts}")
     print(f"Total number of successful requests: {successful_requests}")
-    print(f"Total run time = {total_runtime:.4f} s")
     print(f"Total run time = {total_runtime:.4f} s")
     print(f"Initialization time (min, max, avg) = {min(init_times):.4f}, {max(init_times):.4f}, {sum(init_times)/len(init_times):.4f} s")
     print(f"Inference time (min, max, avg) = {min(inf_times):.4f}, {max(inf_times):.4f}, {sum(inf_times)/len(inf_times):.4f} s")
