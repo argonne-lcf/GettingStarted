@@ -76,9 +76,12 @@ async def async_main():
 
     # Get system info
     nodes = get_nodes()
-    gpus = get_gpus()
+    gpus, gpu_type = get_gpus()
     if not gpus:
         print(f"No GPUs found on system", flush=True)
+        sys.exit(1)
+    if gpu_type != "intel":
+        print(f"EnsembleLauncher only implemented for Aurora currently", flush=True)
         sys.exit(1)
     num_gpus = len(gpus)
     print(f"Running on {len(nodes)} nodes with {num_gpus} GPUs", flush=True) 
