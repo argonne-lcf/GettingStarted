@@ -61,6 +61,12 @@ async def async_main():
         help="Batch size for prompt batching.",
     )
     parser.add_argument(
+        "--engines_per_node",
+        type=int,
+        default=-1,
+        help="Number of inference engines per node (default -1 means as many as can fit)",
+    )
+    parser.add_argument(
         "--prompt_file",
         type=str,
         default="../utils/prompts.jsonl",
@@ -88,7 +94,9 @@ async def async_main():
         print(f"Error: The prompt file {args.prompt_file} was not found.", flush=True)
         sys.exit(1)
     
-    num_inf_engines = (num_gpus // args.tp_size) * len(nodes)
+    num_inf_engines = (num_gpus // args.tp_size) \
+        if args.engines_per_node == -1 else args.engines_per_node
+    num_inf_engines *= len(nodes)
     prompts = prompts * num_inf_engines  # NOTE: only needed for weak scaling
     num_prompts = len(prompts)
     print(f"Submitting {num_prompts} prompts to {num_inf_engines} inference engines", flush=True)
@@ -113,6 +121,7 @@ async def async_main():
     # Define vllmn engine parameters
     vllm_engine_params = {
         "tensor_parallel_size": args.tp_size,
+        "enforce_eager": True,
         "max_model_len": 8192,
         "dtype": args.data_type,
         "gpu_memory_utilization": 0.90, # safe to ask for 90% of GPU memory
