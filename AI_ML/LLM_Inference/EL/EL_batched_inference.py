@@ -15,7 +15,7 @@ from ensemble_launcher.inference import copy_model, default_inference_launcher_c
 from ensemble_launcher.inference.utils import call_llm
 from ensemble_launcher.orchestrator import ClusterClient
 
-from utils import parse_args, get_logger
+from utils import get_logger
 logger = get_logger("main_offline", log_dir=f"{os.getcwd()}/script_logs")
 
 
@@ -102,10 +102,23 @@ async def async_main():
     num_inf_engines *= len(nodes)
     prompts = prompts * num_inf_engines  # NOTE: only needed for weak scaling
     num_prompts = len(prompts)
-    print(f"Submitting {num_prompts} prompts to {num_inf_engines} inference engines", flush=True)
     chunks = [[] for _ in range(num_inf_engines)]
     for i, prompt in enumerate(prompts):
         chunks[i % num_inf_engines].append(prompt)
+    print(f"Submitting {num_prompts} prompts to {num_inf_engines} inference engines", flush=True)
+
+    # Define vllm engine parameters
+    vllm_engine_params = {
+        "tensor_parallel_size": args.tp_size,
+        "enforce_eager": True,
+        "max_model_len": 8192,
+        "dtype": args.data_type,
+        "gpu_memory_utilization": 0.90, # safe to ask for 90% of GPU memory
+        "max_num_seqs": args.batch_size,
+    }
+    vllm_sampling_params = {
+        "max_tokens": args.max_output_tokens,
+    }
 
     # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
@@ -118,21 +131,8 @@ async def async_main():
     )
     tic = time.perf_counter()
     print("Starting EnsembleLauncher ...", flush=True)
-    el.start(wait_time=1)
+    el.start(wait_time=3)
     print(f"EnsembleLauncher ready in {(time.perf_counter() - tic):.1f} s", flush=True)
-
-    # Define vllmn engine parameters
-    vllm_engine_params = {
-        "tensor_parallel_size": args.tp_size,
-        "enforce_eager": True,
-        "max_model_len": 8192,
-        "dtype": args.data_type,
-        "gpu_memory_utilization": 0.90, # safe to ask for 90% of GPU memory
-        "max_num_seqs": args.batch_size,
-    }
-    vllm_sampling_params = {
-        "max_tokens": args.max_output_tokens,
-    }
     
     # Create tasks, each taking a chunk of the total prompts
     llm_tasks = []
@@ -152,7 +152,7 @@ async def async_main():
             )
         )
 
-    # Submit tasks with EL client-cluster approach
+    # Submit tasks to EL cluster 
     tic = time.perf_counter()
     with ClusterClient(checkpoint_dir=ckpt_dir, checkpoint_timeout=300) as client:
         # Submit tasks

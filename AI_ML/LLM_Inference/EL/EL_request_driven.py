@@ -17,8 +17,8 @@ from ensemble_launcher.inference import (
     default_inference_launcher_config,
 )
 from ensemble_launcher.orchestrator import ClusterClient
-from utils import get_logger
 
+from utils import get_logger
 logger = get_logger("main_offline", log_dir=f"{os.getcwd()}/script_logs")
 
 
@@ -64,6 +64,12 @@ async def async_main():
         help="Batch size for prompt batching.",
     )
     parser.add_argument(
+        "--engines_per_node",
+        type=int,
+        default=-1,
+        help="Number of inference engines per node (default -1 means as many as can fit)",
+    )
+    parser.add_argument(
         "--prompt_file",
         type=str,
         default="../utils/prompts.jsonl",
@@ -73,10 +79,17 @@ async def async_main():
 
     # Parse arguments and get system info
     nodes = get_nodes()
-    num_gpus = len(get_gpus())
-    num_inf_engines = (num_gpus // args.tp_size) * len(nodes)
+    gpus, gpu_type = get_gpus()
+    if not gpus:
+        print(f"No GPUs found on system", flush=True)
+        sys.exit(1)
+    if gpu_type != "intel":
+        print(f"EnsembleLauncher only implemented for Aurora currently", flush=True)
+        sys.exit(1)
+    num_gpus = len(gpus)
+    print(f"Running on {len(nodes)} nodes with {num_gpus} GPUs", flush=True)
 
-    # Read prompts from file
+    # Read prompts from file and chunk them
     try:
         prompts = []
         for line in open(args.prompt_file):
@@ -89,22 +102,29 @@ async def async_main():
             flush=True,
         )
         sys.exit(1)
+    
+    num_inf_engines = (num_gpus // args.tp_size) \
+        if args.engines_per_node == -1 else args.engines_per_node
+    num_inf_engines *= len(nodes)
     prompts = prompts * num_inf_engines  # NOTE: only needed for weak scaling
     num_prompts = len(prompts)
+    chunks = [[] for _ in range(num_inf_engines)]
+    for i, prompt in enumerate(prompts):
+        chunks[i % num_inf_engines].append(prompt)
+    print(f"Submitting {num_prompts} prompts to {num_inf_engines} inference engines", flush=True)
 
-    # # Copy model weights and vllm_cache to /tmp
-    # tic = time.perf_counter()
-    # copy_model.distribute_model(
-    #     model=args."model"],
-    #     cache_dir=args."cache_dir"],
-    #     nnodes=len(nodes),
-    #     node_local_cache=args."tmp_dir"],
-    #     sync_np=102,
-    #     scatter_ppn=8,
-    #     logger=logger,
-    #     cpu_binding="--cpu-bind=list:1-12,13-24,25-36,37-48,53-64,65-76,77-88,89-100",
-    # )
-    # print(f"Copied model weights to nodes in {(time.perf_counter() - tic):.1f} s", flush=True)
+    # Define vllm engine parameters
+    vllm_engine_params = {
+        "tensor_parallel_size": args.tp_size,
+        "enforce_eager": True,
+        "max_model_len": 8192,
+        "dtype": args.data_type,
+        "gpu_memory_utilization": 0.90,  # safe to ask for 90% of GPU memory
+        "max_num_seqs": args.batch_size,
+    }
+    vllm_sampling_params = {
+        "max_tokens": args.max_output_tokens,
+    }
 
     # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
@@ -112,25 +132,17 @@ async def async_main():
     launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
 
     # Start EL
-    # Start EL
     el = EnsembleLauncher(
         ensemble_file={}, system_config=sys_config, launcher_config=launcher_config
     )
-
     tic = time.perf_counter()
     print("Starting EnsembleLauncher ...", flush=True)
-    el.start()
+    el.start(wait_time=3)
     print(f"EnsembleLauncher ready in {(time.perf_counter() - tic):.1f} s", flush=True)
 
-    # Chunk the prompts
-    chunks = [[] for _ in range(num_inf_engines)]
-    for i, prompt in enumerate(prompts):
-        chunks[i % num_inf_engines].append(prompt)
-
-    # Step 3: Create ActorPools and submit them to the cluster
+    # Create ActorPools
     n_actors = num_inf_engines
     ACTORS_PER_POOL = 384
-
     actor_chunks = [
         list(range(i, min(i + ACTORS_PER_POOL, n_actors)))
         for i in range(0, n_actors, ACTORS_PER_POOL)
@@ -141,17 +153,7 @@ async def async_main():
     server_secret = secrets.token_hex(16)
     pool_ids = []
     pool_futures = []
-    # Define vllmn engine parameters
-    vllm_engine_params = {
-        "dtype": args.data_type,
-        "gpu_memory_utilization": 0.90,  # safe to ask for 90% of GPU memory
-        "max_num_seqs": args.batch_size,
-        "max_model_len": 8192,
-        # "enforce_eager": True,
-    }
-    vllm_sampling_params = {
-        "max_tokens": args.max_output_tokens,
-    }
+    
     actor_kwargs = {
         "model": args.model_name,
         "cache_dir": args.cache_dir,
@@ -160,15 +162,17 @@ async def async_main():
         "model_info_cache": os.environ.get("VLLM_CACHE_ROOT", None),
         "llm_kwargs": vllm_engine_params,
     }
+    cpu_cores_per_task = 8
     task_kwargs = {
         "nnodes": 1,
-        "ppn": args.tp_size * 2,
-        "ngpus_per_process": args.tp_size / 2,
+        "ppn": cpu_cores_per_task,
+        "ngpus_per_process": args.tp_size/cpu_cores_per_task, # this times ppn has to equal TP size
     }
 
+    # Submit ActorPools to EL Cluster
     with ClusterClient(
         checkpoint_dir=ckpt_dir, checkpoint_timeout=300
-    ) as cluster_client:
+    ) as client:
         for i, chunk in enumerate(actor_chunks):
             pool_name = f"pool-{i}"
             server, pool_client = transport.create_child_pipe(
@@ -190,7 +194,7 @@ async def async_main():
                 child_ready_timeout=600,
             )
             pool_task = actor_pool.create_task(task_id=pool_name, nnodes=1, ppn=1)
-            pool_futures.append(cluster_client.submit(pool_task))
+            pool_futures.append(client.submit(pool_task))
             pool_ids.append(f"{pool_name}:{server_secret}")
         pool_handle = ActorPool.create_handle(
             server,
@@ -211,13 +215,13 @@ async def async_main():
             )
         init_inf_time = time.perf_counter() - init_inf_start
 
-        # Step 4: Inference — invoke_all on every pool concurrently, measure throughput
+        # Inference — invoke_all on every pool concurrently, measure throughput
         async def _run_pool(pool_id, msg):
             _, results = await pool_handle.invoke_all(msg, actor_id=pool_id)
             print(f"Pool {pool_id.split(':')[0]} completed")
             return results
 
-        # Step 5:
+        # 
         print(
             f"{len(ready_pools)}/{len(actor_chunks)} pools ready. Starting inference..."
         )
@@ -243,14 +247,16 @@ async def async_main():
         ]
 
         if len(ready_pools) > 0:
-            done, pending = await asyncio.wait(tasks, timeout=100)
+            done, pending = await asyncio.wait(tasks, timeout=300)
             inf_time = time.perf_counter() - t_inference_start
             successful_requests = (
-                len(done) * ACTORS_PER_POOL * (num_prompts // num_inf_engines)
+                len(done) * len(actor_chunks[0]) * (num_prompts // num_inf_engines)
             )
             if len(pending) != 0:
                 print(
-                    f"Only {len(done) * ACTORS_PER_POOL}/{len(pool_ids) * ACTORS_PER_POOL} finished in 100s"
+                    f"Only {len(done) * len(actor_chunks[0])}/{len(pool_ids) * len(actor_chunks[0])} actors completed. "
+                    "May have to increase the timeout",
+                    flush=True
                 )
                 for t in pending:
                     t.cancel()

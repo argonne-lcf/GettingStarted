@@ -245,9 +245,9 @@ def main():
     )
     
     # Start the LLM Inference 
-    init_start_time = time.time()
     if rank == 0:
         print(f"\nInitializing Inference Engine ...", flush=True)
+    init_start_time = time.time()
     llm = LLM(**dataclasses.asdict(engine_args))
     init_time = time.time() - init_start_time
     print(f"Inference Engine initialized on {hostname}", flush=True)
