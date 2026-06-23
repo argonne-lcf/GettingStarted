@@ -70,6 +70,12 @@ async def async_main():
         help="Number of inference engines per node (default -1 means as many as can fit)",
     )
     parser.add_argument(
+        "--actors_per_pool",
+        type=int,
+        default=384,
+        help="Number of EL Actors in an ActorPool",
+    )
+    parser.add_argument(
         "--prompt_file",
         type=str,
         default="../utils/prompts.jsonl",
@@ -108,9 +114,9 @@ async def async_main():
     num_inf_engines *= len(nodes)
     prompts = prompts * num_inf_engines  # NOTE: only needed for weak scaling
     num_prompts = len(prompts)
-    chunks = [[] for _ in range(num_inf_engines)]
+    prompt_chunks = [[] for _ in range(num_inf_engines)]
     for i, prompt in enumerate(prompts):
-        chunks[i % num_inf_engines].append(prompt)
+        prompt_chunks[i % num_inf_engines].append(prompt)
     print(f"Submitting {num_prompts} prompts to {num_inf_engines} inference engines", flush=True)
 
     # Define vllm engine parameters
@@ -142,11 +148,11 @@ async def async_main():
 
     # Create ActorPools
     n_actors = num_inf_engines
-    ACTORS_PER_POOL = 384
     actor_chunks = [
-        list(range(i, min(i + ACTORS_PER_POOL, n_actors)))
-        for i in range(0, n_actors, ACTORS_PER_POOL)
+        list(range(i, min(i + args.actors_per_pool, n_actors)))
+        for i in range(0, n_actors, args.actors_per_pool)
     ]
+    num_actor_pools = len(actor_chunks)
 
     transport = transport_registry.get("zmq")["transport"]()
     server_id = "global_server"
@@ -169,10 +175,12 @@ async def async_main():
         "ngpus_per_process": args.tp_size/cpu_cores_per_task, # this times ppn has to equal TP size
     }
 
-    # Submit ActorPools to EL Cluster
+    # Create an EL Client
     with ClusterClient(
         checkpoint_dir=ckpt_dir, checkpoint_timeout=300
     ) as client:
+        # Submit ActorPools to EL Cluster (this initializes vLLM engines)
+        init_start = time.perf_counter()
         for i, chunk in enumerate(actor_chunks):
             pool_name = f"pool-{i}"
             server, pool_client = transport.create_child_pipe(
@@ -201,7 +209,6 @@ async def async_main():
         )
         await pool_handle.open()
         print(f"Waiting for {len(pool_ids)} pools to be ready...")
-        init_inf_start = time.perf_counter()
         try:
             await pool_handle.wait_for_ready(expected=len(pool_ids), timeout=600)
             ready_pools = pool_handle.ready_actors
@@ -210,23 +217,29 @@ async def async_main():
                 if future.done():
                     print(f"Pool {pid} failed with error: {future.exception()}")
             ready_pools = pool_handle.ready_actors
+        init_time = time.perf_counter() - init_start
+        if len(ready_pools) != num_actor_pools:
             print(
-                f"Not all actor pools are ready. Only {len(ready_pools)}/{len(actor_chunks)} are ready"
-            )
-        init_inf_time = time.perf_counter() - init_inf_start
+                f"Only {len(ready_pools)}/{num_actor_pools} ActorPools are ready. "
+                "Try increasing the timeout time.",
+                flush=True)
+            sys.exit(1)
 
-        # Inference — invoke_all on every pool concurrently, measure throughput
+        # Define function to call llm.generate() for all actors
         async def _run_pool(pool_id, msg):
             _, results = await pool_handle.invoke_all(msg, actor_id=pool_id)
-            print(f"Pool {pool_id.split(':')[0]} completed")
+            print(f"Pool {pool_id.split(':')[0]} completed", flush=True)
             return results
 
-        # 
-        print(
-            f"{len(ready_pools)}/{len(actor_chunks)} pools ready. Starting inference..."
-        )
-        t_inference_start = time.perf_counter()
-
+        # Perform inference
+        inf_start = time.perf_counter()
+        tasks = []
+        for idx, pid in enumerate(ready_pools):
+            messages = []
+            for chunk in prompt_chunks[idx * args.actors_per_pool : (idx + 1) * args.actors_per_pool]:
+                messages.append(("generate", (chunk,), {"sampling_params": vllm_sampling_params}))
+            tasks.append(asyncio.create_task(_run_pool(pid, messages)))
+        """
         tasks = [
             asyncio.create_task(
                 _run_pool(
@@ -237,36 +250,38 @@ async def async_main():
                             (chunk,),
                             {"sampling_params": vllm_sampling_params},
                         )
-                        for chunk in chunks[
-                            idx * ACTORS_PER_POOL : (idx + 1) * ACTORS_PER_POOL
+                        for chunk in prompt_chunks[
+                            idx * args.actors_per_pool : (idx + 1) * args.actors_per_pool
                         ]
                     ],
                 )
             )
             for idx, pid in enumerate(ready_pools)
         ]
+        """
 
-        if len(ready_pools) > 0:
-            done, pending = await asyncio.wait(tasks, timeout=300)
-            inf_time = time.perf_counter() - t_inference_start
-            successful_requests = (
-                len(done) * len(actor_chunks[0]) * (num_prompts // num_inf_engines)
+        done, pending = await asyncio.wait(tasks, timeout=300)
+        inf_time = time.perf_counter() - inf_start
+        successful_requests = (
+            len(done) * len(actor_chunks[0]) * (num_prompts // num_inf_engines)
+        )
+        if len(pending) != 0:
+            print(
+                f"{len(done) * len(actor_chunks[0])}/{len(pool_ids) * len(actor_chunks[0])} actors completed. "
+                "May have to increase the timeout",
+                flush=True
             )
-            if len(pending) != 0:
-                print(
-                    f"Only {len(done) * len(actor_chunks[0])}/{len(pool_ids) * len(actor_chunks[0])} actors completed. "
-                    "May have to increase the timeout",
-                    flush=True
-                )
-                for t in pending:
-                    t.cancel()
+            for t in pending:
+                t.cancel()
 
-        # Step 6: Stop pools and EnsembleLauncher
+        # Stop ActorPools
         await pool_handle.stop()
         await pool_handle.close()
 
+    tic = time.perf_counter()
     print("Stopping EnsembleLauncher ...")
     el.stop()
+    print(f"EnsembleLauncher stopped in {(time.perf_counter() - tic):.1f} s", flush=True)
     total_runtime = time.perf_counter() - start_time
 
     # Print summary of performance stats
@@ -275,7 +290,8 @@ async def async_main():
     print(f"Total number of input prompts: {num_prompts}")
     print(f"Total number of successful requests: {successful_requests}")
     print(f"Total run time = {total_runtime:.4f} s")
-    print(f"Initialization + Inference time (max) = {init_inf_time} s")
+    print(f"Initialization time (max) = {init_time:.4f} s")
+    print(f"Inference time (max) = {inf_time} s")
     print(
         f"Total successful requests per second (requests / inference time) : {successful_requests / inf_time:.4f}"
     )

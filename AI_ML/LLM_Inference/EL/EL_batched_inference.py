@@ -174,7 +174,7 @@ async def async_main():
             print(f"Done with all tasks in {(time.perf_counter() - tic):.1f} s", flush=True)
         else:
             print(
-                f"Only {len(done)}/{num_tasks} tasks completed. "
+                f"{len(done)}/{num_tasks} tasks completed. "
                 "May have to increase the timeout",
                 flush=True
             )
