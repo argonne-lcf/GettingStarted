@@ -4,16 +4,16 @@
 #PBS -l walltime=00:30:00
 #PBS -q debug-scaling
 #PBS -A <project_name>
-#PBS -l filesystems=home:flare
+#PBS -l filesystems=home:eagle
 #PBS -j oe
 cd $PBS_O_WORKDIR
 
 set -e
 
 # Load the modules
-module load frameworks
-module load mpifileutils
-module load xpu-smi
+module use /soft/modulefiles
+module load conda
+conda activate
 module list
 
 # Make sure HF Token is set
@@ -24,16 +24,16 @@ fi
 
 # Set job variables
 NODES=$(cat ${PBS_NODEFILE} | wc -l)
-MODEL=meta-llama/Llama-3.3-70B-Instruct
-MODEL_FLARE_PATH=/flare/datasets/model-weights/hub
+MODEL=meta-llama/Llama-3.1-70B-Instruct
+MODEL_EAGLE_PATH=/eagle/datasets/model-weights/hub
 TMP_PATH=/tmp/hf_home
 TP_SIZE=4
 BATCH_SIZE=16
-ENGINES_PER_NODE=2
+ENGINES_PER_NODE=1
 
 # Compile bcast
 UTILS=$PWD/../utils
-mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c
+mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c -lmpi_gtl_cuda
 
 # Build the virtual environment with EL and move to other nodes
 python -m venv /tmp/_env --system-site-packages
@@ -41,7 +41,7 @@ source /tmp/_env/bin/activate
 cd /tmp
 git clone https://github.com/argonne-lcf/ensemble_launcher.git
 cd ensemble_launcher
-git checkout multi_node_vllm_rb # NB: to remove, things will be merged into main
+git checkout multi_node_vllm # NB: to remove, things will be merged into main
 pip install .
 cd $PBS_O_WORKDIR
 mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast --no-root-write \
@@ -49,35 +49,21 @@ mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast --no-root-write \
 
 # Move model weights to /tmp on the nodes
 MODEL_DIR="models--${MODEL//\//--}"
-MODEL_FLARE_PATH=/flare/datasets/model-weights/hub/$MODEL_DIR
-if [[ ! -e "$MODEL_FLARE_PATH" ]]; then
-    echo "Did not find model $MODEL_FLARE_PATH"
+MODEL_EAGLE_PATH=/eagle/datasets/model-weights/hub/$MODEL_DIR
+if [[ ! -e "$MODEL_EAGLE_PATH" ]]; then
+    echo "Did not find model $MODEL_EAGLE_PATH"
     exit 1
 fi
 MODEL_TMP_PATH=/tmp/hf_home/hub/
 mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
-  $MODEL_FLARE_PATH $MODEL_TMP_PATH
+  $MODEL_EAGLE_PATH $MODEL_TMP_PATH
 export HF_HOME=/tmp/hf_home
-
-# Pre-build vLLM model-info cache
-export VLLM_CACHE_ROOT=$PWD/.vllm_cache
-echo "Building vLLM model-info cache in ${VLLM_CACHE_ROOT} ..."
-python $UTILS/vllm_build_model_cache.py
-echo "Cache build complete."
-
-# Move model-info cache to /tmp on the nodes
-MODELINFO_FLARE_PATH=$VLLM_CACHE_ROOT
-MODELINFO_TMP_PATH=$TMP_PATH/hub/
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
-  $MODELINFO_FLARE_PATH $MODELINFO_TMP_PATH
-export VLLM_CACHE_ROOT=${MODELINFO_TMP_PATH}/.vllm_cache
 
 # Other env variables
 export TMPDIR=/tmp
 export OPENBLAS_NUM_THREADS=1
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
-export ZE_FLAT_DEVICE_HIERARCHY=FLAT
 
 # Launch workflow
 echo -e "\n\nLaunching $MODEL on $NODES nodes with $ENGINES_PER_NODE engines per node..."
@@ -86,5 +72,4 @@ python3 ./EL_batched_inference.py \
   --cache_dir $HF_HOME \
   --tp_size $TP_SIZE \
   --batch_size $BATCH_SIZE \
-  --engines_per_node $ENGINES_PER_NODE \
   --prompt_file ${UTILS}/prompts.jsonl
