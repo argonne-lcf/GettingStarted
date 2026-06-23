@@ -23,10 +23,6 @@ Below, we show performance of the same weak scaling tets on Polaris (one engine 
 ![Weak scaling tests of LLM inference with various approaches on Polaris. The tests deploy one engine per A100 GPU (4) per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file. The length of the response is limited to 128 tokens, `max_model_len=8192` and for offline LLM the batch size is set to 16.](./utils/requests_per_second_polaris.png)
 
 
-## Choosing the Correct Scaling Approach
-
-We could have a section guiding users to the specific approach based on questions about their workflow, but it may repeat some of the information in the intriduction.
-
 ## Batched Inference with MPI
 
 For the batched inference case, MPI is an easy and performant solition. 
@@ -110,7 +106,7 @@ To run the examples, simply submit the scripts provided for Aurora and Polaris. 
 qsub sub_el_batched_aurora_llama8B.sh
 ```
 
-Note that EL provides API to transfer the model weights and the vLLM cache to `/tmp` on the compute nodes, thus the [bcast.c](./utils/bcast.c) utility is not needed in this case. However, it is still used to broadcast the virtual environment.
+In these examples, we still use the [bcast.c](./utils/bcast.c) utility to transfer the model weights and `modelinfo` cache to `/tmp` on all the nodes, however note that EL provides API to perform these tasks natively within Python. 
 
 The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few runtime parameters to note:
 
@@ -120,20 +116,67 @@ The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few r
 * The data type to use (defaults to `bfloat16`)
 * The maximum number of output tokens (defaults to 128). This parameter can impact performance significantly and may need to be adjusted depending on the expected length of the LLM response.
 * The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
-* The number of inference engined per node to launch (defaults to as many as can fit based on TP size and number of GPUs on the node).
+* The number of inference engines per node to launch (defaults to as many as can fit based on TP size and number of GPUs on the node).
 * File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
 
 
 
-### Request-driven Inference with EL
+## Request-driven Inference with EL
 
-The setup and run for request-driven inference with EL is similar to the batched case, however the main difference is that the prompts are submitted to EL dynamically.
+While the batched inference case which bundles Python offline vLLM inference and a chunk of prompts as transient tasks lends itself naturally to EnsembleLauncher, EL also provides native support for request-driven inference by standing up persistent inference engines and submitting prompts to them through its network.
 
-A deatailed readme for this example is provided in the [EL](./EL/) directory, however to run the example, simply submit the provided script for Aurora or Polaris. For example, to run the example on Aurora execute
+In the [EL_request_driven.py](./EL/EL_request_driven.py) script, EL stands up persistent vLLM engines pinned to one or more GPU depending on the TP size as long-lived `PrivateVLLMInference` actors, grouped into `ActorPools`. During initialization of the actors, the `vllm.LLM()` API is called setting up a Python process listening for prompts to pass through to vLLM for inference. Once the actors are ready, the prompts are chunked and dispatched to the `ActorPools`, which in turn fan out the work to the inference engines each pool manages. Because the engines stay alive across requests as persistent Python processes (`Actors` in EL), the heavy vLLM initialization cost is paid once at startup and amortized over every subsequent request. This setup is therefore a better fit than the batched workflow when prompts arrive incrementally or when many short request rounds need to share the same engines.
+
+### Set up
+
+To install EnsembleLauncher on ALCF systems, simply create a new virtual environment, clone the repository, and install it as shown below. Note, however, that the submit scripts are set up to install the virtual environments directly in `/tmp` on the compute nodes at the beginning of the job.
 
 ```bash
-qsub submit_request_driven.sh
+# On Aurora
+module load frameworks
+python -m venv _env --system-site-packages
+source _env/bin/activate
+git clone https://github.com/argonne-lcf/ensemble_launcher.git
+cd ensemble_launcher
+pip install .
+cd ..
+
+# On Polaris
+module use /soft/modulefiles
+module load conda
+conda activate base
+python -m venv _env --system-site-packages
+source _env/bin/activate
+git clone https://github.com/argonne-lcf/ensemble_launcher.git
+cd ensemble_launcher
+pip install .
+cd ..
 ```
+
+### Run the examples
+
+For both Aurora and Polaris, there are submit scripts to run a small, single-GPU model with tensor parallelism (`TP`) size of 1 and an example running a larger model requirung `TP>1`. 
+
+To run the examples, simply submit the scripts provided for Aurora and Polaris. For example, to run the example with the Llama 3.1 8B model on Aurora execute
+
+```bash
+qsub sub_el_request_aurora_llama8B.sh
+```
+
+In these examples, we still use the [bcast.c](./utils/bcast.c) utility to transfer the model weights and `modelinfo` cache to `/tmp` on all the nodes, however note that EL provides API to perform these tasks natively within Python. 
+
+The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few runtime parameters to note:
+
+* The model name (required)
+* The cache directory where the model weights are stored (required)
+* The tensor parallel (TP) size to use for the model (defaults to 1)
+* The data type to use (defaults to `bfloat16`)
+* The maximum number of output tokens (defaults to 128). This parameter can impact performance significantly and may need to be adjusted depending on the expected length of the LLM response.
+* The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
+* The number of inference engines per node to launch (defaults to as many as can fit based on TP size and number of GPUs on the node).
+* The number of `PrivateVLLMInference` actors in each `ActorPool` (defaults to 4). Increasing this parameters helps the workflow scale to many nodes since it creates a tree-like fan-out to distribute the prompts to the various engines. 
+* File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
+
 
 ## Request-driven Inference with Dragon
 
@@ -190,5 +233,34 @@ The [dragon_llm_inference.py](./Dragon/dragon_llm_inference.py) script takes a f
 
 ## Tips for scaling
 
-Mention things like moving env, model weights and cache to /tmp on each of the nodes and provide utilities for these things.
+### Moving model weights, vLLM cache and Python venv to local node memory
+
+One of the main bottlenecks in scaling vLLM workflows is loading the model weights or vLLM caches into memory from many concurrent processes. As demonstrated in the examples provided here, one way to alleviate the I/O load from these concurrent operations and inprove the bandwidth is to move the weights and caches to local memory (e.g., `/tmp`) on the nodes. 
+For this, we provide an MPI utility called [bcast.c](./utils/bcast.c) which can be used to move files and directories from the parallel file system to `/tmp` on every node. To build the utility, execute
+
+```bash
+# On Aurora
+module load frameworks
+mpicc -O2 -o bcast bcast.c
+
+# On Polaris
+module use /soft/modulefiles
+module load conda
+conda activate
+mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c -lmpi_gtl_cuda
+```
+
+and to move a directory from Lustre to `/tmp` execute
+
+```bash
+# On Aurora and Polaris
+NODES=$(cat ${PBS_NODEFILE} | wc -l)
+mpiexec -np $NODES -ppn 1 --cpu-bind numa bcast /path/on/lustre/my_dir /path/on/tmp
+
+# If the goal is to move from /tmp on the head node to all other nodes, 
+# pass the --no-root-write argument to bcast
+mpiexec -np $NODES -ppn 1 --cpu-bind numa bcast --no-root-write /path/on/tmp/my_dir /path/on/tmp
+```
+
+### Distribute prompts
 
