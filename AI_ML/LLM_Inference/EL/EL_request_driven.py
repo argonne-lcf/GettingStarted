@@ -72,7 +72,7 @@ async def async_main():
     parser.add_argument(
         "--actors_per_pool",
         type=int,
-        default=384,
+        default=4,
         help="Number of EL Actors in an ActorPool",
     )
     parser.add_argument(
@@ -163,7 +163,6 @@ async def async_main():
     actor_kwargs = {
         "model": args.model_name,
         "cache_dir": args.cache_dir,
-        "tensor_parallel_size": args.tp_size,
         "use_cached_modelinfo": os.environ.get("VLLM_CACHE_ROOT", None) is not None,
         "model_info_cache": os.environ.get("VLLM_CACHE_ROOT", None),
         "llm_kwargs": vllm_engine_params,
@@ -210,7 +209,7 @@ async def async_main():
         await pool_handle.open()
         print(f"Waiting for {len(pool_ids)} pools to be ready...")
         try:
-            await pool_handle.wait_for_ready(expected=len(pool_ids), timeout=600)
+            await pool_handle.wait_for_ready(expected=len(pool_ids), timeout=300)
             ready_pools = pool_handle.ready_actors
         except asyncio.TimeoutError:
             for pid, future in enumerate(pool_futures):
@@ -232,47 +231,44 @@ async def async_main():
             return results
 
         # Perform inference
+        # Create new tasks which call llm.generate() for each actor
         inf_start = time.perf_counter()
         tasks = []
+        task_to_pool_idx = {}
         for idx, pid in enumerate(ready_pools):
             messages = []
             for chunk in prompt_chunks[idx * args.actors_per_pool : (idx + 1) * args.actors_per_pool]:
                 messages.append(("generate", (chunk,), {"sampling_params": vllm_sampling_params}))
-            tasks.append(asyncio.create_task(_run_pool(pid, messages)))
-        """
-        tasks = [
-            asyncio.create_task(
-                _run_pool(
-                    pid,
-                    [
-                        (
-                            "generate",
-                            (chunk,),
-                            {"sampling_params": vllm_sampling_params},
-                        )
-                        for chunk in prompt_chunks[
-                            idx * args.actors_per_pool : (idx + 1) * args.actors_per_pool
-                        ]
-                    ],
-                )
-            )
-            for idx, pid in enumerate(ready_pools)
-        ]
-        """
+            t = asyncio.create_task(_run_pool(pid, messages))
+            tasks.append(t)
+            task_to_pool_idx[t] = idx
 
-        done, pending = await asyncio.wait(tasks, timeout=300)
+        done, pending = await asyncio.wait(tasks, timeout=180)
         inf_time = time.perf_counter() - inf_start
-        successful_requests = (
-            len(done) * len(actor_chunks[0]) * (num_prompts // num_inf_engines)
-        )
+
         if len(pending) != 0:
             print(
-                f"{len(done) * len(actor_chunks[0])}/{len(pool_ids) * len(actor_chunks[0])} actors completed. "
+                f"{len(done)}/{len(pool_ids)} pools completed. "
                 "May have to increase the timeout",
                 flush=True
             )
-            for t in pending:
-                t.cancel()
+            sys.exit(1)
+
+        # Get successful requests from the pool results
+        successful_requests = 0
+        for t in done:
+            pool_idx = task_to_pool_idx[t]
+            if t.exception() is not None:
+                print(f"Pool {pool_idx} failed with exception: {t.exception()}", flush=True)
+                continue
+            pool_results = t.result()
+            expected_chunks = prompt_chunks[
+                pool_idx * args.actors_per_pool : (pool_idx + 1) * args.actors_per_pool
+            ]
+            for actor_idx, responses in enumerate(pool_results):
+                if responses is not None and len(responses) == len(expected_chunks[actor_idx]):
+                    successful_requests += len(responses)
+        rps = successful_requests / inf_time
 
         # Stop ActorPools
         await pool_handle.stop()
@@ -291,10 +287,8 @@ async def async_main():
     print(f"Total number of successful requests: {successful_requests}")
     print(f"Total run time = {total_runtime:.4f} s")
     print(f"Initialization time (max) = {init_time:.4f} s")
-    print(f"Inference time (max) = {inf_time} s")
-    print(
-        f"Total successful requests per second (requests / inference time) : {successful_requests / inf_time:.4f}"
-    )
+    print(f"Inference time (max) = {inf_time:.4f} s")
+    print(f"Total successful requests per second (requests / inference time) : {rps:.4f}")
 
 
 if __name__ == "__main__":

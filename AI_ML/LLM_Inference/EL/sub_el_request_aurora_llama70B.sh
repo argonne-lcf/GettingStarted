@@ -24,27 +24,25 @@ fi
 
 # Set job variables
 NODES=$(cat ${PBS_NODEFILE} | wc -l)
-MODEL=meta-llama/Llama-3.1-8B-Instruct
+MODEL=meta-llama/Llama-3.3-70B-Instruct
 MODEL_FLARE_PATH=/flare/datasets/model-weights/hub
 TMP_PATH=/tmp/hf_home
-GPUS_PER_NODE=12
-TP_SIZE=1
+TP_SIZE=4
 BATCH_SIZE=16
-ENGINES_PER_NODE=12
+ENGINES_PER_NODE=2
+ACTORS_PER_POOL=$(( 1 * ENGINES_PER_NODE ))
 
 # Compile bcast
 UTILS=$PWD/../utils
 mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c
 
 # Build the virtual environment with EL and move to other nodes
-python -m venv $(pwd)/_env --system-site-packages
-source $(pwd)/_env/bin/activate
-# cd $(pwd)
-if [ ! -d ./ensemble_launcher ];then
-  git clone https://github.com/argonne-lcf/ensemble_launcher.git
-fi
+python -m venv /tmp/_env --system-site-packages
+source /tmp/_env/bin/activate
+cd /tmp
+git clone https://github.com/argonne-lcf/ensemble_launcher.git
 cd ensemble_launcher
-git checkout multi_node_vllm # NB: to remove, things will be merged into main
+git checkout multi_node_vllm_rb # NB: to remove, things will be merged into main
 pip install .
 cd $PBS_O_WORKDIR
 mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
@@ -89,6 +87,6 @@ python3 ./EL_request_driven.py \
   --cache_dir $HF_HOME \
   --tp_size $TP_SIZE \
   --batch_size $BATCH_SIZE \
+  --engines_per_node $ENGINES_PER_NODE \
+  --actors_per_pool $ACTORS_PER_POOL \
   --prompt_file ${UTILS}/prompts.jsonl
-
-mpirun -np "${NODES}" --ppn 1 pkill -f python

@@ -72,7 +72,7 @@ The [mpi_llm_inference.py](./MPI/mpi_llm_inference.py) script takes in a few run
 
 While MPI is a performant tool for the batched inference case, many workflow tools can support this workload as well. Here, we demonstrate how to use [EnsembleLauncher (EL)](https://github.com/argonne-lcf/ensemble_launcher) to set up the static batched inference approach on Aurora and Polaris. EL is a lightweight, scalable Python tool developed at ALCF for launching and orchestrating task ensembles across HPC clusters with intelligent resource management and hierarchical execution. 
 
-The main idea for this implementation of the workflow (see [EL_batched_inference.py](./EL/EL_batched_inference.py)) is that LLM inference, via the offline `vllm.LLM()` API, *and* the prompts are sent together to EL as tasks and are executed as transient processes, meaning that once the task is done with its workload it quits. The workload Once again, this approach works well for cases where there is a static, *a priori* defined set of work to be efficiently distributed and parallelized across many resources. 
+The main idea for this implementation of the workflow (see [EL_batched_inference.py](./EL/EL_batched_inference.py)) is that LLM inference, via the offline `vllm.LLM()` API, *and* the prompts are sent together to EL as tasks and are executed as transient processes, meaning that once the task is done with its workload it quits. Once again, this approach works well for cases where there is a static, *a priori* defined set of work to be efficiently distributed and parallelized across many resources. 
 
 ### Set up
 
@@ -114,7 +114,14 @@ Note that EL provides API to transfer the model weights and the vLLM cache to `/
 
 The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few runtime parameters to note:
 
-* ...
+* The model name (required)
+* The cache directory where the model weights are stored (required)
+* The tensor parallel (TP) size to use for the model (defaults to 1)
+* The data type to use (defaults to `bfloat16`)
+* The maximum number of output tokens (defaults to 128). This parameter can impact performance significantly and may need to be adjusted depending on the expected length of the LLM response.
+* The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
+* The number of inference engined per node to launch (defaults to as many as can fit based on TP size and number of GPUs on the node).
+* File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
 
 
 

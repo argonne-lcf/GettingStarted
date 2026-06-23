@@ -264,7 +264,6 @@ def main():
         outputs.extend(llm.generate(
                 prompt_batch,
                 sampling_params,
-                #use_tqdm=False,
             )
         )
     inference_time = time.time() - inf_start_time
