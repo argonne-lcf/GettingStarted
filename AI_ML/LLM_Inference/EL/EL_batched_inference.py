@@ -154,7 +154,7 @@ async def async_main():
                 ngpus_per_process=args.tp_size/cpu_cores_per_task, # this times ppn has to equal TP size
                 executable=call_llm,
                 args=(args.model_name, args.cache_dir, chunks[i]),
-                kwargs={"llm_kwargs": vllm_engine_params, "sampling_kwargs": vllm_sampling_params},
+                kwargs={"log_file_path":os.path.join(os.getcwd(),"logs","vllm",f"vllm-{i}.log"),"llm_kwargs": vllm_engine_params, "sampling_kwargs": vllm_sampling_params},
             )
         )
 
