@@ -9,7 +9,7 @@ import uuid
 
 from ensemble_launcher import EnsembleLauncher
 from ensemble_launcher.comm import transport_registry
-from ensemble_launcher.config import aurora_config
+from ensemble_launcher.config import aurora_config, polaris_config
 from ensemble_launcher.ensemble import ActorPool
 from ensemble_launcher.helper_functions import get_gpus, get_nodes
 from ensemble_launcher.inference import (
@@ -73,8 +73,11 @@ async def async_main():
 
     # Parse arguments and get system info
     nodes = get_nodes()
-    num_gpus = len(get_gpus())
+    gpus,gpu_type  = get_gpus()
+    num_gpus = len(gpus)
     num_inf_engines = (num_gpus // args.tp_size) * len(nodes)
+
+    assert gpu_type == "intel" or gpu_type == "nvidia", "This script only supports intel and nvidia gpus"
 
     # Read prompts from file
     try:
@@ -108,8 +111,12 @@ async def async_main():
 
     # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
-    sys_config = aurora_config
-    launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
+    if gpu_type == "intel":
+        sys_config = aurora_config
+        launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
+    else:
+        sys_config = polaris_config
+        launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir, gpu_selector="CUDA_VISIBLE_DEVICES")
 
     # Start EL
     # Start EL
@@ -246,11 +253,11 @@ async def async_main():
             done, pending = await asyncio.wait(tasks, timeout=100)
             inf_time = time.perf_counter() - t_inference_start
             successful_requests = (
-                len(done) * ACTORS_PER_POOL * (num_prompts // num_inf_engines)
+                len(done) * len(actor_chunks[0]) * (num_prompts // num_inf_engines)
             )
             if len(pending) != 0:
                 print(
-                    f"Only {len(done) * ACTORS_PER_POOL}/{len(pool_ids) * ACTORS_PER_POOL} finished in 100s"
+                    f"Only {len(done) * len(actor_chunks[0])}/{len(pool_ids) * len(actor_chunks[0])} finished in 100s"
                 )
                 for t in pending:
                     t.cancel()

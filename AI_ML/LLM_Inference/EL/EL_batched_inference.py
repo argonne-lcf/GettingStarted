@@ -8,7 +8,7 @@ import json
 import sys
 
 from ensemble_launcher import EnsembleLauncher
-from ensemble_launcher.config import aurora_config
+from ensemble_launcher.config import aurora_config, polaris_config
 from ensemble_launcher.ensemble import Task
 from ensemble_launcher.helper_functions import get_nodes, get_gpus
 from ensemble_launcher.inference import copy_model, default_inference_launcher_config
@@ -80,8 +80,8 @@ async def async_main():
     if not gpus:
         print(f"No GPUs found on system", flush=True)
         sys.exit(1)
-    if gpu_type != "intel":
-        print(f"EnsembleLauncher only implemented for Aurora currently", flush=True)
+    if gpu_type != "intel" and gpu_type != "nvidia":
+        print(f"EnsembleLauncher only implemented for Aurora and Polaris currently", flush=True)
         sys.exit(1)
     num_gpus = len(gpus)
     print(f"Running on {len(nodes)} nodes with {num_gpus} GPUs", flush=True) 
@@ -109,8 +109,12 @@ async def async_main():
 
     # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
-    sys_config = aurora_config
-    launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
+    if gpu_type == "intel":
+        sys_config = aurora_config
+        launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
+    else:
+        sys_config = polaris_config
+        launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir, gpu_selector="CUDA_VISIBLE_DEVICES")
 
     # Start EL
     el = EnsembleLauncher(

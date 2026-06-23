@@ -4,7 +4,7 @@
 ##PBS -l walltime=00:30:00
 ##PBS -q debug-scaling
 ##PBS -A <project_name>
-##PBS -l filesystems=home:eagle
+##PBS -l filesystems=home:flare
 ##PBS -j oe
 #cd $PBS_O_WORKDIR
 
@@ -67,9 +67,11 @@ export TRANSFORMERS_OFFLINE=1
 
 # Launch workflow
 echo -e "\n\nLaunching $MODEL on $NODES nodes with $ENGINES_PER_NODE engines per node..."
-python3 ./EL_batched_inference.py \
+python3 ./EL_request_driven.py \
   --model_name $MODEL \
   --cache_dir $HF_HOME \
   --tp_size $TP_SIZE \
   --batch_size $BATCH_SIZE \
   --prompt_file ${UTILS}/prompts.jsonl
+
+mpirun -np "${NODES}" --ppn 1 pkill -f python
