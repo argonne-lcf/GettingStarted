@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#PBS -N el-llm
+#PBS -N el-vllm
 #PBS -l select=2
 #PBS -l walltime=00:30:00
 #PBS -q debug-scaling

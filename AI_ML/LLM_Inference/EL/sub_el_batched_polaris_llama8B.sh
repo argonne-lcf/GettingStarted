@@ -1,5 +1,5 @@
 #!/bin/bash -l
-##PBS -N el-llm
+##PBS -N el-vllm
 ##PBS -l select=2
 ##PBS -l walltime=00:30:00
 ##PBS -q debug-scaling
@@ -41,7 +41,7 @@ source /tmp/_env/bin/activate
 cd /tmp
 git clone https://github.com/argonne-lcf/ensemble_launcher.git
 cd ensemble_launcher
-git checkout multi_node_vllm_rb # NB: to remove, things will be merged into main
+git checkout multi_node_vllm # NB: to remove, things will be merged into main
 pip install .
 cd $PBS_O_WORKDIR
 mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast --no-root-write \

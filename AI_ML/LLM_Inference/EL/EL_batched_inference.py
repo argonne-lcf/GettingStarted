@@ -8,7 +8,7 @@ import json
 import sys
 
 from ensemble_launcher import EnsembleLauncher
-from ensemble_launcher.config import aurora_config
+from ensemble_launcher.config import aurora_config, polaris_config
 from ensemble_launcher.ensemble import Task
 from ensemble_launcher.helper_functions import get_nodes, get_gpus
 from ensemble_launcher.inference import copy_model, default_inference_launcher_config
@@ -80,9 +80,6 @@ async def async_main():
     if not gpus:
         print(f"No GPUs found on system", flush=True)
         sys.exit(1)
-    if gpu_type != "intel":
-        print(f"EnsembleLauncher only implemented for Aurora currently", flush=True)
-        sys.exit(1)
     num_gpus = len(gpus)
     print(f"Running on {len(nodes)} nodes with {num_gpus} GPUs", flush=True) 
 
@@ -109,8 +106,17 @@ async def async_main():
 
     # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
-    sys_config = aurora_config
-    launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
+    if gpu_type == "intel":
+        sys_config = aurora_config
+        launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
+    elif gpu_type == "nvidia":
+        sys_config = polaris_config
+        launcher_config = default_inference_launcher_config(
+            len(nodes), ckpt_dir, {"gpu_selector": "CUDA_VISIBLE_DEVICES"}
+        )
+    else:
+        print("Unknown system, must specify a custom system config")
+        sys.exit(1)
 
     # Start EL
     el = EnsembleLauncher(
@@ -168,7 +174,7 @@ async def async_main():
             print(f"Done with all tasks in {(time.perf_counter() - tic):.1f} s", flush=True)
         else:
             print(
-                f"Only {len(done)}/{num_tasks} tasks completed."
+                f"Only {len(done)}/{num_tasks} tasks completed. "
                 "May have to increase the timeout",
                 flush=True
             )
@@ -192,7 +198,7 @@ async def async_main():
     tic = time.perf_counter()
     print("Stopping EnsembleLauncher ...")
     el.stop()
-    print(f"EnsembleLauncher stopped in {(time.perf_counter() - tic):.1f}", flush=True)
+    print(f"EnsembleLauncher stopped in {(time.perf_counter() - tic):.1f} s", flush=True)
     total_runtime = time.time() - start_time
 
     # Print summary of performance stats
