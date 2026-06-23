@@ -24,12 +24,12 @@ fi
 
 # Set job variables
 NODES=$(cat ${PBS_NODEFILE} | wc -l)
-MODEL=meta-llama/Llama-3.1-8B-Instruct
+MODEL=meta-llama/Llama-3.1-70B-Instruct
 MODEL_EAGLE_PATH=/eagle/datasets/model-weights/hub
 TMP_PATH=/tmp/hf_home
-TP_SIZE=1
+TP_SIZE=4
 BATCH_SIZE=16
-ENGINES_PER_NODE=4
+ENGINES_PER_NODE=1
 
 # Compile bcast
 UTILS=$PWD/../utils

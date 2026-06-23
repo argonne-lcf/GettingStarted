@@ -112,7 +112,7 @@ async def async_main():
     elif gpu_type == "nvidia":
         sys_config = polaris_config
         launcher_config = default_inference_launcher_config(
-            len(nodes), ckpt_dir, {"gpu_selector": "CUDA_VISIBLE_DEVICES"}
+            len(nodes), ckpt_dir, gpu_selector="CUDA_VISIBLE_DEVICES"
         )
     else:
         print("Unknown system, must specify a custom system config")
