@@ -45,8 +45,8 @@ cd ensemble_launcher
 git checkout multi_node_vllm_rb # NB: to remove, things will be merged into main
 pip install .
 cd $PBS_O_WORKDIR
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
-  $(pwd)/_env /tmp
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast --no-root-write \
+  /tmp/_env /tmp
 
 # Move model weights to /tmp on the nodes
 MODEL_DIR="models--${MODEL//\//--}"

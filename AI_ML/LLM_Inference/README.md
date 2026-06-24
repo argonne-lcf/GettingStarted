@@ -262,5 +262,4 @@ mpiexec -np $NODES -ppn 1 --cpu-bind numa bcast /path/on/lustre/my_dir /path/on/
 mpiexec -np $NODES -ppn 1 --cpu-bind numa bcast --no-root-write /path/on/tmp/my_dir /path/on/tmp
 ```
 
-### Distribute prompts
 
