@@ -167,7 +167,7 @@ async def async_main():
         print(f"Submitted {num_tasks} LLM inference tasks across {len(nodes)} nodes", flush=True)
 
         # Wait for task completion
-        done, pending = concurrent.futures.wait(llm_futures, timeout=300)
+        done, pending = concurrent.futures.wait(llm_futures, timeout=500)
 
         # Check completed tasks
         if len(done) == num_tasks:
