@@ -12,7 +12,7 @@ Additionally, the offline approach to vLLM inference which uses the Python `LLM(
 In the **request-driven inference** case, the idea is to launch persistent processes or servers which stand up inference engines and continuously listen and wait for prompts to be submitted in a dynamic and asynchronous pattern. For example, agentic or human-driven workflows often require such a pattern, since the prompts are generated *on-the-fly* as the workflow progresses.
 Additionally, it may also be necessary to serve differenct models tailored to different tasks. 
 Due to the increased complexity of such workflows, the MPI based solution is less likely and instead workflow tools provide efficient and scalable solutions by routing the prompts to the various inference engines as they are generated.
-In the context of vLLM, this is the classic fit for the `vllm serve` CLI command, however we'll see that the Python `LLM()` API can still be used when wrapping it around a workflow harness such as EL and Dragon to proivide both the request-driven advantage `vllm serve` and the high-throuput of the Python `LLM()` API.
+In the context of vLLM, this is the classic fit for the `vllm serve` CLI command, however we'll see that the Python `LLM()` API can still be used when wrapping it around a workflow harness such as EL to proivide both the request-driven advantage `vllm serve` and the high-throuput of the Python `LLM()` API.
 
 Below we compare the weak-scaling performance of batched and request-driven approaches implemented with different workflow tools on Aurora. The tests deploy one engine per PVC tile (12 per node) with the Llama 3.1 8B model and perform 32 prompt requests per inference engine based on the [prompts.jsonl](./utils/prompts.jsonl) file (the length of the response is limited to 128 tokens, `max_model_len=8192` and for offline LLM the batch size is set to 16).
 
@@ -175,59 +175,6 @@ The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few r
 * The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
 * The number of inference engines per node to launch (defaults to as many as can fit based on TP size and number of GPUs on the node).
 * The number of `PrivateVLLMInference` actors in each `ActorPool` (defaults to 4). Increasing this parameters helps the workflow scale to many nodes since it creates a tree-like fan-out to distribute the prompts to the various engines. 
-* File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
-
-
-## Request-driven Inference with Dragon
-
-[Dragon](https://dragonhpc.org/portal/index.html) is a composable distributed run-time for managing processes, memory, and data at scale through high-performance communication objects, thus it is a valuable tool for designing and executing workflows on HPC systems.
-Among many other valuable features (see the [Dragon getting started examples](../../Workflows/dragonhpc/README.md)), the Dragon Python API also provides an [LLM Inference API](https://dragonhpc.github.io/dragon/doc/_build/html/ref/ai/inference/index.html) which can be used to distribute inference workloads to multiple nodes or integrate AI with scientific workflows. Their API leevrages the offline `vllm.LLM()` API, however it combines this with their multi-mode Python multiprocessing extension to enable across-node, request-driven inference. An example showing how to use Dragon for large-scale LLM inference is provided in the [Dragon](./Dragon/) directory, along with job scripts for both Polaris and Aurora. 
-
-**Note**: Currently, Dragon only supports deploying models that fit within a single node (4 A100 GPUs on Polaris and 12 PVC tiles on Aurora). HPE is working on solutions for deploying large models which require the memory from multiple nodes, and this support will be made available in future releases. 
-
-### Set up
-
-To install Dragon on ALCF systems, simply create a new virtual environment and pip install `dragonhpc` as shown below. Note, however, that the submit scripts are set up to install the virtual environments directly in `/tmp` on the compute nodes at the beginning of the job.
-
-```bash
-# On Aurora
-module load frameworks
-python -m venv _env --system-site-packages
-source _env/bin/activate
-pip install dragonhpc
-dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/1.22.0/lib64
-
-# On Polaris
-module use /soft/modulefiles
-module load conda
-conda activate base
-python -m venv _env --system-site-packages
-source _env/bin/activate
-pip install dragonhpc
-dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/2.2.0rc1/lib64
-```
-
-The last installation step of running `dragon-config` configures `dragon` to use fast RDMA transfers across the Slingshot network present on both systems.  Without this step, `dragon` would run in the default mode that uses slower TCP transfers.
-
-
-### Run the examples
-
-For both Aurora and Polaris, there are submit scripts to run a small, single-GPU model with tensor parallelism (`TP`) size of 1 and an example running a larger model requirung `TP>1`. 
-
-To run the examples, simply submit the scripts provided for Aurora and Polaris. For example, to run the example with the Llama 3.1 8B model on Aurora execute
-
-```bash
-qsub sub_dragon_aurora_llama8B.sh
-```
-
-The [dragon_llm_inference.py](./Dragon/dragon_llm_inference.py) script takes a few runtime parameters to note:
-
-* The Hugging Face token (required)
-* The model name (required)
-* The tensor parallel (TP) size to use for the model (defaults to 1)
-* The data type to use (defaults to `bfloat16`)
-* The maximum number of output tokens (defaults to 128). This parameter can impact performance significantly and may need to be adjusted depending on the expected length of the LLM response.
-* The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
 * File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
 
 
