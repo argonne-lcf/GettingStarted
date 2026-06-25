@@ -209,7 +209,7 @@ async def async_main():
         await pool_handle.open()
         print(f"Waiting for {len(pool_ids)} pools to be ready...")
         try:
-            await pool_handle.wait_for_ready(expected=len(pool_ids), timeout=300)
+            await pool_handle.wait_for_ready(expected=len(pool_ids), timeout=700)
             ready_pools = pool_handle.ready_actors
         except asyncio.TimeoutError:
             for pid, future in enumerate(pool_futures):
