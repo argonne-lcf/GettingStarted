@@ -34,7 +34,7 @@ ACTORS_PER_POOL=$(( 1 * ENGINES_PER_NODE ))
 
 # Compile bcast
 UTILS=$PWD/../utils
-mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c
+mpicc -O2 -o ./bcast /flare/datasets/softwares/bcast/bcast.c
 
 # Build the virtual environment with EL and move to other nodes
 python -m venv /tmp/_env --system-site-packages
@@ -45,7 +45,7 @@ cd ensemble_launcher
 git checkout multi_node_vllm_rb # NB: to remove, things will be merged into main
 pip install .
 cd $PBS_O_WORKDIR
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast --no-root-write \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast --no-root-write \
   /tmp/_env /tmp
 
 # Move model weights to /tmp on the nodes
@@ -56,7 +56,7 @@ if [[ ! -e "$MODEL_FLARE_PATH" ]]; then
     exit 1
 fi
 MODEL_TMP_PATH=/tmp/hf_home/hub/
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast \
   $MODEL_FLARE_PATH $MODEL_TMP_PATH
 export HF_HOME=/tmp/hf_home
 
@@ -69,7 +69,7 @@ echo "Cache build complete."
 # Move model-info cache to /tmp on the nodes
 MODELINFO_FLARE_PATH=$VLLM_CACHE_ROOT
 MODELINFO_TMP_PATH=$TMP_PATH/hub/
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast \
   $MODELINFO_FLARE_PATH $MODELINFO_TMP_PATH
 export VLLM_CACHE_ROOT=${MODELINFO_TMP_PATH}/.vllm_cache
 

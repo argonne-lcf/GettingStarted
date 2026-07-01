@@ -33,8 +33,7 @@ ENGINES_PER_NODE=1
 ACTORS_PER_POOL=$(( 4 * ENGINES_PER_NODE ))
 
 # Compile bcast
-UTILS=$PWD/../utils
-mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c -lmpi_gtl_cuda
+mpicc -O2 -o ./bcast /eagle/datasets/softwares/bcast/bcast.c -lmpi_gtl_cuda
 
 # Build the virtual environment with EL and move to other nodes
 python -m venv /tmp/_env --system-site-packages
@@ -45,7 +44,7 @@ cd ensemble_launcher
 git checkout multi_node_vllm_rb # NB: to remove, things will be merged into main
 pip install .
 cd $PBS_O_WORKDIR
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast --no-root-write \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast --no-root-write \
   /tmp/_env /tmp
 
 # Move model weights to /tmp on the nodes
@@ -56,7 +55,7 @@ if [[ ! -e "$MODEL_EAGLE_PATH" ]]; then
     exit 1
 fi
 MODEL_TMP_PATH=/tmp/hf_home/hub/
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast \
   $MODEL_EAGLE_PATH $MODEL_TMP_PATH
 export HF_HOME=/tmp/hf_home
 

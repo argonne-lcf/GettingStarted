@@ -32,7 +32,7 @@ CPU_BIND="list:1-48:53-100"
 
 # Compile bcast
 UTILS=$PWD/../utils
-mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c
+mpicc -O2 -o ./bcast /flare/datasets/softwares/bcast/bcast.c
 
 # Move model weights to /tmp on the nodes
 MODEL_DIR="models--${MODEL//\//--}"
@@ -42,7 +42,7 @@ if [[ ! -e "$MODEL_FLARE_PATH" ]]; then
     exit 1
 fi
 MODEL_TMP_PATH=/tmp/hf_home/hub/
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast \
   $MODEL_FLARE_PATH $MODEL_TMP_PATH
 export HF_HOME=/tmp/hf_home
 
@@ -55,14 +55,14 @@ echo "Cache build complete."
 # Move model-info cache to /tmp on the nodes
 MODELINFO_FLARE_PATH=$VLLM_CACHE_ROOT
 MODELINFO_TMP_PATH=/tmp/hf_home/hub/
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast \
   $MODELINFO_FLARE_PATH $MODELINFO_TMP_PATH
 export VLLM_CACHE_ROOT=${MODELINFO_TMP_PATH}/.vllm_cache
 
 # Move prompts to /tmp on the nodes
 PROMPTS_FLARE_PATH=/flare/datasets/prompts/prompts.jsonl
 PROMPTS_TMP_PATH=/tmp/hf_home/
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast \
   $PROMPTS_FLARE_PATH $PROMPTS_TMP_PATH
 
 # Other env variables

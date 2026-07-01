@@ -32,8 +32,7 @@ RANKS=$(( NODES * ENGINES_PER_NODE ))
 CPU_BIND="list:0-31"
 
 # Compile bcast to scatter weights to /tmp on the nodes
-UTILS=$PWD/../utils
-mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c -lmpi_gtl_cuda
+mpicc -O2 -o ./bcast /eagle/datasets/softwares/bcast/bcast.c -lmpi_gtl_cuda
 
 # Move model weights to /tmp on the nodes
 MODEL_DIR="models--${MODEL//\//--}"
@@ -43,14 +42,14 @@ if [[ ! -e "$MODEL_EAGLE_PATH" ]]; then
     exit 1
 fi
 MODEL_TMP_PATH=/tmp/hf_home/hub/
-mpiexec -np $NODES -ppn 1 --cpu-bind numa $UTILS/bcast \
+mpiexec -np $NODES -ppn 1 --cpu-bind numa ./bcast \
   $MODEL_EAGLE_PATH $MODEL_TMP_PATH
 export HF_HOME=/tmp/hf_home
 
 # Move prompts to /tmp on the nodes
 PROMPTS_EAGLE_PATH=/eagle/datasets/prompts/prompts.jsonl
 PROMPTS_TMP_PATH=/tmp/hf_home
-mpiexec -np $NODES -ppn 1 --cpu-bind numa $UTILS/bcast \
+mpiexec -np $NODES -ppn 1 --cpu-bind numa ./bcast \
   $PROMPTS_EAGLE_PATH $PROMPTS_TMP_PATH
 
 # Other env variables
