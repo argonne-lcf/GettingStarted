@@ -87,4 +87,4 @@ python3 ./EL_batched_inference.py \
   --tp_size $TP_SIZE \
   --batch_size $BATCH_SIZE \
   --engines_per_node $ENGINES_PER_NODE \
-  --prompt_file ${UTILS}/prompts.jsonl
+  --prompt_file /flare/datasets/prompts/prompts.jsonl

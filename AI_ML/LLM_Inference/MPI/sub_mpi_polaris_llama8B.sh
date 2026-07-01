@@ -48,7 +48,7 @@ mpiexec -np $NODES -ppn 1 --cpu-bind numa $UTILS/bcast \
 export HF_HOME=/tmp/hf_home
 
 # Move prompts to /tmp on the nodes
-PROMPTS_EAGLE_PATH=$UTILS/prompts.jsonl
+PROMPTS_EAGLE_PATH=/eagle/datasets/prompts/prompts.jsonl
 PROMPTS_TMP_PATH=/tmp/hf_home
 mpiexec -np $NODES -ppn 1 --cpu-bind numa $UTILS/bcast \
   $PROMPTS_EAGLE_PATH $PROMPTS_TMP_PATH

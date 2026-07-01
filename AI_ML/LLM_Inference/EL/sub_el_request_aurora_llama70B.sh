@@ -89,4 +89,4 @@ python3 ./EL_request_driven.py \
   --batch_size $BATCH_SIZE \
   --engines_per_node $ENGINES_PER_NODE \
   --actors_per_pool $ACTORS_PER_POOL \
-  --prompt_file ${UTILS}/prompts.jsonl
+  --prompt_file /flare/datasets/prompts/prompts.jsonl

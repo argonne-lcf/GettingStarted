@@ -72,4 +72,4 @@ python3 ./EL_batched_inference.py \
   --cache_dir $HF_HOME \
   --tp_size $TP_SIZE \
   --batch_size $BATCH_SIZE \
-  --prompt_file ${UTILS}/prompts.jsonl
+  --prompt_file /eagle/datasets/prompts/prompts.jsonl

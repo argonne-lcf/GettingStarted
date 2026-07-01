@@ -74,4 +74,4 @@ python3 ./EL_request_driven.py \
   --tp_size $TP_SIZE \
   --batch_size $BATCH_SIZE \
   --actors_per_pool $ACTORS_PER_POOL \
-  --prompt_file ${UTILS}/prompts.jsonl
+  --prompt_file /eagle/datasets/prompts/prompts.jsonl

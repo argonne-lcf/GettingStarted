@@ -60,7 +60,7 @@ mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
 export VLLM_CACHE_ROOT=${MODELINFO_TMP_PATH}/.vllm_cache
 
 # Move prompts to /tmp on the nodes
-PROMPTS_FLARE_PATH=$UTILS/prompts.jsonl
+PROMPTS_FLARE_PATH=/flare/datasets/prompts/prompts.jsonl
 PROMPTS_TMP_PATH=/tmp/hf_home/
 mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
   $PROMPTS_FLARE_PATH $PROMPTS_TMP_PATH
