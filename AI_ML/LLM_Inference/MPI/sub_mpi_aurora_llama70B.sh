@@ -45,18 +45,13 @@ mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast \
   $MODEL_FLARE_PATH $MODEL_TMP_PATH
 export HF_HOME=/tmp/hf_home
 
-# Pre-build vLLM model-info caches
-export VLLM_CACHE_ROOT=$PWD/.vllm_cache
+# Pre-build vLLM model-info caches and move to other nodes
+export VLLM_CACHE_ROOT=/tmp/hf_home/hub/.vllm_cache
 echo "Building vLLM model-info caches in ${VLLM_CACHE_ROOT} ..."
 python /flare/datasets/softwares/vllm/vllm_build_model_cache.py
 echo "Cache build complete."
-
-# Move model-info cache to /tmp on the nodes
-MODELINFO_FLARE_PATH=$VLLM_CACHE_ROOT
-MODELINFO_TMP_PATH=/tmp/hf_home/hub/
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast \
-  $MODELINFO_FLARE_PATH $MODELINFO_TMP_PATH
-export VLLM_CACHE_ROOT=${MODELINFO_TMP_PATH}/.vllm_cache
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast --no-root-write \
+  $VLLM_CACHE_ROOT /tmp/hf_home/hub
 
 # Move prompts to /tmp on the nodes
 PROMPTS_FLARE_PATH=/flare/datasets/prompts/prompts.jsonl
