@@ -188,13 +188,13 @@ For this, we provide an MPI utility called [bcast.c](./utils/bcast.c) which can 
 ```bash
 # On Aurora
 module load frameworks
-mpicc -O2 -o bcast bcast.c
+mpicc -O2 -o ./utils/bcast ./utils/bcast.c
 
 # On Polaris
 module use /soft/modulefiles
 module load conda
 conda activate
-mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c -lmpi_gtl_cuda
+mpicc -O2 -o ./utils/bcast ./utils/bcast.c -lmpi_gtl_cuda
 ```
 
 and to move a directory from Lustre to `/tmp` execute

@@ -31,7 +31,6 @@ RANKS=$(( NODES * ENGINES_PER_NODE ))
 CPU_BIND="list:1-48:53-100"
 
 # Compile bcast
-UTILS=$PWD/../utils
 mpicc -O2 -o ./bcast /flare/datasets/softwares/bcast/bcast.c
 
 # Move model weights to /tmp on the nodes
@@ -49,7 +48,7 @@ export HF_HOME=/tmp/hf_home
 # Pre-build vLLM model-info caches
 export VLLM_CACHE_ROOT=$PWD/.vllm_cache
 echo "Building vLLM model-info caches in ${VLLM_CACHE_ROOT} ..."
-python $UTILS/vllm_build_model_cache.py
+python /flare/datasets/softwares/vllm/vllm_build_model_cache.py
 echo "Cache build complete."
 
 # Move model-info cache to /tmp on the nodes

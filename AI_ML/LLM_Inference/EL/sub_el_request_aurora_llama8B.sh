@@ -33,7 +33,6 @@ ENGINES_PER_NODE=12
 ACTORS_PER_POOL=$(( 1 * ENGINES_PER_NODE ))
 
 # Compile bcast
-UTILS=$PWD/../utils
 mpicc -O2 -o ./bcast /flare/datasets/softwares/bcast/bcast.c
 
 # Build the virtual environment with EL and move to other nodes
@@ -63,7 +62,7 @@ export HF_HOME=/tmp/hf_home
 # Pre-build vLLM model-info cache
 export VLLM_CACHE_ROOT=$PWD/.vllm_cache
 echo "Building vLLM model-info cache in ${VLLM_CACHE_ROOT} ..."
-python $UTILS/vllm_build_model_cache.py
+python /flare/datasets/softwares/vllm/vllm_build_model_cache.py
 echo "Cache build complete."
 
 # Move model-info cache to /tmp on the nodes
