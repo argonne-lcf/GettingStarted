@@ -131,6 +131,8 @@ In the [EL_request_driven.py](./EL/EL_request_driven.py) script, EL stands up pe
 
 To install EnsembleLauncher on ALCF systems, simply create a new virtual environment, clone the repository, and install it as shown below. Note, however, that the submit scripts are set up to install the virtual environments directly in `/tmp` on the compute nodes at the beginning of the job.
 
+**Note:** the request driven approach with EL is currently not supported on Polaris due to an issue launching multiple mpiexec commands within a job. This issue is being investigated.
+
 ```bash
 # On Aurora
 module load frameworks
@@ -155,9 +157,9 @@ cd ..
 
 ### Run the examples
 
-For both Aurora and Polaris, there are submit scripts to run a small, single-GPU model with tensor parallelism (`TP`) size of 1 and an example running a larger model requirung `TP>1`. 
+For Aurora, there are submit scripts to run a small, single-GPU model with tensor parallelism (`TP`) size of 1 and an example running a larger model requirung `TP>1`. 
 
-To run the examples, simply submit the scripts provided for Aurora and Polaris. For example, to run the example with the Llama 3.1 8B model on Aurora execute
+To run the examples, simply submit the scripts provided for Aurora. For example, to run the example with the Llama 3.1 8B model on Aurora execute
 
 ```bash
 qsub sub_el_request_aurora_llama8B.sh
