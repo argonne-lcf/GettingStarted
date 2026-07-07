@@ -165,7 +165,7 @@ To run the examples, simply submit the scripts provided for Aurora. For example,
 qsub sub_el_request_aurora_llama8B.sh
 ```
 
-In these examples, we still use the [bcast.c](./utils/bcast.c) utility to transfer the model weights and `modelinfo` cache to `/tmp` on all the nodes, however note that EL provides API to perform these tasks natively within Python. 
+In these examples, we still use the [bcast.c](./utils/bcast.c) utility to transfer the model weights and `modelinfo` cache to `/tmp` on all the nodes, however note that EL provides API to perform these tasks natively within Python if desired. 
 
 The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few runtime parameters to note:
 
@@ -175,8 +175,8 @@ The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few r
 * The data type to use (defaults to `bfloat16`)
 * The maximum number of output tokens (defaults to 128). This parameter can impact performance significantly and may need to be adjusted depending on the expected length of the LLM response.
 * The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
-* The number of inference engines per node to launch (defaults to as many as can fit based on TP size and number of GPUs on the node).
-* The number of `PrivateVLLMInference` actors in each `ActorPool` (defaults to 4). Increasing this parameters helps the workflow scale to many nodes since it creates a tree-like fan-out to distribute the prompts to the various engines. 
+* The number of inference engines per node to launch (defaults to as many as can fit based on TP size and number of GPUs on the node) if desired.
+* The number of `PrivateVLLMInference` actors in each `ActorPool` (defaults to 4). Increasing this parameters helps the workflow scale to a large number of nodes since it creates a tree-like fan-out to distribute the prompts to the various engines. 
 * File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
 
 
