@@ -213,7 +213,7 @@ async def async_main():
             server,
         )
         await pool_handle.open()
-        print(f"Waiting for {len(pool_ids)} pools to be ready...")
+        print(f"Waiting for {len(pool_ids)} pools to be ready...", flush=True)
         try:
             await pool_handle.wait_for_ready(expected=len(pool_ids), timeout=700)
             ready_pools = pool_handle.ready_actors
