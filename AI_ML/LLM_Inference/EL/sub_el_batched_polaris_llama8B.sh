@@ -40,7 +40,6 @@ source /tmp/_env/bin/activate
 cd /tmp
 git clone https://github.com/argonne-lcf/ensemble_launcher.git
 cd ensemble_launcher
-git checkout multi_node_vllm # NB: to remove, things will be merged into main
 pip install .
 cd $PBS_O_WORKDIR
 mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast --no-root-write \
