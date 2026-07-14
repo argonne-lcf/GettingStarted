@@ -18,7 +18,7 @@ submitting jobs.
 
 1. [Applications](./Applications): Example Makefiles, build scripts, etc. for
    some applications
-1. [Data Science](./DataScience/): Data & Learning examples with pointers to
+1. [AI/ML](./AI_ML/): AI and Machine Learning examples with pointers to
    additional Tutorials
 1. [Debug Tools](./DebugTools): Simple examples using available debugging tools
 1. [Examples](./Examples): Collection of examples demonstrating common tasks
