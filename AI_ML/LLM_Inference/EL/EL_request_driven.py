@@ -9,7 +9,7 @@ import uuid
 
 from ensemble_launcher import EnsembleLauncher
 from ensemble_launcher.comm import transport_registry
-from ensemble_launcher.config import aurora_config
+from ensemble_launcher.config import aurora_config, polaris_config
 from ensemble_launcher.ensemble import ActorPool
 from ensemble_launcher.helper_functions import get_gpus, get_nodes
 from ensemble_launcher.inference import (
@@ -89,9 +89,6 @@ async def async_main():
     if not gpus:
         print(f"No GPUs found on system", flush=True)
         sys.exit(1)
-    if gpu_type != "intel":
-        print(f"EnsembleLauncher only implemented for Aurora currently", flush=True)
-        sys.exit(1)
     num_gpus = len(gpus)
     print(f"Running on {len(nodes)} nodes with {num_gpus} GPUs", flush=True)
 
@@ -134,8 +131,17 @@ async def async_main():
 
     # Create EL system and launcher configs
     ckpt_dir = f"{os.getcwd()}/ckpt_{str(uuid.uuid4())}"
-    sys_config = aurora_config
-    launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
+    if gpu_type == "intel":
+        sys_config = aurora_config
+        launcher_config = default_inference_launcher_config(len(nodes), ckpt_dir)
+    elif gpu_type == "nvidia":
+        sys_config = polaris_config
+        launcher_config = default_inference_launcher_config(
+            len(nodes), ckpt_dir, gpu_selector="CUDA_VISIBLE_DEVICES"
+        )
+    else:
+        print("Unknown system, must specify a custom system config")
+        sys.exit(1)
 
     # Start EL
     el = EnsembleLauncher(
@@ -167,7 +173,7 @@ async def async_main():
         "model_info_cache": os.environ.get("VLLM_CACHE_ROOT", None),
         "llm_kwargs": vllm_engine_params,
     }
-    cpu_cores_per_task = 8
+    cpu_cores_per_task = 8 if gpu_type == "intel" else 4
     task_kwargs = {
         "nnodes": 1,
         "ppn": cpu_cores_per_task,
@@ -207,7 +213,7 @@ async def async_main():
             server,
         )
         await pool_handle.open()
-        print(f"Waiting for {len(pool_ids)} pools to be ready...")
+        print(f"Waiting for {len(pool_ids)} pools to be ready...", flush=True)
         try:
             await pool_handle.wait_for_ready(expected=len(pool_ids), timeout=700)
             ready_pools = pool_handle.ready_actors
