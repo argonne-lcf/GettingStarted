@@ -196,7 +196,7 @@ To install Dragon on ALCF systems, simply create a new virtual environment and p
 module load frameworks
 python -m venv _env --system-site-packages
 source _env/bin/activate
-pip install dragonhpc
+pip install dragonhpc[ai]
 dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/1.22.0/lib64
 
 # On Polaris
@@ -205,7 +205,13 @@ module load conda
 conda activate base
 python -m venv _env --system-site-packages
 source _env/bin/activate
-pip install dragonhpc
+CONDA_VLLM=$(python -c "import sys; sys.path.insert(0, '/path/to/conda/env/lib/pythonX.X/site-packages'); import vllm; print(vllm.__path__[0])")
+VENV_SITE=$(python -c "import site; print(site.getsitepackages()[0])")
+cp -r $CONDA_VLLM $VENV_SITE
+cp -r ${CONDA_VLLM}-* $VENV_SITE
+pip install dragonhpc[telemetry] # no need to install the extra ai packages, we provide vllm from base conda env
+DRAGON_PKG_DIR=$(python -c 'import dragon, os; print(os.path.dirname(dragon.__file__))')
+patch -p2 -N -d "$DRAGON_PKG_DIR" < ./dragon_lazy_guardrails.patch || true
 dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/2.2.0rc1/lib64
 ```
 

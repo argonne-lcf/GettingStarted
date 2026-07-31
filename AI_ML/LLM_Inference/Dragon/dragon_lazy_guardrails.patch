@@ -1,0 +1,45 @@
+--- a/ai/inference/inference_worker_utils.py
++++ b/ai/inference/inference_worker_utils.py
+@@ -24,7 +24,11 @@ from .config import (
+     GuardrailsConfig,
+     DynamicWorkerConfig,
+ )
+-from .guardrails import GuardrailsProcessor
++# NOTE: `guardrails` is imported lazily inside run_pre_processing_module()
++# because .prompt_guard_utils unconditionally imports torch/transformers at
++# module top-level. On some platforms (e.g. Intel XPU), importing torch in a
++# Dragon-spawned CPU-head subprocess segfaults before the LLM worker has been
++# placed on its GPU. Only pay this import cost when guardrails are enabled.
+ from .batching import DynamicBatcher
+ from .llm_engine import LLMInferenceEngine
+
+@@ -228,9 +232,10 @@ class InferenceWorker:
+             )
+             self.log.info("Pre-Proc Module: DynamicBatcher initialized")
+
+-        # Initialize GuardrailsProcessor
++        # Initialize GuardrailsProcessor (lazy import — pulls in torch/transformers)
+         guardrails = None
+         if self.prompt_guard_toggle:
++            from .guardrails import GuardrailsProcessor
+             guardrails = GuardrailsProcessor(self.guardrails_config, self.hf_token)
+             self.log.info("Pre-Proc Module: GuardrailsProcessor initialized")
+         else:
+@@ -624,7 +629,7 @@ class InferenceWorker:
+         user_prompts: list,
+         response_queues: list,
+         latency_metrics: list,
+-        guardrails: Optional[GuardrailsProcessor],
++        guardrails: Optional["GuardrailsProcessor"],
+     ):
+         """Apply guardrails filtering and return safe prompts and metrics.
+
+@@ -862,7 +867,7 @@ class InferenceWorker:
+         user_prompts: list,
+         response_queues: list,
+         latency_metrics: list,
+-        guardrails: Optional[GuardrailsProcessor],
++        guardrails: Optional["GuardrailsProcessor"],
+         tools_list: list = None,
+         json_schema_list: list = None,
+         continue_final_message_list: list = None,
