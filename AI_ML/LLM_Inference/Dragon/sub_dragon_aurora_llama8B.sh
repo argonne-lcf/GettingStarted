@@ -40,7 +40,7 @@ cp -r $CONDA_VLLM $VENV_SITE
 cp -r ${CONDA_VLLM}-* $VENV_SITE
 pip install dragonhpc[telemetry] # no need to install the extra ai package, we provide vllm from base conda env
 DRAGON_PKG_DIR=$(python -c 'import dragon, os; print(os.path.dirname(dragon.__file__))')
-patch -p1 -N -d "$DRAGON_PKG_DIR" < ./dragon_lazy_guardrails.patch || true
+patch -p1 -N -d "$DRAGON_PKG_DIR" < ./dragon.patch || true
 dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/1.22.0/lib64
 mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast --no-root-write \
   /tmp/_env /tmp
