@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#PBS -N dragon-llm
+#PBS -N dragon-vllm
 #PBS -l select=2
 #PBS -l walltime=00:30:00
 #PBS -q debug-scaling
@@ -30,15 +30,14 @@ BATCH_SIZE=16
 ENGINES_PER_NODE=1
 
 # Compile bcast
-UTILS=$PWD/../utils
-mpicc -O2 -o $UTILS/bcast $UTILS/bcast.c -lmpi_gtl_cuda
+mpicc -O2 -o ./bcast /eagle/datasets/softwares/bcast/bcast.c -lmpi_gtl_cuda
 
 # Build the virtual environment with Dragon and move to other nodes
 python -m venv /tmp/_env --system-site-packages
 source /tmp/_env/bin/activate
-pip install dragonhpc
+pip install dragonhpc[telemetry,ai]
 dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/2.2.0rc1/lib64
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast --no-root-write \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast --no-root-write \
   /tmp/_env /tmp
 
 # Move model weights to /tmp on the nodes
@@ -49,7 +48,7 @@ if [[ ! -e "$MODEL_EAGLE_PATH" ]]; then
     exit 1
 fi
 MODEL_TMP_PATH=/tmp/hf_home/hub/
-mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa $UTILS/bcast \
+mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast \
   $MODEL_EAGLE_PATH $MODEL_TMP_PATH
 export HF_HOME=/tmp/hf_home
 
@@ -66,4 +65,4 @@ dragon ./dragon_llm_inference.py \
   --model_name $MODEL \
   --tp_size $TP_SIZE \
   --batch_size $BATCH_SIZE \
-  --prompt_file $UTILS/prompts.jsonl
+  --prompt_file /eagle/datasets/prompts/prompts.jsonl
