@@ -33,15 +33,9 @@ ENGINES_PER_NODE=4
 mpicc -O2 -o ./bcast /eagle/datasets/softwares/bcast/bcast.c -lmpi_gtl_cuda
 
 # Build the virtual environment with Dragon and move to other nodes
-python -m venv /tmp/_env --system-site-packages
+python -m venv /tmp/_env 
 source /tmp/_env/bin/activate
-CONDA_VLLM=$(python -c "import sys; sys.path.insert(0, '/path/to/conda/env/lib/pythonX.X/site-packages'); import vllm; print(vllm.__path__[0])")
-VENV_SITE=$(python -c "import site; print(site.getsitepackages()[0])")
-cp -r $CONDA_VLLM $VENV_SITE
-cp -r ${CONDA_VLLM}-* $VENV_SITE
-pip install dragonhpc[telemetry] # no need to install the extra ai package, we provide vllm from base conda env
-DRAGON_PKG_DIR=$(python -c 'import dragon, os; print(os.path.dirname(dragon.__file__))')
-patch -p1 -N -d "$DRAGON_PKG_DIR" < ./dragon.patch || true
+pip install dragonhpc[telemetry,ai]
 dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/2.2.0rc1/lib64
 mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast --no-root-write \
   /tmp/_env /tmp
