@@ -116,9 +116,11 @@ def main():
             max_tokens=args.max_output_tokens, # max number of output tokens
             max_model_len=8192, # max length of sequence (input+output)
             dtype=args.data_type,
-            top_k=50,
-            top_p=0.90, # how much to allocate for model + KV cache pool
-            system_prompt=["You are a helpful assistant."],
+            gpu_memory_utilization=0.90, 
+            top_p=1.0,     # vLLM default (dragon default is 0.95)
+            top_k=-1,      # vLLM default (dragon default is 50)
+            system_prompt=[""],  # remove system prompt for benchmarks
+            vllm_log_level="debug",
         ),
         hardware=HardwareConfig(
             num_nodes=num_nodes,
