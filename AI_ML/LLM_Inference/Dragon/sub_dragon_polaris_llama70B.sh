@@ -33,7 +33,7 @@ ENGINES_PER_NODE=1
 mpicc -O2 -o ./bcast /eagle/datasets/softwares/bcast/bcast.c -lmpi_gtl_cuda
 
 # Build the virtual environment with Dragon and move to other nodes
-python -m venv /tmp/_env --system-site-packages
+python -m venv /tmp/_env 
 source /tmp/_env/bin/activate
 pip install dragonhpc[telemetry,ai]
 dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/2.2.0rc1/lib64
