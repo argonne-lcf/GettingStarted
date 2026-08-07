@@ -180,6 +180,65 @@ The [EL_batched_inference.py](./EL/EL_batched_inference.py) script takes a few r
 * File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
 
 
+## Request-driven Inference with Dragon
+
+[Dragon](https://dragonhpc.org/portal/index.html) is a composable distributed run-time for managing processes, memory, and data at scale through high-performance communication objects, thus it is a valuable tool for designing and executing workflows on HPC systems.
+Among many other valuable features (see the [Dragon getting started examples](../../Workflows/dragonhpc/README.md)), the Dragon Python API also provides an [LLM Inference API](https://dragonhpc.github.io/dragon/doc/_build/html/ref/ai/inference/index.html) which can be used to distribute inference workloads to multiple nodes or integrate AI with scientific workflows. Their API leevrages the offline `vllm.LLM()` API, however it combines this with their multi-mode Python multiprocessing extension to enable across-node, request-driven inference. An example showing how to use Dragon for large-scale LLM inference is provided in the [Dragon](./Dragon/) directory, along with job scripts for both Polaris and Aurora. 
+
+**Note**: Currently, Dragon only supports deploying models that fit within a single node (4 A100 GPUs on Polaris and 12 PVC tiles on Aurora). HPE is working on solutions for deploying large models which require the memory from multiple nodes, and this support will be made available in future releases. 
+
+### Set up
+
+To install Dragon on ALCF systems, simply create a new virtual environment and pip install `dragonhpc` as shown below. Note, however, that the submit scripts are set up to install the virtual environments directly in `/tmp` on the compute nodes at the beginning of the job.
+
+```bash
+# On Aurora
+module load frameworks
+python -m venv _env --system-site-packages
+source _env/bin/activate
+pip install dragonhpc[ai]
+dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/1.22.0/lib64
+
+# On Polaris
+module use /soft/modulefiles
+module load conda
+conda activate base
+python -m venv _env --system-site-packages
+source _env/bin/activate
+CONDA_VLLM=$(python -c "import sys; sys.path.insert(0, '/path/to/conda/env/lib/pythonX.X/site-packages'); import vllm; print(vllm.__path__[0])")
+VENV_SITE=$(python -c "import site; print(site.getsitepackages()[0])")
+cp -r $CONDA_VLLM $VENV_SITE
+cp -r ${CONDA_VLLM}-* $VENV_SITE
+pip install dragonhpc[telemetry] # no need to install the extra ai packages, we provide vllm from base conda env
+DRAGON_PKG_DIR=$(python -c 'import dragon, os; print(os.path.dirname(dragon.__file__))')
+patch -p2 -N -d "$DRAGON_PKG_DIR" < ./dragon_lazy_guardrails.patch || true
+dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/2.2.0rc1/lib64
+```
+
+The last installation step of running `dragon-config` configures `dragon` to use fast RDMA transfers across the Slingshot network present on both systems.  Without this step, `dragon` would run in the default mode that uses slower TCP transfers.
+
+
+### Run the examples
+
+For both Aurora and Polaris, there are submit scripts to run a small, single-GPU model with tensor parallelism (`TP`) size of 1 and an example running a larger model requirung `TP>1`. 
+
+To run the examples, simply submit the scripts provided for Aurora and Polaris. For example, to run the example with the Llama 3.1 8B model on Aurora execute
+
+```bash
+qsub sub_dragon_aurora_llama8B.sh
+```
+
+The [dragon_llm_inference.py](./Dragon/dragon_llm_inference.py) script takes a few runtime parameters to note:
+
+* The Hugging Face token (required)
+* The model name (required)
+* The tensor parallel (TP) size to use for the model (defaults to 1)
+* The data type to use (defaults to `bfloat16`)
+* The maximum number of output tokens (defaults to 128). This parameter can impact performance significantly and may need to be adjusted depending on the expected length of the LLM response.
+* The prompt batch size (defaults to 1). Increasing the batch size can improve overall inference throughput (requests per second) depending on the available memory for the KV cache pool.
+* File containing the prompts to be used for inference (defaults to [prompts.jsonl](./utils/prompts.jsonl)). The script is set up to weak scale the workflow by replicating the prompts for as many inference engines requested.
+
+
 ## Tips for scaling
 
 ### Moving model weights, vLLM cache and Python venv to local node memory
@@ -190,13 +249,13 @@ For this, we provide an MPI utility called [bcast.c](./utils/bcast.c) which can 
 ```bash
 # On Aurora
 module load frameworks
-mpicc -O2 -o ./utils/bcast ./utils/bcast.c
+mpicc -O2 -o ./bcast /flare/datasets/softwares/bcast/bcast.c
 
 # On Polaris
 module use /soft/modulefiles
 module load conda
 conda activate
-mpicc -O2 -o ./utils/bcast ./utils/bcast.c -lmpi_gtl_cuda
+mpicc -O2 -o ./bcast /eagle/datasets/softwares/bcast/bcast.c -lmpi_gtl_cuda
 ```
 
 and to move a directory from Lustre to `/tmp` execute
