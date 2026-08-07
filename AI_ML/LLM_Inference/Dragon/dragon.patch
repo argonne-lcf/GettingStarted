@@ -43,3 +43,32 @@
          tools_list: list = None,
          json_schema_list: list = None,
          continue_final_message_list: list = None,
+--- a/ai/inference/llm_engine.py
++++ b/ai/inference/llm_engine.py
+@@ -223,10 +223,25 @@ class LLMInferenceEngine:
+         This should be called within the worker process to avoid
+         serialization issues with CUDA objects.
+         """
++        # Per-instance TMPDIR so co-located vLLM engines on the same node do
++        # not collide on SHM sockets, Triton compile cache, vLLM modelinfo
++        # cache, and other files vLLM/torch/multiprocessing write under $TMPDIR.
++        # Contention on shared /tmp has been observed to cause silent WorkerProc
++        # init failures at scale (many engines per node).
++        os.environ["TMPDIR"] = f"/tmp/vllm_inst_dev{self.devices[0]}_pid{os.getpid()}"
++        os.makedirs(os.environ["TMPDIR"], exist_ok=True)
+         # Set environment variables
+         os.environ["HF_TOKEN"] = self.model_config.hf_token
+         os.environ["MASTER_ADDR"] = "127.0.0.1"
+         # Discover a free port on this worker node for distributed communication; needed for vLLM's distributed executor backend
+-        os.environ["MASTER_PORT"] = find_free_port(device_index=self.devices[0])
++        master_port = find_free_port(device_index=self.devices[0])
++        os.environ["MASTER_PORT"] = master_port
++        # Additional env vars mirroring the MPI reference implementation.
++        # VLLM_HOST_IP/VLLM_PORT pin vLLM's own distributed-init endpoint to
++        # loopback + the same free port, avoiding races where vLLM otherwise
++        # picks its own port and collides with co-located engines.
++        os.environ["VLLM_HOST_IP"] = "127.0.0.1"
++        os.environ["VLLM_PORT"] = master_port
++        os.environ["RANK"] = "0"
++        os.environ["WORLD_SIZE"] = str(self.model_config.tp_size)
+         os.environ["VLLM_LOGGING_LEVEL"] = self.model_config.vllm_log_level.upper()

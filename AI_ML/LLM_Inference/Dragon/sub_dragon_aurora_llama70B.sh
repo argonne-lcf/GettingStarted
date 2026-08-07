@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #PBS -N dragon-vllm
 #PBS -l select=2
-#PBS -l walltime=00:30:00
+#PBS -l walltime=01:00:00
 #PBS -q debug-scaling
 #PBS -A <project_name>
 #PBS -l filesystems=home:flare
@@ -39,9 +39,9 @@ CONDA_VLLM=$(python -c "import sys; sys.path.insert(0, '/path/to/conda/env/lib/p
 VENV_SITE=$(python -c "import site; print(site.getsitepackages()[0])")
 cp -r $CONDA_VLLM $VENV_SITE
 cp -r ${CONDA_VLLM}-* $VENV_SITE
-pip install dragonhpc[telemetry] # no need to install the extra ai packages, we provide vllm from base conda env
+pip install dragonhpc[telemetry] # no need to install the extra ai package, we provide vllm from base conda env
 DRAGON_PKG_DIR=$(python -c 'import dragon, os; print(os.path.dirname(dragon.__file__))')
-patch -p2 -N -d "$DRAGON_PKG_DIR" < ./dragon_lazy_guardrails.patch || true
+patch -p1 -N -d "$DRAGON_PKG_DIR" < ./dragon.patch || true
 dragon-config add --ofi-runtime-lib=/opt/cray/libfabric/1.22.0/lib64
 mpiexec -np "${NODES}" -ppn 1 --cpu-bind numa ./bcast --no-root-write \
   /tmp/_env /tmp
